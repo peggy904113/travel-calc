@@ -1,0 +1,31 @@
+<script>
+    let items = JSON.parse(localStorage.getItem('travel_items')) || [];
+
+    // 初始化讀取資料
+    window.onload = function() {
+        const savedFlight = localStorage.getItem('flight');
+        const savedHotel = localStorage.getItem('hotelTotal');
+        if(savedFlight) document.getElementById('flight').value = savedFlight;
+        if(savedHotel) document.getElementById('hotelTotal').value = savedHotel;
+        render();
+    };
+
+    // 修改 update 函數，加入自動存檔
+    function update() {
+        const r = parseFloat(document.getElementById('exRate').value)||1;
+        const f = parseFloat(document.getElementById('flight').value)||0;
+        const hTotal = parseFloat(document.getElementById('hotelTotal').value)||0;
+        
+        // 存檔到手機本地
+        localStorage.setItem('flight', f);
+        localStorage.setItem('hotelTotal', hTotal);
+        localStorage.setItem('travel_items', JSON.stringify(items));
+
+        const pCount = parseFloat(document.getElementById('peopleCount').value)||1;
+        const hPerPerson = Math.round(hTotal / pCount);
+        document.getElementById('hotelSplitResult').innerText = `住宿每人：${hPerPerson.toLocaleString()} TWD`;
+
+        let d = items.reduce((s, i) => s + (i.t=='f' ? i.p*r : i.p), 0);
+        document.getElementById('gTotal').innerText = Math.round(f + hPerPerson + d).toLocaleString();
+    }
+</script>
