@@ -6,66 +6,188 @@
     <title>Hokkaido Winter Trip</title>
     <style>
         :root { 
-            --ice-blue: #e3f2fd;
-            --snow-white: #ffffff;
-            --deep-blue: #1a2a6c;
-            --accent-gold: #f1c40f; /* 像雪地裡的暖陽 */
+            --sky-blue-top: #90caf9;    /* 天空藍 */
+            --sky-blue-mid: #e3f2fd;    /* 淡藍過渡 */
+            --snow-white-ground: #ffffff; /* 雪地白 */
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --text-dark: #2c3e50;
+            --accent-blue: #1565c0;
         }
         
         body { 
             font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; 
-            background: linear-gradient(to bottom, #1a2a6c, #b21f1f, #fdbb2d); /* 模擬北海道夕陽雪景 */
+            /* 改為淡藍天接白雪地的漸層 */
+            background: linear-gradient(to bottom, var(--sky-blue-top) 0%, var(--sky-blue-mid) 50%, var(--snow-white-ground) 100%);
             background-attachment: fixed;
-            margin: 0; padding: 15px; padding-bottom: 140px; color: #2c3e50;
+            margin: 0; padding: 15px; padding-bottom: 140px; color: var(--text-dark);
             min-height: 100vh;
             overflow-x: hidden;
         }
 
-        /* 雪花背景效果 */
+        /* 雪花裝飾 - 增加一點透明度和陰影以適應亮背景 */
         body::before {
-            content: "❄"; color: white; position: fixed; top: -10%; left: 10%; font-size: 20px; animation: snow 10s linear infinite; opacity: 0.5;
+            content: "❄ ❄ ❄ ❄"; 
+            color: white; 
+            position: fixed; top: -10%; left: 5%; 
+            font-size: 22px; 
+            animation: snow 15s linear infinite; 
+            opacity: 0.8; /* 提高不透明度 */
+            z-index: -1;
+            text-shadow: 0 0 8px rgba(255,255,255,0.9); /* 增加雪花光暈 */
         }
         @keyframes snow {
-            0% { transform: translateY(0) rotate(0deg); }
-            100% { transform: translateY(110vh) rotate(360deg); }
+            0% { transform: translateY(-10vh) rotate(0deg) translateX(0); }
+            100% { transform: translateY(110vh) rotate(360deg) translateX(50px); }
         }
 
         .card { 
-            background: rgba(255, 255, 255, 0.85);
+            background: var(--card-bg);
             border-radius: 24px; padding: 20px; 
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2); 
+            /* 調整陰影讓它在白底上更柔和 */
+            box-shadow: 0 10px 40px rgba(144, 202, 249, 0.3); 
             margin-bottom: 20px;
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
         }
 
-        h3 { 
-            margin-top: 0; color: #0d47a1; font-size: 1.2rem; 
-            display: flex; align-items: center; gap: 8px;
-        }
+        h3 { margin-top: 0; color: var(--accent-blue); font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
 
         .row { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; }
         input, select { 
-            padding: 14px; border: 1px solid #c5cae9; border-radius: 15px; 
+            padding: 12px; border: 2px solid #e3f2fd; border-radius: 12px; 
             font-size: 16px; width: 100%; box-sizing: border-box;
-            background: rgba(255,255,255,0.9);
+            background: rgba(255,255,255,0.95); color: var(--text-dark);
+            transition: 0.3s;
         }
+        input:focus, select:focus { border-color: #90caf9; outline: none; }
 
         button { 
-            cursor: pointer; border: none; border-radius: 15px; 
+            cursor: pointer; border: none; border-radius: 12px; 
             padding: 14px; font-weight: bold; transition: 0.3s;
+            width: 100%;
         }
-        .btn-add { background: linear-gradient(45deg, #2196F3, #21CBF3); color: white; width: 100%; box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3); }
-        .btn-copy { background: #37474f; color: white; width: 100%; margin-top: 15px; }
+        .btn-add { background: linear-gradient(45deg, #42a5f5, #64b5f6); color: white; box-shadow: 0 4px 15px rgba(66, 165, 245, 0.3); }
+        .btn-copy { background: #546e7a; color: white; margin-top: 15px; }
 
         .day-title { 
-            font-weight: bold; color: white; background: #5c6bc0; 
-            padding: 6px 18px; border-radius: 20px; display: inline-block;
-            margin: 15px 0 10px 0; font-size: 0.85rem;
+            font-weight: bold; color: white; background: #64b5f6; /* 更亮的藍色標題背景 */
+            padding: 5px 15px; border-radius: 20px; display: inline-block;
+            margin: 10px 0; font-size: 0.8rem;
         }
         .item { 
             background: white; display: flex; justify-content: space-between; 
-            align-items: center; padding: 12px 15px; border-radius: 15px;
-            margin-bottom: 8px; border-left: 5px solid #9fa8da;
+            align-items: center; padding: 10px 15px; border-radius: 12px;
+            margin-bottom: 8px; box-shadow: 0 2px 8px rgba(144, 202, 249, 0.15);
+            border-left: 4px solid #bbdefb;
         }
-        .del-btn { color: #ff5252; background: none; border: none; font-size: 0.8rem
+        .del-btn { color: #e57373; background: none; border: none; font-size: 14px; padding: 5px; }
+
+        #textReport { 
+            background: #f1f8e9; border-radius: 12px; padding: 12px; 
+            white-space: pre-wrap; font-size: 0.85rem; color: #37474f;
+            border: 1px dashed #cfd8dc;
+        }
+
+        .summary-bar { 
+            position: fixed; bottom: 0; left: 0; width: 100%; 
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
+            padding: 15px 20px; text-align: center; box-sizing: border-box; 
+            z-index: 1000; border-top: 3px solid #bbdefb; border-radius: 30px 30px 0 0;
+            box-shadow: 0 -10px 30px rgba(144, 202, 249, 0.2);
+        }
+        .total-text { color: var(--accent-blue); font-size: 1.6rem; font-weight: 900; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h3>❄️ 北海道雪季預算</h3>
+    <div class="row">
+        <div style="flex:1"><small>日幣匯率</small><input type="number" id="exRate" value="0.22" step="0.001" oninput="update()"></div>
+        <div style="flex:1"><small>機票(台幣)</small><input type="number" id="flight" placeholder="金額" oninput="update()"></div>
+    </div>
+    <div class="row">
+        <div style="flex:1"><small>住宿總額</small><input type="number" id="hotelTotal" placeholder="總計" oninput="update()"></div>
+        <div style="flex:1"><small>分攤人數</small><input type="number" id="peopleCount" value="6" oninput="update()"></div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>🏂 行程規劃</h3>
+    <div class="row">
+        <select id="dayP" style="flex:1">
+            <option value="1">D1</option><option value="2">D2</option><option value="3">D3</option>
+            <option value="4">D4</option><option value="5">D5</option><option value="6">D6</option>
+            <option value="7">D7</option>
+        </select>
+        <input type="text" id="itemName" placeholder="項目名稱" style="flex:2">
+    </div>
+    <div class="row">
+        <input type="number" id="itemPrice" placeholder="金額">
+        <select id="curT" style="width: 90px;"><option value="f">日幣</option><option value="t">台幣</option></select>
+    </div>
+    <button class="btn-add" onclick="add()">🏔️ 加入行程清單</button>
+    <div id="itList"></div>
+</div>
+
+<div class="card" style="margin-bottom:100px;">
+    <h3>📜 報表摘要</h3>
+    <div id="textReport">等待輸入中...</div>
+    <button class="btn-copy" onclick="copy()">📋 複製報表</button>
+</div>
+
+<div class="summary-bar">
+    <div style="font-size:0.8rem; color:#546e7a;">個人預估總支出</div>
+    <span class="total-text" id="gTotal">0</span> <small>TWD</small>
+</div>
+
+<script>
+    // 為了確保資料穩定，維持使用 v3 的儲存鍵值
+    let items = JSON.parse(localStorage.getItem('h_it_v3')) || [];
+    window.onload = function() {
+        document.getElementById('flight').value = localStorage.getItem('h_f_v3') || '';
+        document.getElementById('hotelTotal').value = localStorage.getItem('h_h_v3') || '';
+        render();
+    };
+    function add() {
+        const d = document.getElementById('dayP').value, n = document.getElementById('itemName').value, p = parseFloat(document.getElementById('itemPrice').value)||0, t = document.getElementById('curT').value;
+        if(!n) return;
+        items.push({day: parseInt(d), n, p, t});
+        items.sort((a,b) => a.day - b.day);
+        document.getElementById('itemName').value=''; document.getElementById('itemPrice').value='';
+        render();
+    }
+    function remove(i) { items.splice(i, 1); render(); }
+    function render() {
+        const listDiv = document.getElementById('itList');
+        listDiv.innerHTML = '';
+        const days = [...new Set(items.map(i => i.day))].sort((a,b)=>a-b);
+        days.forEach(day => {
+            let dayHtml = `<div class="day-title">第 ${day} 天</div>`;
+            items.forEach((it, idx) => {
+                if(it.day === day) dayHtml += `<div class="item"><span>📍 ${it.n} (${it.p}${it.t=='f'?'円':'元'})</span><button class="del-btn" onclick="remove(${idx})">刪除</button></div>`;
+            });
+            listDiv.innerHTML += dayHtml;
+        });
+        update();
+    }
+    function update() {
+        const r = parseFloat(document.getElementById('exRate').value)||1, f = parseFloat(document.getElementById('flight').value)||0, hT = parseFloat(document.getElementById('hotelTotal').value)||0, pC = parseFloat(document.getElementById('peopleCount').value)||1;
+        const hPer = Math.round(hT / pC);
+        localStorage.setItem('h_f_v3', f); localStorage.setItem('h_h_v3', hT); localStorage.setItem('h_it_v3', JSON.stringify(items));
+        let dTotal = items.reduce((s, i) => s + (i.t=='f' ? i.p*r : i.p), 0);
+        const grandTotal = Math.round(f + hPer + dTotal);
+        document.getElementById('gTotal').innerText = grandTotal.toLocaleString();
+        let report = `⛄ 北海道行程預算\n機票：${f.toLocaleString()} TWD\n住宿：${hPer.toLocaleString()} TWD\n---\n`;
+        days = [...new Set(items.map(i => i.day))].sort((a,b)=>a-b);
+        days.forEach(day => {
+            report += `【Day ${day}】\n`;
+            items.forEach(it => { if(it.day === day) report += ` - ${it.n}：${it.p.toLocaleString()} (${it.t=='f'?'日幣':'台幣'})\n`; });
+        });
+        report += `---\n💰 總花費：${grandTotal.toLocaleString()} TWD`;
+        document.getElementById('textReport').innerText = report;
+    }
+    function copy() { navigator.clipboard.writeText(document.getElementById('textReport').innerText).then(() => alert("報表已複製！")); }
+</script>
+</body>
+</html>
