@@ -8,15 +8,13 @@
         :root { --sky-blue-top: #90caf9; --sky-blue-mid: #e3f2fd; --snow-ground: #f0f8ff; --text-dark: #2c3e50; --accent-blue: #1565c0; }
         body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: linear-gradient(180deg, var(--sky-blue-top) 0%, var(--sky-blue-mid) 40%, var(--snow-ground) 100%); background-attachment: fixed; margin: 0; padding: 0; color: var(--text-dark); min-height: 100vh; }
         
-        /* 導覽列 */
         .nav-tabs { display: flex; background: rgba(255, 255, 255, 0.9); position: sticky; top: 0; z-index: 2000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .tab { flex: 1; text-align: center; padding: 15px 0; font-weight: bold; color: #546e7a; cursor: pointer; transition: 0.3s; border-bottom: 3px solid transparent; }
+        .tab { flex: 1; text-align: center; padding: 15px 0; font-weight: bold; color: #546e7a; cursor: pointer; border-bottom: 3px solid transparent; }
         .tab.active { color: var(--accent-blue); border-bottom: 3px solid var(--accent-blue); background: rgba(144, 202, 249, 0.1); }
 
         .container { padding: 15px; padding-bottom: 120px; }
         .page { display: none; }
-        .page.active { display: block; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .page.active { display: block; }
 
         .card { background: rgba(255, 255, 255, 0.85); border-radius: 20px; padding: 18px; box-shadow: 0 8px 25px rgba(144, 202, 249, 0.2); margin-bottom: 15px; backdrop-filter: blur(8px); }
         h3 { margin-top: 0; color: var(--accent-blue); font-size: 1rem; border-left: 4px solid var(--accent-blue); padding-left: 8px; }
@@ -25,18 +23,19 @@
         input, select { padding: 12px; border: 2px solid #e3f2fd; border-radius: 12px; font-size: 15px; flex: 1; min-width: 100px; box-sizing: border-box; }
         
         button { cursor: pointer; border: none; border-radius: 12px; padding: 14px; font-weight: bold; width: 100%; }
-        .btn-add { background: linear-gradient(45deg, #42a5f5, #64b5f6); color: white; margin-top: 5px; }
+        .btn-add { background: linear-gradient(45deg, #42a5f5, #64b5f6); color: white; }
+        .btn-loc { background: #ff7043; color: white; margin-bottom: 10px; } /* 定位按鈕顏色 */
         
         .day-title { font-weight: bold; color: white; background: #64b5f6; padding: 4px 12px; border-radius: 15px; margin: 15px 0 10px 0; font-size: 0.8rem; }
-        .item { background: white; padding: 12px; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .item-top { display: flex; justify-content: space-between; align-items: center; }
-        .time-tag { color: #e65100; font-weight: bold; font-size: 0.75rem; background: #fff3e0; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px; }
-        .del-btn { color: #e57373; font-size: 0.7rem; border: 1px solid #ffcdd2; padding: 2px 6px; border-radius: 4px; background: none; }
+        .item { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .item-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
+        .item-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
         
-        /* 底部固定總額 */
-        .summary-bar { position: fixed; bottom: 15px; left: 15px; right: 15px; background: white; padding: 15px; border-radius: 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); text-align: center; z-index: 1000; border: 1px solid #e3f2fd; }
+        .time-tag { color: #e65100; font-weight: bold; font-size: 0.75rem; background: #fff3e0; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+        .del-btn { color: #e57373; font-size: 0.7rem; border: 1px solid #ffcdd2; padding: 4px 8px; border-radius: 6px; background: #fff; }
+        
+        .summary-bar { position: fixed; bottom: 15px; left: 15px; right: 15px; background: white; padding: 15px; border-radius: 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); text-align: center; z-index: 1000; }
         .total-text { color: var(--accent-blue); font-size: 1.4rem; font-weight: 900; }
-        .img-preview { width: 100%; border-radius: 10px; margin-top: 8px; }
     </style>
 </head>
 <body>
@@ -89,13 +88,14 @@
 
     <div id="tools" class="page">
         <div class="card">
-            <h3>🔍 快速查找</h3>
-            <input type="text" id="mapSearch" placeholder="想去哪裡？" style="margin-bottom:10px;">
-            <button class="btn-add" onclick="window.open('https://www.google.com/maps/search/'+document.getElementById('mapSearch').value)">開啟 Google 地圖</button>
+            <h3>📍 地圖定位工具</h3>
+            <button class="btn-loc" onclick="window.open('https://www.google.com/maps/search/?api=1&query=My+Location', '_blank')">🧭 顯示我的目前位置</button>
+            <input type="text" id="mapSearch" placeholder="搜尋附近景點或餐廳..." style="margin-bottom:10px; width:100%; padding:12px; border-radius:12px; border:2px solid #e3f2fd; box-sizing:border-box;">
+            <button class="btn-add" onclick="window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(document.getElementById('mapSearch').value), '_blank')">🔍 在地圖中搜尋</button>
         </div>
         <div class="card">
             <h3>📋 備忘錄</h3>
-            <textarea id="memo" style="width:100%; height:150px; border-radius:12px; border:2px solid #e3f2fd; padding:10px;" oninput="saveMemo()" placeholder="紀錄一些不計費的事情..."></textarea>
+            <textarea id="memo" style="width:100%; height:150px; border-radius:12px; border:2px solid #e3f2fd; padding:10px; box-sizing:border-box;" oninput="saveMemo()" placeholder="紀錄一些不計費的事情..."></textarea>
         </div>
     </div>
 </div>
@@ -115,10 +115,10 @@
         {day: 7, n: "美唄雪上樂園", p: 2000, t: "f", time: "09:00-16:15", note: ""}
     ];
 
-    let items = JSON.parse(localStorage.getItem('h_it_v9')) || defaultItems;
+    let items = JSON.parse(localStorage.getItem('h_it_v11')) || defaultItems;
 
     window.onload = function() {
-        document.getElementById('memo').value = localStorage.getItem('h_memo_v9') || "";
+        document.getElementById('memo').value = localStorage.getItem('h_memo_v11') || "";
         render();
     };
 
@@ -138,8 +138,14 @@
         render();
     }
 
-    function remove(i) { items.splice(i, 1); render(); }
-    function saveMemo() { localStorage.setItem('h_memo_v9', document.getElementById('memo').value); }
+    function remove(i) {
+        if (confirm(`確定要刪除「${items[i].n}」嗎？`)) {
+            items.splice(i, 1);
+            render();
+        }
+    }
+
+    function saveMemo() { localStorage.setItem('h_memo_v11', document.getElementById('memo').value); }
 
     function render() {
         const listDiv = document.getElementById('itList');
@@ -151,12 +157,17 @@
                 if(it.day === day) {
                     dayHtml += `<div class="item">
                         <div class="item-top">
-                            <span style="font-weight:bold;">${it.n}</span>
-                            <button class="del-btn" onclick="remove(${idx})">刪除</button>
+                            <div>
+                                <div style="font-weight:bold; font-size:1rem;">${it.n}</div>
+                                <div style="color:#1565c0; font-size:0.9rem; margin-top:2px;">${it.p.toLocaleString()}${it.t=='f'?'円':'元'}</div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="del-btn" onclick="remove(${idx})">刪除</button>
+                                <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(it.n)}" target="_blank" style="font-size:0.75rem; color:#1565c0; text-decoration:none; border:1px solid #bbdefb; padding:4px 8px; border-radius:6px; background:#e3f2fd;">🚗 導航去這</a>
+                            </div>
                         </div>
-                        <div style="color:#1565c0; font-size:0.9rem;">${it.p}${it.t=='f'?'円':'元'}</div>
                         ${it.time ? `<div class="time-tag">⏰ ${it.time}</div>` : ''}
-                        <div style="margin-top:5px;"><a href="https://www.google.com/maps/search/${encodeURIComponent(it.n)}" target="_blank" style="font-size:0.75rem; color:#1565c0; text-decoration:none;">🗺️ 查看路線</a></div>
+                        ${it.note ? `<div style="font-size:0.8rem; color:#666; margin-top:5px;">${it.note}</div>` : ''}
                     </div>`;
                 }
             });
@@ -171,21 +182,15 @@
         let hT = 0;
         try { hT = eval(hVal.replace(/[^\d+*/.-]/g, '')) || 0; } catch(e) { hT = 0; }
         
-        localStorage.setItem('h_f_v9', f);
-        localStorage.setItem('h_h_v9', hVal);
-        localStorage.setItem('h_it_v9', JSON.stringify(items));
+        localStorage.setItem('h_f_v11', f);
+        localStorage.setItem('h_h_v11', hVal);
+        localStorage.setItem('h_it_v11', JSON.stringify(items));
 
         let dTotal = items.reduce((s, i) => s + (i.t=='f' ? i.p*r : i.p), 0);
         const perHotel = Math.round(hT * r / pC);
         const gTotal = Math.round(f + perHotel + dTotal);
-        
         document.getElementById('gTotal').innerText = gTotal.toLocaleString();
-        
-        document.getElementById('categoryBreakdown').innerHTML = `
-            機票：${f.toLocaleString()} TWD<br>
-            住宿：${perHotel.toLocaleString()} TWD<br>
-            行程：${Math.round(dTotal).toLocaleString()} TWD
-        `;
+        document.getElementById('categoryBreakdown').innerHTML = `🛫 個人機票：${f.toLocaleString()} TWD<br>🏨 個人住宿：${perHotel.toLocaleString()} TWD<br>🎫 行程雜項：${Math.round(dTotal).toLocaleString()} TWD`;
     }
 </script>
 </body>
