@@ -16,7 +16,7 @@
         .page.active { display: block; }
         .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
         
-        /* 行程卡片 */
+        /* 行程卡片：新增實支顯示 */
         .it-card { background: white; border-radius: 15px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .it-time { min-width: 50px; font-weight: 900; color: var(--accent-blue); font-size: 0.9rem; text-align: center; border-right: 1px solid #eee; padding-right: 5px; }
         .it-info { flex: 1; }
@@ -64,7 +64,7 @@
             <h3>🧳 備忘行李清單</h3>
             <div id="packingList"></div>
             <div style="display:flex; gap:8px;">
-                <input type="text" id="newPack" placeholder="增加...">
+                <input type="text" id="newPack" placeholder="增加..." style="margin:0;">
                 <button class="btn" style="background:var(--orange); color:white; width:50px;" onclick="addItem('packing','newPack')">+</button>
             </div>
         </div>
@@ -118,13 +118,6 @@
 
     window.onload = () => { renderAll(); };
 
-    function showPage(id, el) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        el.classList.add('active');
-    }
-
     function archiveSplitData() {
         if(!confirm("結帳並清空目前明細？金額會存入歷史紀錄。")) return;
         data.archives.push({ time: new Date().toLocaleString(), info: document.getElementById('splitSummary').innerText });
@@ -137,6 +130,7 @@
         document.getElementById('itFields').style.display = mode==='ITINERARY'?'block':'none';
         document.getElementById('splitFields').style.display = mode==='SPLIT'?'block':'none';
         
+        // 更新下拉選單
         const dl = document.getElementById('itineraryOptions');
         dl.innerHTML = data.itinerary.map(it => `<option value="${it.n}">`).join('');
 
@@ -183,35 +177,25 @@
     function autoFillRest() {
         const total = parseFloat(document.getElementById('mPrice').value) || 0;
         const checked = names.filter(n => document.getElementById(`cb_${n}`).checked);
-        checked.forEach(n => {
-            const el = document.getElementById(`amt_${n}`);
-            if(el) el.placeholder = Math.round(total / checked.length);
-        });
-    }
-
-    function addItem(type, inputId) {
-        const val = document.getElementById(inputId).value;
-        if(!val) return;
-        data[type].push({ t: val, d: false });
-        document.getElementById(inputId).value = '';
-        saveAll();
+        checked.forEach(n => document.getElementById(`amt_${n}`).placeholder = Math.round(total / checked.length));
     }
 
     function saveAll() { localStorage.setItem('hokkaido_v44', JSON.stringify(data)); renderAll(); }
     function closeModal() { document.getElementById('editModal').style.display='none'; }
 
-    function updateAll() { renderAll(); }
-
     function renderAll() {
         const rate = parseFloat(document.getElementById('exRate').value)||0.2;
         const itDiv = document.getElementById('itList'); itDiv.innerHTML = '';
+        
+        // 1. 先從分帳資料中建立「實際花費索引」
         const actualCosts = {};
         data.split.forEach(s => { actualCosts[s.n] = { p: s.p, t: s.t }; });
 
+        // 2. 渲染行程，並同步顯示分帳金額
         [1,2,3,4,5].forEach(d => {
             itDiv.innerHTML += `<div class="day-header">Day ${d}</div>`;
-            data.itinerary.filter(i => i.day === d).forEach((it) => {
-                const real = actualCosts[it.n];
+            data.itinerary.filter(i => i.day === d).forEach((it, idx) => {
+                const real = actualCosts[it.n]; // 檢查是否有同名的分帳紀錄
                 itDiv.innerHTML += `
                     <div class="it-card" onclick="openModal('ITINERARY', ${data.itinerary.indexOf(it)})">
                         <div class="it-time">${it.time||'--'}</div>
@@ -223,6 +207,7 @@
             });
         });
 
+        // 3. 財務計算
         let myPure = 0, myLend = 0, balF = {翌:0,丞:0,馨:0,子:0,嚕:0};
         data.split.forEach(s => {
             s.targets.forEach(tg => {
@@ -234,9 +219,7 @@
 
         document.getElementById('splitList').innerHTML = data.split.map((s,i)=>`<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><span>${s.p}${s.t==='f'?'円':'元'}</span></div>`).join('');
         document.getElementById('splitSummary').innerHTML = Object.entries(balF).map(([n,v])=>Math.abs(v)>1?`● ${n}: ${Math.round(v)}円<br>`:'').join('');
-        const hotelTwd = (parseFloat(document.getElementById('hotelTotal').value)/6*rate);
-        document.getElementById('hotelPreview').innerText = `每人約分擔: ${Math.round(hotelTwd)} 元`;
-        document.getElementById('statMyTotal').innerText = `$${Math.round(myPure + hotelTwd).toLocaleString()}`;
+        document.getElementById('statMyTotal').innerText = `$${Math.round(myPure + (parseFloat(document.getElementById('hotelTotal').value)/6*rate)).toLocaleString()}`;
         document.getElementById('statMyLend').innerText = `$${Math.round(myLend).toLocaleString()}`;
         
         const pk = document.getElementById('packingList'); pk.innerHTML = data.packing.map((p,i)=>`<div><span onclick="data.packing[${i}].d=!data.packing[${i}].d;saveAll()" style="${p.d?'text-decoration:line-through;opacity:0.5':''}">${p.t}</span></div>`).join('');
