@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hokkaido Master V29</title>
+    <title>Hokkaido Master V30</title>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --private-purple: #9c27b0; --orange: #ffa726; --text: #2c3e50; }
         body { font-family: "PingFang TC", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); }
@@ -32,7 +32,6 @@
         .amt-input { width: 70px !important; padding: 5px !important; margin: 0 !important; font-size: 13px !important; text-align: right; border-radius: 5px !important; }
 
         .card { background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .card h3 { margin-top: 0; font-size: 1rem; color: var(--accent-blue); display: flex; justify-content: space-between; }
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; box-sizing: border-box; }
         .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; width: 100%; }
         .btn-main { background: var(--accent-blue); color: white; }
@@ -63,7 +62,7 @@
 
     <div id="private" class="page">
         <div class="card"><h3>🧳 備忘/行李清單</h3><div id="packingList"></div><div style="display:flex; gap:5px;"><input type="text" id="newPack" placeholder="增加項目..." style="margin:0;"><button class="btn" style="background:var(--orange); color:white; width:60px;" onclick="addItem('packing','newPack')">+</button></div></div>
-        <div class="card"><h3>⚙️ 設定</h3><small>機票(NT)</small><input type="number" id="flight" value="21255" oninput="updateAll()"><small>匯率</small><input type="number" id="exRate" value="0.2" step="0.001" oninput="updateAll()"><small>住宿(日幣算式)</small><input type="text" id="hotelTotal" value="97742 + 276517" oninput="updateAll()"></div>
+        <div class="card"><h3>⚙️ 設定</h3><small>機票(NT)</small><input type="number" id="flight" value="21255" oninput="updateAll()"><small>匯率</small><input type="number" id="exRate" value="0.2" step="0.001" oninput="updateAll()"><small>住宿(日幣總額算式，會平分6人)</small><input type="text" id="hotelTotal" value="97742 + 276517" oninput="updateAll()"></div>
     </div>
 </div>
 
@@ -76,25 +75,20 @@
             <small>地點/網址 (點擊📍導航)</small><input type="text" id="mMap" placeholder="景點名稱或 Google Map 連結">
             <small>照片</small><input type="file" id="mImgFile" accept="image/*" onchange="handleImgUpload(this)"><input type="hidden" id="mImgBase64">
         </div>
-
         <div id="splitFields"><small>付款人</small><select id="mPayer"><option value="ME">我</option><option value="翌">翌</option><option value="丞">丞</option><option value="馨">馨</option><option value="子">子</option><option value="嚕">嚕</option></select></div>
-
         <small>金額 (可用算式)</small>
         <div class="calc-input-group">
             <input type="text" id="mPrice" placeholder="金額" oninput="autoFillRest()">
             <button class="calc-btn" onclick="doCalc('mPrice')">=</button>
             <select id="mCur" style="width:80px; margin:0;"><option value="f">円</option><option value="t">元</option></select>
         </div>
-
         <div id="targetFields">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;"><small>成員分帳</small><button onclick="toggleSplitMode()" id="modeBtn" style="font-size:0.7rem; border:1px solid #ccc; background:#eee; padding:2px 8px; border-radius:5px;">切換手動模式</button></div>
             <div id="targetGrid" class="target-grid"></div>
         </div>
-
-        <small>項目名稱</small><input type="text" id="mName" placeholder="例如：飯店、晚餐">
-        
+        <small>項目名稱</small><input type="text" id="mName" placeholder="項目名稱">
         <div style="display:flex; gap:10px; margin-top:15px;"><button class="btn" style="background:#eee;" onclick="closeModal()">取消</button><button class="btn btn-main" onclick="handleSave()">儲存</button></div>
-        <button id="btnDel" onclick="handleDelete()" style="background:none; border:none; color:red; width:100%; margin-top:15px; font-size:0.8rem;">🗑️ 刪除項目</button>
+        <button id="btnDel" onclick="handleDelete()" style="background:none; border:none; color:red; width:100%; margin-top:15px; font-size:0.8rem;">🗑️ 刪除此項紀錄</button>
     </div>
 </div>
 
@@ -119,13 +113,13 @@
     }
 
     function updateTagStyle(n) {
-        document.getElementById(`tag_${n}`).classList.toggle('active', document.getElementById(`cb_${n}`).checked);
+        const tag = document.getElementById(`tag_${n}`);
+        if(tag) tag.classList.toggle('active', document.getElementById(`cb_${n}`).checked);
         autoFillRest();
     }
 
     function handleImgUpload(el) {
-        const file = el.files[0];
-        if(!file) return;
+        const file = el.files[0]; if(!file) return;
         const reader = new FileReader();
         reader.onload = (e) => { document.getElementById('mImgBase64').value = e.target.result; };
         reader.readAsDataURL(file);
@@ -138,7 +132,7 @@
     }
 
     function doCalc(id) {
-        const input = document.getElementById(id);
+        const input = document.getElementById(id); if(!input) return;
         try { 
             let res = eval(input.value.toString().replace(/[^\d+*/.-]/g, ''));
             input.value = isNaN(res) ? "" : Math.round(res * 100) / 100;
@@ -150,7 +144,7 @@
         if(!isManual) return;
         const total = parseFloat(document.getElementById('mPrice').value) || 0;
         const checkedNames = names.filter(n => document.getElementById(`cb_${n}`).checked);
-        let sum = 0; let lastN = '';
+        let sum = 0, lastN = '';
         checkedNames.forEach(n => {
             const v = parseFloat(document.getElementById(`amt_${n}`).value);
             if(!isNaN(v)) sum += v;
@@ -183,12 +177,17 @@
         document.getElementById('itFields').style.display = (mode==='ITINERARY'?'block':'none');
         document.getElementById('splitFields').style.display = (mode==='SPLIT'?'block':'none');
         document.getElementById('targetFields').style.display = (mode==='SPLIT'?'block':'none');
+        document.getElementById('mImgBase64').value = "";
         buildTargetGrid();
         if(idx > -1) {
-            const it = (mode==='ITINERARY'?data.itinerary : mode==='SPLIT'?data.split : data.private)[idx];
+            const list = (currentMode==='ITINERARY'?data.itinerary : currentMode==='SPLIT'?data.split : data.private);
+            const it = list[idx];
             document.getElementById('mName').value = it.n; document.getElementById('mPrice').value = it.p; document.getElementById('mCur').value = it.t || 'f';
             if(mode==='ITINERARY') { document.getElementById('mDay').value = it.day; document.getElementById('mTime').value = it.time; document.getElementById('mMap').value = it.map || ""; document.getElementById('mImgBase64').value = it.img || ""; }
-            if(mode==='SPLIT' && it.isManual) { toggleSplitMode(); it.targets.forEach(tg => { let amt = document.getElementById(`amt_${tg.u}`); if(amt) amt.value = tg.a; }); }
+            if(mode==='SPLIT') {
+                document.getElementById('mPayer').value = it.payer;
+                if(it.isManual) { toggleSplitMode(); it.targets.forEach(tg => { let amt = document.getElementById(`amt_${tg.u}`); if(amt) amt.value = tg.a; }); }
+            }
         } else { document.getElementById('mName').value = ""; document.getElementById('mPrice').value = ""; document.getElementById('mCur').value = "f"; }
     }
 
@@ -211,7 +210,15 @@
         saveAll(); closeModal();
     }
 
-    function handleDelete() { if(confirm("確定刪除？")) { (currentMode==='ITINERARY'?data.itinerary : currentMode==='SPLIT'?data.split : data.private).splice(editIdx,1); saveAll(); closeModal(); } }
+    function handleDelete() { 
+        if(editIdx === -1) return;
+        if(confirm("確定要刪除這單一筆紀錄嗎？")) { 
+            const list = (currentMode==='ITINERARY'?data.itinerary : currentMode==='SPLIT'?data.split : data.private);
+            list.splice(editIdx, 1); 
+            saveAll(); closeModal(); 
+        } 
+    }
+
     function addItem(type, inputId) { const v = document.getElementById(inputId).value; if(v){ data[type].push({t:v, d:false}); document.getElementById(inputId).value=''; saveAll();}}
     function saveAll() { localStorage.setItem('hokkaido_v_stable', JSON.stringify(data)); renderAll(); }
 
@@ -224,15 +231,14 @@
                 itDiv.innerHTML += `
                 <div class="it-card" onclick="openModal('ITINERARY', ${data.itinerary.indexOf(it)})">
                     <div class="it-time">${it.time || '--:--'}</div>
-                    <div class="it-info">
-                        <span class="it-name">${it.n}</span>
-                        ${it.p > 0 ? `<span class="it-amt-tag">金額: ${it.p}${it.t=='f'?'円':'元'}</span>` : ''}
-                        ${it.img ? `<img src="${it.img}" class="it-img">` : ''}
-                    </div>
+                    <div class="it-info"><span class="it-name">${it.n}</span>${it.p > 0 ? `<span class="it-amt-tag">金額: ${it.p}${it.t=='f'?'円':'元'}</span>` : ''}${it.img ? `<img src="${it.img}" class="it-img">` : ''}</div>
                     ${it.map ? `<span class="map-link" onclick="event.stopPropagation(); goNav('${it.map}')">📍</span>` : ''}
                 </div>`;
             });
         });
+
+        const sList = document.getElementById('splitList'); sList.innerHTML = '';
+        data.split.forEach((s, i) => { sList.innerHTML += `<div class="list-item" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><span>${s.p}${s.t==='f'?'円':'元'}</span></div>`; });
 
         let balF = {翌:0,丞:0,馨:0,子:0,嚕:0}, balT = {翌:0,丞:0,馨:0,子:0,嚕:0}, myDebtNT = 0;
         data.split.forEach(s => {
@@ -242,6 +248,7 @@
                 else if(tg.u === 'ME') { if(s.t==='f') balF[s.payer]-=share; else balT[s.payer]-=share; myDebtNT+=(s.t==='f'?share*rate:share); }
             });
         });
+
         document.getElementById('splitSummary').innerHTML = Object.entries(balF).map(([p, f]) => {
             let t = balT[p], res = "";
             if(Math.abs(f)>0.1) res += `<span style="color:${f>0?'green':'red'}">● ${p} ${f>0?'應給你':'你應給'}：${Math.round(Math.abs(f))} 円</span>`;
@@ -249,9 +256,13 @@
             return res ? res + "<br>" : "";
         }).join("");
 
-        const hotelNT = Math.round((eval(document.getElementById('hotelTotal').value.replace(/[^\d+*/.-]/g, ''))||0) * rate / 6);
+        // 住宿平分 6 人邏輯修正
+        let hRaw = document.getElementById('hotelTotal').value.replace(/[^\d+*/.-]/g, '');
+        let hTotal = 0; try { hTotal = eval(hRaw) || 0; } catch(e){}
+        const hotelPerPersonNT = (hTotal / 6) * rate;
+
         const itNT = data.itinerary.reduce((s, i) => s + (i.t=='f' ? i.p*rate : i.p), 0);
-        document.getElementById('statMyTotal').innerText = `$${Math.round(parseFloat(document.getElementById('flight').value)+hotelNT+itNT+myDebtNT).toLocaleString()}`;
+        document.getElementById('statMyTotal').innerText = `$${Math.round(parseFloat(document.getElementById('flight').value)+hotelPerPersonNT+itNT+myDebtNT).toLocaleString()}`;
         
         const pkDiv = document.getElementById('packingList'); pkDiv.innerHTML = ''; 
         data.packing.forEach((p, i) => { pkDiv.innerHTML += `<div class="todo-item"><span style="${p.d?'text-decoration:line-through;color:gray':''}" onclick="data.packing[${i}].d=!data.packing[${i}].d;saveAll()">${p.t}</span><b onclick="data.packing.splice(${i},1);saveAll()">✕</b></div>`; });
