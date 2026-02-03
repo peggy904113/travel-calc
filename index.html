@@ -6,7 +6,7 @@
     <title>去北海道被雪玩</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❄️</text></svg>">
     <style>
-        :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; }
+        :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --green: #43a047; }
         @keyframes snowflakes-fall { 0% {top:-10%} 100% {top:100%} }
         @keyframes snowflakes-shake { 0%,100% {transform:translateX(0)} 50% {transform:translateX(80px)} }
         .snowflake { color: #fff; font-size: 1.2em; position: fixed; top: -10%; z-index: 500; user-select: none; animation-name: snowflakes-fall,snowflakes-shake; animation-duration: 10s,3s; animation-timing-function: linear,ease-in-out; animation-iteration-count: infinite,infinite; opacity: 0.6; pointer-events: none; }
@@ -41,6 +41,7 @@
         .todo-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f5f5f5; align-items: center; }
         .todo-item span.done { text-decoration: line-through; color: #ccc; }
         .mini-btn { padding: 4px 8px; font-size: 0.7rem; background: #eee; border-radius: 6px; border: none; cursor: pointer; }
+        .hotel-hint { font-size: 0.8rem; color: var(--green); margin-bottom: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -76,7 +77,9 @@
             <h3>⚙️ 旅遊設定</h3>
             <small>個人機票 (NT)</small><input type="number" id="flight" value="21255" oninput="updateAll()">
             <small>目前匯率</small><input type="number" id="exRate" value="0.2" step="0.001" oninput="updateAll()">
-            <small>住宿日幣總額 (自動 ÷ 6 算入個人花費)</small><input type="text" id="hotelTotal" value="97742 + 276517" oninput="updateAll()">
+            <small>住宿費總計 (日幣算式)</small>
+            <input type="text" id="hotelTotal" value="97742 + 276517" oninput="updateAll()">
+            <div id="hotelPreview" class="hotel-hint"></div>
         </div>
     </div>
 </div>
@@ -88,7 +91,7 @@
             <small>抵達時間</small><input type="text" id="mTime">
             <small>營業時間</small><input type="text" id="mOpen">
             <small>地點/網址</small><input type="text" id="mMap">
-            <small>照片</small><input type="file" accept="image/*" onchange="handleImgUpload(this)"><input type="hidden" id="mImgBase64">
+            <input type="hidden" id="mImgBase64">
         </div>
         <div id="splitFields"><small>付款人</small><select id="mPayer"><option value="ME">我</option><option value="翌">翌</option><option value="丞">丞</option><option value="馨">馨</option><option value="子">子</option><option value="嚕">嚕</option></select></div>
         <small>金額</small>
@@ -98,8 +101,7 @@
         </div>
         <div id="targetFields">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                <small>分帳成員 (可手動填額)</small>
-                <button class="mini-btn" onclick="selectAllTargets()">勾選全部</button>
+                <small>分帳成員</small><button class="mini-btn" onclick="selectAllTargets()">勾選全部</button>
             </div>
             <div id="targetGrid" class="target-grid"></div>
         </div>
@@ -108,18 +110,24 @@
         <button id="btnDel" onclick="handleDelete()" style="background:none; border:none; color:red; width:100%; margin-top:15px; cursor:pointer;">🗑️ 刪除紀錄</button>
     </div>
 </div>
+
 <button class="fab" id="mainFab" onclick="openModal('ITINERARY')">+</button>
 <div class="summary-bar"><span style="font-size:0.75rem; color:#78909c;">❄️ 個人總花費預估 (NT)</span><br><span id="statMyTotal" style="font-size:1.3rem; font-weight:900; color:var(--accent-blue);">$0</span></div>
 
 <script>
-    let data = JSON.parse(localStorage.getItem('hokkaido_v31')) || JSON.parse(localStorage.getItem('hokkaido_v_stable')) || { itinerary: [], split: [], packing: [] };
+    // 待辦事項找回：嘗試讀取多個可能的 Key
+    let data = JSON.parse(localStorage.getItem('hokkaido_v31')) || 
+               JSON.parse(localStorage.getItem('hokkaido_v_stable')) || 
+               JSON.parse(localStorage.getItem('hokkaido_v36')) || 
+               { itinerary: [], split: [], packing: [] };
+    
     let names = ["ME", "翌", "丞", "馨", "子", "嚕"];
     let currentMode = '', editIdx = -1;
 
     window.onload = () => { createSnow(); renderAll(); };
     function createSnow() {
         const container = document.getElementById('snow-container');
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < 15; i++) {
             const snow = document.createElement('div');
             snow.className = 'snowflake'; snow.innerHTML = '❄';
             snow.style.left = Math.random() * 100 + '%'; snow.style.animationDelay = Math.random() * 8 + 's, ' + Math.random() * 3 + 's';
@@ -171,16 +179,16 @@
         if(idx > -1) {
             const it = (mode==='ITINERARY'?data.itinerary : data.split)[idx];
             document.getElementById('mName').value = it.n||""; document.getElementById('mPrice').value = it.p||""; document.getElementById('mCur').value = it.t || 'f';
-            if(mode==='ITINERARY') { document.getElementById('mDay').value = it.day; document.getElementById('mTime').value = it.time||""; document.getElementById('mOpen').value = it.open||""; document.getElementById('mMap').value = it.map||""; document.getElementById('mImgBase64').value = it.img || ""; }
+            if(mode==='ITINERARY') { document.getElementById('mDay').value = it.day; document.getElementById('mTime').value = it.time||""; document.getElementById('mOpen').value = it.open||""; document.getElementById('mMap').value = it.map||""; }
             if(mode==='SPLIT') { document.getElementById('mPayer').value = it.payer; buildTargetGrid(it.targets); }
         } else {
-            document.getElementById('mName').value = ""; document.getElementById('mPrice').value = ""; document.getElementById('mImgBase64').value = "";
+            document.getElementById('mName').value = ""; document.getElementById('mPrice').value = "";
             buildTargetGrid();
         }
     }
     function handleSave() {
         const it = { n: document.getElementById('mName').value, p: parseFloat(document.getElementById('mPrice').value)||0, t: document.getElementById('mCur').value };
-        if(currentMode==='ITINERARY'){ it.day=parseInt(document.getElementById('mDay').value); it.time=document.getElementById('mTime').value; it.open=document.getElementById('mOpen').value; it.map=document.getElementById('mMap').value; it.img=document.getElementById('mImgBase64').value; }
+        if(currentMode==='ITINERARY'){ it.day=parseInt(document.getElementById('mDay').value); it.time=document.getElementById('mTime').value; it.open=document.getElementById('mOpen').value; it.map=document.getElementById('mMap').value; }
         if(currentMode==='SPLIT'){ 
             it.payer=document.getElementById('mPayer').value; 
             it.targets = names.filter(n => document.getElementById(`cb_${n}`).checked).map(n => { 
@@ -196,7 +204,6 @@
     }
     function handleDelete() { if(confirm("確定刪除？")) { (currentMode==='ITINERARY'?data.itinerary : data.split).splice(editIdx, 1); saveAll(); closeModal(); } }
     function closeModal() { document.getElementById('editModal').style.display='none'; }
-    function handleImgUpload(el) { if(el.files[0]){const reader = new FileReader(); reader.onload = (e) => { document.getElementById('mImgBase64').value = e.target.result; }; reader.readAsDataURL(el.files[0]);}}
     function addItem(type, inputId) { const v = document.getElementById(inputId).value; if(v){ data[type].push({t:v, d:false}); document.getElementById(inputId).value=''; saveAll();}}
     function saveAll() { localStorage.setItem('hokkaido_v31', JSON.stringify(data)); renderAll(); }
     function renderAll() {
@@ -221,8 +228,11 @@
         });
         document.getElementById('splitSummary').innerHTML = Object.entries(balF).map(([p, f]) => { let t = balT[p]; return (Math.abs(f)>0.1 || Math.abs(t)>0.1) ? `● ${p}: ${Math.round(f)}円 / ${Math.round(t)}元<br>` : ""; }).join("");
         
+        // 住宿費用直覺化標示
         let hotelTotalVal = 0; try { hotelTotalVal = eval(document.getElementById('hotelTotal').value.replace(/[^\d+*/.-]/g, '')) || 0; } catch(e){}
-        const myHotelNT = (hotelTotalVal / 6) * rate; // 這邊會計算日幣總額除以6人後的個人台幣花費
+        const hotelPerPersonYen = Math.round(hotelTotalVal / 6);
+        const myHotelNT = hotelPerPersonYen * rate;
+        document.getElementById('hotelPreview').innerHTML = `💡 平均每人 ${hotelPerPersonYen.toLocaleString()} 円 ≈ 台幣 ${Math.round(myHotelNT).toLocaleString()} 元`;
         
         const itBudgetNT = data.itinerary.reduce((s, i) => s + (i.t=='f' ? i.p*rate : i.p), 0);
         const flightNT = parseFloat(document.getElementById('flight').value) || 0;
