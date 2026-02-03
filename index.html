@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩</title>
+    <title>去北海道被雪玩 V40</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --green: #43a047; }
@@ -16,21 +16,20 @@
         .page.active { display: block; }
         .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
         
-        /* 行程卡片與拖曳 */
+        /* 行程卡片 */
         .it-card { background: white; border-radius: 15px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: grab; }
-        .it-card:active { cursor: grabbing; opacity: 0.8; }
         .it-time { min-width: 50px; font-weight: 900; color: var(--accent-blue); font-size: 0.9rem; text-align: center; border-right: 1px solid #eee; padding-right: 5px; }
         .it-info { flex: 1; }
         .it-name { font-weight: bold; font-size: 1rem; color: #1a237e; display: block; }
         .it-open { font-size: 0.7rem; color: #78909c; background: #f5f7f9; padding: 2px 6px; border-radius: 4px; display: inline-block; }
         
-        /* 分帳介面縮小 */
-        .target-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 5px; }
-        .member-tag { background: #fff; border: 1px solid #eee; padding: 6px 8px; border-radius: 10px; display: flex; align-items: center; gap: 5px; font-size: 13px; }
-        .member-tag.active { border-color: var(--accent-blue); background: #f0f7ff; }
-        .amt-input { width: 60px !important; padding: 3px !important; margin: 0 !important; font-size: 12px !important; text-align: right; border-radius: 5px !important; border: 1px solid #ccc !important; }
+        /* 分帳介面優化：改為單行排列防止遮擋 */
+        .target-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+        .member-row { background: #fff; border: 1px solid #eee; padding: 10px 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .member-row.active { border-color: var(--accent-blue); background: #f0f7ff; }
+        .member-info { display: flex; align-items: center; gap: 10px; flex: 1; }
+        .amt-input { width: 80px !important; padding: 5px !important; margin: 0 !important; font-size: 14px !important; text-align: right; border-radius: 8px !important; border: 1px solid #ccc !important; }
         
-        /* 其他 UI */
         .card { background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
         .card h3 { margin: 0 0 10px 0; font-size: 0.95rem; color: var(--accent-blue); }
         input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; }
@@ -39,7 +38,7 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-content { background: white; width: 90%; max-width: 380px; padding: 18px; border-radius: 22px; max-height: 85vh; overflow-y: auto; }
         .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.9); padding: 12px; border-top: 1px solid #eee; z-index: 900; text-align: center; }
-        .todo-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; align-items: center; }
+        .todo-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f5f5f5; align-items: center; }
         .fab { position: fixed; bottom: 90px; right: 20px; width: 55px; height: 55px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 25px; border: none; z-index: 1100; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
@@ -66,7 +65,7 @@
         <div class="card">
             <h3>🧳 備忘行李清單</h3>
             <div id="packingList"></div>
-            <div style="display:flex; gap:8px; margin-top:8px;">
+            <div style="display:flex; gap:8px; margin-top:10px;">
                 <input type="text" id="newPack" placeholder="增加項目..." style="margin:0;">
                 <button class="btn" style="background:var(--orange); color:white; width:50px;" onclick="addItem('packing','newPack')">+</button>
             </div>
@@ -95,9 +94,10 @@
         <div id="splitFields" style="display:none">
             <small>項目名稱</small><input type="text" id="mSplitName">
             <small>付款人</small><select id="mPayer"><option value="ME">我</option><option value="翌">翌</option><option value="丞">丞</option><option value="馨">馨</option><option value="子">子</option><option value="嚕">嚕</option></select>
-            <div style="display:flex; justify-content:space-between; align-items:center;"><small>分帳成員</small><button class="btn" style="padding:4px 8px; font-size:11px;" onclick="selectAllTargets()">勾選全部</button></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><small>分帳成員</small><button class="btn" style="padding:4px 8px; font-size:11px;" onclick="selectAllTargets()">勾選全部</button></div>
             <div id="targetGrid" class="target-grid"></div>
         </div>
+        <hr style="margin:15px 0; border:0; border-top:1px solid #eee;">
         <small>金額</small>
         <div style="display:flex; gap:5px; align-items:center;">
             <input type="text" id="mPrice" oninput="autoFillRest()" style="flex:1;"><button onclick="doCalc('mPrice')" style="padding:10px; border-radius:8px; border:1px solid #ddd;">=</button>
@@ -112,7 +112,15 @@
 <div class="summary-bar"><span style="font-size:0.7rem; color:#78909c;">❄️ 個人預估總花費 (NT)</span><br><span id="statMyTotal" style="font-size:1.2rem; font-weight:900; color:var(--accent-blue);">$0</span></div>
 
 <script>
-    let data = JSON.parse(localStorage.getItem('hokkaido_v39')) || JSON.parse(localStorage.getItem('hokkaido_v38')) || { itinerary: [], split: [], packing: [] };
+    // 資料恢復邏輯：掃描所有可能的舊版 Key
+    const versions = ['hokkaido_v39', 'hokkaido_v38', 'hokkaido_v31', 'hokkaido_v_stable', 'hokkaido_v36'];
+    let savedData = null;
+    for (let v of versions) {
+        let d = localStorage.getItem(v);
+        if (d) { savedData = JSON.parse(d); break; }
+    }
+    let data = savedData || { itinerary: [], split: [], packing: [] };
+    
     let names = ["ME", "翌", "丞", "馨", "子", "嚕"];
     let currentMode = '', editIdx = -1;
 
@@ -133,7 +141,6 @@
         document.getElementById('itFields').style.display = mode==='ITINERARY'?'block':'none';
         document.getElementById('splitFields').style.display = mode==='SPLIT'?'block':'none';
         document.getElementById('btnDel').style.display = idx > -1 ? 'block' : 'none';
-        // Reset inputs
         ['mName','mMap','mTime','mOpen','mSplitName','mPrice'].forEach(id => document.getElementById(id).value = "");
         if(idx > -1) {
             const it = (mode==='ITINERARY' ? data.itinerary : data.split)[idx];
@@ -150,7 +157,7 @@
             if(editIdx > -1) data.itinerary[editIdx] = it; else data.itinerary.push(it);
         } else {
             const targets = names.filter(n => document.getElementById(`cb_${n}`).checked).map(n => {
-                let rawV = document.getElementById(`amt_${n}`).value; let v = parseFloat(rawV);
+                let v = parseFloat(document.getElementById(`amt_${n}`).value);
                 return { u: n, a: isNaN(v) ? parseFloat(document.getElementById(`amt_${n}`).placeholder) : v, isManualVal: !isNaN(v) };
             });
             const s = { n: document.getElementById('mSplitName').value, payer: document.getElementById('mPayer').value, p, t, targets };
@@ -164,7 +171,14 @@
         grid.innerHTML = names.map(n => {
             let isChecked = savedTargets ? savedTargets.some(t => t.u === n) : (n === 'ME');
             let val = (savedTargets && savedTargets.find(t => t.u === n)) ? (savedTargets.find(t => t.u === n).isManualVal ? savedTargets.find(t => t.u === n).a : "") : "";
-            return `<div class="member-tag ${isChecked?'active':''}" id="tag_${n}"><input type="checkbox" id="cb_${n}" value="${n}" ${isChecked?'checked':''} onchange="updateTagStyle('${n}')"><label for="cb_${n}" style="flex:1;">${n==='ME'?'我':n}</label><input type="text" id="amt_${n}" class="amt-input" placeholder="0" value="${val}" oninput="autoFillRest()"></div>`;
+            return `
+            <div class="member-row ${isChecked?'active':''}" id="tag_${n}">
+                <div class="member-info">
+                    <input type="checkbox" id="cb_${n}" value="${n}" ${isChecked?'checked':''} onchange="updateTagStyle('${n}')">
+                    <label for="cb_${n}">${n==='ME'?'我':n}</label>
+                </div>
+                <input type="text" id="amt_${n}" class="amt-input" placeholder="0" value="${val}" oninput="autoFillRest()">
+            </div>`;
         }).join('');
         autoFillRest();
     }
@@ -178,7 +192,7 @@
         checked.forEach(n => { document.getElementById(`amt_${n}`).placeholder = Math.round(unfilled.length > 0 ? (total - filled) / unfilled.length : 0); });
     }
     function doCalc(id) { const input = document.getElementById(id); try { let res = eval(input.value.replace(/[^\d+*/.-]/g, '')); input.value = isNaN(res) ? "" : Math.round(res * 100) / 100; autoFillRest(); } catch(e) {} }
-    function saveAll() { localStorage.setItem('hokkaido_v39', JSON.stringify(data)); renderAll(); }
+    function saveAll() { localStorage.setItem('hokkaido_v40', JSON.stringify(data)); renderAll(); }
     function closeModal() { document.getElementById('editModal').style.display='none'; }
     function handleDelete() { if(confirm("確定刪除？")) { (currentMode==='ITINERARY'?data.itinerary:data.split).splice(editIdx,1); saveAll(); closeModal(); } }
     function goNav(dest) { if(!dest) return; window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dest)}`, '_blank'); }
@@ -208,7 +222,7 @@
                         const items = Array.from(group.children).map(el => data.itinerary[parseInt(el.dataset.idx)]);
                         const otherDays = data.itinerary.filter(it => it.day !== d);
                         data.itinerary = [...otherDays, ...items];
-                        localStorage.setItem('hokkaido_v39', JSON.stringify(data));
+                        localStorage.setItem('hokkaido_v40', JSON.stringify(data));
                     }});
                 }, 0);
             }
