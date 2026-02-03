@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V42</title>
+    <title>去北海道被雪玩 V43</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --green: #43a047; --red: #e53935; }
@@ -16,21 +16,13 @@
         .page.active { display: block; }
         .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
         
-        /* 行程卡片 */
-        .it-card { background: white; border-radius: 15px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: grab; }
-        .it-time { min-width: 50px; font-weight: 900; color: var(--accent-blue); font-size: 0.9rem; text-align: center; border-right: 1px solid #eee; padding-right: 5px; }
-        .it-info { flex: 1; }
-        .it-name { font-weight: bold; font-size: 1rem; color: #1a237e; display: block; }
-        .it-open { font-size: 0.7rem; color: #78909c; background: #f5f7f9; padding: 2px 6px; border-radius: 4px; display: inline-block; }
-        
-        /* 分帳與清除按鈕 */
+        /* 支出項目樣式 */
         .header-with-btn { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .clear-btn { background: #ffebee; color: var(--red); border: 1px solid #ffcdd2; padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; }
         .target-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
         .member-row { background: #fff; border: 1px solid #eee; padding: 10px 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; }
         .member-row.active { border-color: var(--accent-blue); background: #f0f7ff; }
         .member-info { display: flex; align-items: center; gap: 12px; }
-        .member-name { font-weight: bold; font-size: 15px; }
         .amt-input { width: 90px !important; padding: 6px !important; margin: 0 !important; font-size: 14px !important; text-align: right; border-radius: 8px !important; border: 1px solid #ccc !important; }
         
         .card { background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
@@ -40,9 +32,8 @@
         .btn-main { background: var(--accent-blue); color: white; width: 100%; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-content { background: white; width: 90%; max-width: 380px; padding: 18px; border-radius: 22px; max-height: 85vh; overflow-y: auto; }
-        .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.9); padding: 12px; border-top: 1px solid #eee; z-index: 900; text-align: center; }
-        .todo-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f5f5f5; align-items: center; }
-        .fab { position: fixed; bottom: 90px; right: 20px; width: 55px; height: 55px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 25px; border: none; z-index: 1100; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 10px; border-top: 1px solid #eee; z-index: 900; text-align: center; }
+        .fab { position: fixed; bottom: 105px; right: 20px; width: 55px; height: 55px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 25px; border: none; z-index: 1100; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
@@ -57,13 +48,13 @@
         <div class="card">
             <div class="header-with-btn">
                 <h3>💸 支出明細</h3>
-                <button class="clear-btn" onclick="clearSplitData()">🧹 清除全部</button>
+                <button class="clear-btn" onclick="archiveSplitData()">🧹 結帳並封存</button>
             </div>
             <div id="splitList"></div>
             <button class="btn btn-main" onclick="openModal('SPLIT')">+ 新增紀錄</button>
         </div>
         <div class="card" style="background: #f1f8e9;">
-            <h3>📊 最終收支結算</h3>
+            <h3>📊 最終收支結算 (誰該給誰)</h3>
             <div id="splitSummary" style="font-size: 0.85rem;"></div>
         </div>
     </div>
@@ -75,6 +66,10 @@
                 <input type="text" id="newPack" placeholder="增加項目..." style="margin:0;">
                 <button class="btn" style="background:var(--orange); color:white; width:50px;" onclick="addItem('packing','newPack')">+</button>
             </div>
+        </div>
+        <div class="card" id="archiveArea" style="display:none;">
+            <h3>📜 歷史結帳紀錄</h3>
+            <div id="archiveList" style="font-size:0.8rem; color:#666;"></div>
         </div>
         <div class="card">
             <h3>⚙️ 旅遊設定</h3>
@@ -115,20 +110,30 @@
 </div>
 
 <button class="fab" id="mainFab" onclick="openModal('ITINERARY')">+</button>
-<div class="summary-bar"><span style="font-size:0.7rem; color:#78909c;">❄️ 個人預估總花費 (NT)</span><br><span id="statMyTotal" style="font-size:1.2rem; font-weight:900; color:var(--accent-blue);">$0</span></div>
+<div class="summary-bar">
+    <div style="display:flex; justify-content:space-around; align-items:center;">
+        <div>
+            <span style="font-size:0.65rem; color:#78909c;">❄️ 個人預估實花 (NT)</span><br>
+            <span id="statMyTotal" style="font-size:1.1rem; font-weight:900; color:var(--accent-blue);">$0</span>
+        </div>
+        <div style="border-left:1px solid #ddd; padding-left:15px;">
+            <span style="font-size:0.65rem; color:#e53935;">🧧 目前代墊待收 (NT)</span><br>
+            <span id="statMyLend" style="font-size:1.1rem; font-weight:900; color:#e53935;">$0</span>
+        </div>
+    </div>
+</div>
 
 <script>
-    const versions = ['hokkaido_v41', 'hokkaido_v40', 'hokkaido_v39', 'hokkaido_v38', 'hokkaido_v31', 'hokkaido_v_stable'];
-    let fullData = { itinerary: [], split: [], packing: [] };
+    const versions = ['hokkaido_v42', 'hokkaido_v41', 'hokkaido_v40', 'hokkaido_v39'];
+    let fullData = { itinerary: [], split: [], packing: [], archives: [] };
     versions.reverse().forEach(v => {
         let d = localStorage.getItem(v);
         if (d) {
             let parsed = JSON.parse(d);
-            if (parsed.itinerary && parsed.itinerary.length > fullData.itinerary.length) fullData.itinerary = parsed.itinerary;
-            if (parsed.split && parsed.split.length > fullData.split.length) fullData.split = parsed.split;
-            if (parsed.packing && parsed.packing.length > fullData.packing.length) {
-                if (fullData.packing.length === 0) fullData.packing = parsed.packing;
-            }
+            if (parsed.itinerary) fullData.itinerary = parsed.itinerary;
+            if (parsed.split) fullData.split = parsed.split;
+            if (parsed.packing && fullData.packing.length===0) fullData.packing = parsed.packing;
+            if (parsed.archives) fullData.archives = parsed.archives;
         }
     });
 
@@ -145,15 +150,19 @@
         document.getElementById('mainFab').style.display = (pId === 'itinerary') ? 'flex' : 'none';
     }
 
-    function syncMap() { if (currentMode === 'ITINERARY') document.getElementById('mMap').value = document.getElementById('mName').value; }
-    
-    function clearSplitData() {
-        if(confirm("確定要清除所有分帳紀錄嗎？（結帳後可使用，不會影響行程）")) {
+    function archiveSplitData() {
+        if(data.split.length === 0) return;
+        if(confirm("確定要結帳並清除嗎？目前的結算結果會存入『歷史紀錄』供日後查閱。")) {
+            const now = new Date();
+            const tag = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes()}`;
+            const summary = document.getElementById('splitSummary').innerText.replace(/\n/g, ' / ');
+            data.archives.push({ time: tag, info: summary });
             data.split = [];
             saveAll();
         }
     }
 
+    function syncMap() { if (currentMode === 'ITINERARY') document.getElementById('mMap').value = document.getElementById('mName').value; }
     function openModal(mode, idx = -1) {
         currentMode = mode; editIdx = idx;
         document.getElementById('editModal').style.display = 'flex';
@@ -194,7 +203,7 @@
             <div class="member-row ${isChecked?'active':''}" id="tag_${n}">
                 <div class="member-info">
                     <input type="checkbox" id="cb_${n}" value="${n}" ${isChecked?'checked':''} onchange="updateTagStyle('${n}')">
-                    <label for="cb_${n}" class="member-name">${n==='ME'?'我':n}</label>
+                    <label for="cb_${n}" style="font-weight:bold;">${n==='ME'?'我':n}</label>
                 </div>
                 <input type="text" id="amt_${n}" class="amt-input" placeholder="0" value="${val}" oninput="autoFillRest()">
             </div>`;
@@ -211,7 +220,7 @@
         checked.forEach(n => { document.getElementById(`amt_${n}`).placeholder = Math.round(unfilled.length > 0 ? (total - filled) / unfilled.length : 0); });
     }
     function doCalc(id) { const input = document.getElementById(id); try { let res = eval(input.value.replace(/[^\d+*/.-]/g, '')); input.value = isNaN(res) ? "" : Math.round(res * 100) / 100; autoFillRest(); } catch(e) {} }
-    function saveAll() { localStorage.setItem('hokkaido_v42', JSON.stringify(data)); renderAll(); }
+    function saveAll() { localStorage.setItem('hokkaido_v43', JSON.stringify(data)); renderAll(); }
     function closeModal() { document.getElementById('editModal').style.display='none'; }
     function handleDelete() { if(confirm("確定刪除？")) { (currentMode==='ITINERARY'?data.itinerary:data.split).splice(editIdx,1); saveAll(); closeModal(); } }
     function goNav(dest) { if(!dest) return; window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dest)}`, '_blank'); }
@@ -237,40 +246,54 @@
                                 <span class="map-link" onclick="goNav('${it.map}')">📍</span>
                             </div>`;
                     });
-                    if(group.children.length > 0) {
-                        new Sortable(group, { animation: 150, onEnd: (evt) => {
-                            const items = Array.from(group.children).map(el => data.itinerary[parseInt(el.dataset.idx)]);
-                            const otherDays = data.itinerary.filter(it => it.day !== d);
-                            data.itinerary = [...otherDays, ...items];
-                            localStorage.setItem('hokkaido_v42', JSON.stringify(data));
-                        }});
-                    }
                 }, 0);
             }
         });
         
-        const sList = document.getElementById('splitList'); sList.innerHTML = '';
-        let balF = {翌:0,丞:0,馨:0,子:0,嚕:0}, balT = {翌:0,丞:0,馨:0,子:0,嚕:0}, myDebtNT = 0, myDirectNT = 0;
-        data.split.forEach((s, i) => {
-            sList.innerHTML += `<div class="list-item" style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><span>${s.p}${s.t==='f'?'円':'元'}</span></div>`;
+        // 財務核心邏輯修正
+        let balF = {翌:0,丞:0,馨:0,子:0,嚕:0}, balT = {翌:0,丞:0,馨:0,子:0,嚕:0};
+        let myPureSpendNT = 0; // 真正花在自己身上的錢
+        let myLendOutNT = 0;   // 幫別人墊、最後會拿回來的錢
+        
+        data.split.forEach((s) => {
             s.targets.forEach(tg => {
-                let share = tg.a;
-                if(s.payer==='ME') { if(tg.u!=='ME') { if(s.t==='f') balF[tg.u]+=share; else balT[tg.u]+=share; } else { myDirectNT+=(s.t==='f'?share*rate:share); } }
-                else if(tg.u==='ME') { if(s.t==='f') balF[s.payer]-=share; else balT[s.payer]-=share; myDebtNT+=(s.t==='f'?share*rate:share); }
+                let shareNT = (s.t==='f' ? tg.a * rate : tg.a);
+                if(s.payer === 'ME') {
+                    if(tg.u === 'ME') { myPureSpendNT += shareNT; } 
+                    else { 
+                        myLendOutNT += shareNT; // 我墊的，別人欠我的錢
+                        if(s.t==='f') balF[tg.u] += tg.a; else balT[tg.u] += tg.a;
+                    }
+                } else {
+                    if(tg.u === 'ME') { 
+                        myPureSpendNT += shareNT; // 別人墊的，但我自己該出的錢
+                        if(s.t==='f') balF[s.payer] -= tg.a; else balT[s.payer] -= tg.a;
+                    }
+                }
             });
         });
+        
+        document.getElementById('splitList').innerHTML = data.split.map((s,i) => `<div class="list-item" style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><span>${s.p}${s.t==='f'?'円':'元'}</span></div>`).join('');
         document.getElementById('splitSummary').innerHTML = Object.entries(balF).map(([p, f]) => { let t = balT[p]; return (Math.abs(f)>0.1 || Math.abs(t)>0.1) ? `● ${p}: ${Math.round(f)}円 / ${Math.round(t)}元<br>` : ""; }).join("");
         
         let hTotal = 0; try { hTotal = eval(document.getElementById('hotelTotal').value.replace(/[^\d+*/.-]/g, '')) || 0; } catch(e){}
-        const hPer = Math.round(hTotal/6); const hNT = hPer * rate;
-        document.getElementById('hotelPreview').innerHTML = `💡 每人 ${hPer.toLocaleString()} 円 ≈ 台幣 ${Math.round(hNT).toLocaleString()} 元`;
+        const hNT = (hTotal/6) * rate;
+        document.getElementById('hotelPreview').innerHTML = `💡 每人預估住宿費 ≈ 台幣 ${Math.round(hNT).toLocaleString()} 元`;
         
         const itBudget = data.itinerary.reduce((s, i) => s + (i.t=='f' ? i.p*rate : i.p), 0);
         const flight = parseFloat(document.getElementById('flight').value) || 0;
-        document.getElementById('statMyTotal').innerText = `$${Math.round(flight + hNT + myDebtNT + myDirectNT + itBudget).toLocaleString()}`;
+        
+        // 更新底部面板
+        document.getElementById('statMyTotal').innerText = `$${Math.round(flight + hNT + myPureSpendNT + itBudget).toLocaleString()}`;
+        document.getElementById('statMyLend').innerText = `$${Math.round(myLendOutNT).toLocaleString()}`;
         
         const pkDiv = document.getElementById('packingList'); pkDiv.innerHTML = ''; 
         data.packing.forEach((p, i) => { pkDiv.innerHTML += `<div class="todo-item"><span style="${p.d?'text-decoration:line-through;color:#ccc':''}" onclick="data.packing[${i}].d=!data.packing[${i}].d;saveAll()">${p.t}</span><b style="color:red; padding:5px;" onclick="data.packing.splice(${i},1);saveAll()">✕</b></div>`; });
+
+        if(data.archives && data.archives.length > 0) {
+            document.getElementById('archiveArea').style.display = 'block';
+            document.getElementById('archiveList').innerHTML = data.archives.map(a => `<div style="margin-bottom:8px; border-bottom:1px dashed #ddd; padding-bottom:4px;"><b>[${a.time}]</b><br>${a.info}</div>`).join('');
+        }
     }
     function updateAll() { renderAll(); }
     function addItem(type, id) { const v = document.getElementById(id).value; if(v){ data[type].push({t:v, d:false}); document.getElementById(id).value=''; saveAll(); } }
