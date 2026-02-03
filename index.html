@@ -63,8 +63,7 @@
 
     <div id="split" class="page">
         <div class="card">
-            <h3>👥 團體公費墊付</h3>
-            <p style="font-size:0.8rem; color:gray;">在此記錄你幫 6 個人代墊的錢</p>
+            <h3>👥 團體公費墊付 (你先出的)</h3>
             <div id="splitList"></div>
             <button class="btn btn-main" onclick="openModal('SPLIT')">+ 新增代墊款項</button>
         </div>
@@ -76,23 +75,22 @@
 
     <div id="private" class="page">
         <div class="card" style="border-left: 5px solid var(--private-purple);">
-            <h3 class="private-h3">✅ 待辦事項 (只有你看見)</h3>
+            <h3 class="private-h3">✅ 待辦事項</h3>
             <div id="todoList"></div>
             <div style="display:flex; gap:5px;">
                 <input type="text" id="newTodo" placeholder="買藥妝、換日幣..." style="margin:0;">
-                <button class="btn-priv" style="width:60px; border-radius:12px;" onclick="addTodo()">+</button>
+                <button class="btn-priv" style="width:60px;" onclick="addTodo()">+</button>
             </div>
         </div>
         <div class="card" style="border-left: 5px solid var(--private-purple);">
             <h3 class="private-h3">🛍️ 個人私有支出</h3>
-            <p style="font-size:0.8rem; color:gray;">例如：買給自己的伴手禮、轉蛋</p>
             <div id="privateSpendList"></div>
             <button class="btn btn-priv" onclick="openModal('PRIVATE')">+ 新增個人支出</button>
         </div>
         <div class="card">
             <h3>⚙️ 基礎設定</h3>
-            <small>匯率</small><input type="number" id="exRate" value="0.22" step="0.01" oninput="updateAll()">
             <small>機票(NT)</small><input type="number" id="flight" value="21255" oninput="updateAll()">
+            <small>日幣匯率</small><input type="number" id="exRate" value="0.22" step="0.001" oninput="updateAll()">
             <small>住宿(日幣算式)</small><input type="text" id="hotelTotal" value="97742 + 276517" oninput="updateAll()">
         </div>
     </div>
@@ -100,7 +98,7 @@
 
 <div id="editModal" class="modal">
     <div class="modal-content">
-        <h3 id="modalTitle">編輯</h3>
+        <h3 id="modalTitle">編輯行程</h3>
         <div id="modalDayField">
             <select id="mDay"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option><option value="6">Day 6</option><option value="7">Day 7</option><option value="8">Day 8</option></select>
         </div>
@@ -130,18 +128,25 @@
             <span class="stat-val" id="totalOwed" style="color:green;">0</span>
         </div>
         <div class="stat-item">
-            <span class="stat-label">個人總支出</span>
+            <span class="stat-label">個人總預算</span>
             <span class="stat-val" id="myTotal" style="color:var(--accent-blue);">0</span>
         </div>
     </div>
 </div>
 
 <script>
-    // 資料結構
-    let data = JSON.parse(localStorage.getItem('hokkaido_v13')) || {
-        itinerary: [],
-        split: [], // 6人代墊
-        private: [], // 個人花費
+    // 【重點：原本所有的行程資料都補回來了！】
+    let data = JSON.parse(localStorage.getItem('hokkaido_v14')) || {
+        itinerary: [
+            {day: 1, n: "登別水族館門票", p: 612, t: "t", time: "09:00-17:00", note: ""},
+            {day: 2, n: "熊牧場門票", p: 3200, t: "f", time: "09:30-16:30", note: ""},
+            {day: 4, n: "天狗山纜車", p: 449, t: "t", time: "09:00-21:00", note: ""},
+            {day: 5, n: "滑雪教學(方案1)", p: 4500, t: "t", time: "4小時", note: ""},
+            {day: 6, n: "旭山動物園一日遊", p: 1838, t: "t", time: "全天", note: ""},
+            {day: 7, n: "美唄雪上樂園", p: 2000, t: "f", time: "09:00-16:15", note: ""}
+        ],
+        split: [],
+        private: [],
         todos: []
     };
 
@@ -158,7 +163,6 @@
         document.getElementById('mainFab').style.display = (pageId === 'itinerary') ? 'flex' : 'none';
     }
 
-    // Modal 控制
     function openModal(mode, idx = -1) {
         currentMode = mode;
         editIdx = idx;
@@ -168,13 +172,15 @@
         document.getElementById('modalExtraFields').style.display = (mode === 'ITINERARY') ? 'block' : 'none';
         
         if(idx > -1) {
-            const item = (mode==='ITINERARY'?data.itinerary:mode==='SPLIT'?data.split:data.private)[idx];
+            const list = mode==='ITINERARY'?data.itinerary:mode==='SPLIT'?data.split:data.private;
+            const item = list[idx];
             document.getElementById('mName').value = item.n;
             document.getElementById('mPrice').value = item.p;
             document.getElementById('mCur').value = item.t;
             if(mode==='ITINERARY') {
                 document.getElementById('mDay').value = item.day;
-                document.getElementById('mTime').value = item.time;
+                document.getElementById('mTime').value = item.time || "";
+                document.getElementById('mNote').value = item.note || "";
             }
         } else {
             document.getElementById('mName').value = "";
@@ -193,6 +199,7 @@
         if(currentMode === 'ITINERARY') {
             item.day = parseInt(document.getElementById('mDay').value);
             item.time = document.getElementById('mTime').value;
+            item.note = document.getElementById('mNote').value;
         }
 
         if(editIdx > -1) {
@@ -217,7 +224,6 @@
         closeModal();
     }
 
-    // Todo 功能
     function addTodo() {
         const val = document.getElementById('newTodo').value;
         if(!val) return;
@@ -229,14 +235,14 @@
     function delTodo(i) { data.todos.splice(i, 1); saveAndRender(); }
 
     function saveAndRender() {
-        localStorage.setItem('hokkaido_v13', JSON.stringify(data));
+        localStorage.setItem('hokkaido_v14', JSON.stringify(data));
         renderAll();
     }
 
     function renderAll() {
         const rate = parseFloat(document.getElementById('exRate').value)||0.22;
         
-        // 渲染行程
+        // 行程渲染
         const itDiv = document.getElementById('itList');
         itDiv.innerHTML = '';
         const days = [1,2,3,4,5,6,7,8];
@@ -244,68 +250,60 @@
             const dItems = data.itinerary.filter(i => i.day === d);
             if(dItems.length > 0) {
                 itDiv.innerHTML += `<div class="day-title">Day ${d}</div>`;
-                dItems.forEach((it, realIdx) => {
-                    const idx = data.itinerary.indexOf(it);
+                dItems.forEach((it) => {
+                    const realIdx = data.itinerary.indexOf(it);
                     itDiv.innerHTML += `
                     <div class="list-item">
-                        <div onclick="openModal('ITINERARY', ${idx})">
-                            <div class="item-name">${it.n}</div>
-                            <div style="font-size:0.8rem; color:gray;">${it.p}${it.t=='f'?'円':'元'} ${it.time?' | '+it.time:''}</div>
+                        <div style="flex:1" onclick="openModal('ITINERARY', ${realIdx})">
+                            <div style="font-weight:bold;">${it.n}</div>
+                            <div style="font-size:0.75rem; color:#1565c0;">${it.p.toLocaleString()}${it.t=='f'?'円':'元'} ${it.time?' | '+it.time:''}</div>
                         </div>
-                        <a href="https://www.google.com/maps/search/${encodeURIComponent(it.n)}" target="_blank" style="text-decoration:none;">🚗</a>
+                        <a href="https://www.google.com/maps/search/${encodeURIComponent(it.n)}" target="_blank" style="font-size:1.2rem; text-decoration:none;">🚗</a>
                     </div>`;
                 });
             }
         });
 
-        // 渲染拆帳
+        // 拆帳渲染
+        let totalSplitNT = 0;
         const splitDiv = document.getElementById('splitList');
         splitDiv.innerHTML = '';
-        let totalSplitNT = 0;
         data.split.forEach((s, i) => {
             const nt = s.t==='f' ? Math.round(s.p * rate) : s.p;
             totalSplitNT += nt;
             splitDiv.innerHTML += `<div class="list-item" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><span>$${nt}</span></div>`;
         });
         const perPerson = Math.round(totalSplitNT / 6);
-        document.getElementById('splitSummary').innerHTML = `
-            總代墊：$${totalSplitNT} NT<br>
-            每人分擔：$${perPerson} NT<br>
-            <strong style="color:green;">其餘 5 人共應付給你：$${perPerson * 5} NT</strong>
-        `;
+        document.getElementById('splitSummary').innerHTML = `總代墊：$${totalSplitNT} NT<br>每人分擔：$${perPerson} NT<br><strong style="color:green;">其餘 5 人應付給你：$${perPerson * 5} NT</strong>`;
 
-        // 渲染私人
+        // 私人渲染
+        let myPrivNT = 0;
         const privSpendDiv = document.getElementById('privateSpendList');
         privSpendDiv.innerHTML = '';
-        let myPrivNT = 0;
         data.private.forEach((p, i) => {
             const nt = p.t==='f' ? Math.round(p.p * rate) : p.p;
             myPrivNT += nt;
             privSpendDiv.innerHTML += `<div class="list-item" onclick="openModal('PRIVATE', ${i})"><span>${p.n}</span><span>$${nt}</span></div>`;
         });
 
-        // 渲染待辦
+        // 待辦渲染
         const todoDiv = document.getElementById('todoList');
         todoDiv.innerHTML = '';
         data.todos.forEach((t, i) => {
-            todoDiv.innerHTML += `
-            <div class="list-item">
-                <span style="text-decoration:${t.done?'line-through':'none'}" onclick="toggleTodo(${i})">${t.txt}</span>
-                <span onclick="delTodo(${i})" style="color:red;">✕</span>
-            </div>`;
+            todoDiv.innerHTML += `<div class="list-item"><span style="text-decoration:${t.done?'line-through':'none'}" onclick="toggleTodo(${i})">${t.txt}</span><span onclick="delTodo(${i})" style="color:red;">✕</span></div>`;
         });
 
-        // 底部計算
+        // 計算統計
         const flight = parseFloat(document.getElementById('flight').value)||0;
         const hVal = document.getElementById('hotelTotal').value;
         let hT = 0; try { hT = eval(hVal.replace(/[^\d+*/.-]/g, '')) || 0; } catch(e) {}
         const hotelNT = Math.round(hT * rate / 6);
+        const myItTotal = data.itinerary.reduce((s, i) => s + (i.t=='f' ? i.p*rate : i.p), 0);
         
-        // 個人總支出 = 機票 + 個人住宿 + 公費應分擔 + 個人私有支出
-        const myTotal = flight + hotelNT + perPerson + myPrivNT;
+        const myTotal = flight + hotelNT + myItTotal + perPerson + myPrivNT;
         
         document.getElementById('totalOwed').innerText = `$${(perPerson * 5).toLocaleString()}`;
-        document.getElementById('myTotal').innerText = `$${myTotal.toLocaleString()}`;
+        document.getElementById('myTotal').innerText = `$${Math.round(myTotal).toLocaleString()}`;
     }
 
     function updateAll() { renderAll(); }
