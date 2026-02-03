@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hokkaido Master V22</title>
+    <title>Hokkaido Master V23</title>
     <style>
         :root { --sky-blue: #90caf9; --accent-blue: #1565c0; --private-purple: #9c27b0; --orange: #ffa726; }
         body { font-family: "PingFang TC", sans-serif; background: #f4f7f9; margin: 0; padding-bottom: 110px; color: #2c3e50; }
@@ -52,7 +52,7 @@
     </div>
     <div id="private" class="page">
         <div class="card" style="border-left: 5px solid var(--orange);">
-            <h3 style="color:var(--orange)">🧳 北海道行李清單 (滑雪強化的)</h3>
+            <h3 style="color:var(--orange)">🧳 北海道行李清單</h3>
             <div id="packingList"></div>
             <div style="display:flex; gap:5px;"><input type="text" id="newPack" placeholder="增加項目..." style="margin:0;"><button class="btn" style="background:var(--orange); color:white; width:60px;" onclick="addPack()">+</button></div>
         </div>
@@ -69,7 +69,7 @@
             <small>誰先付款？</small>
             <select id="mPayer">
                 <option value="ME">我</option><option value="翌">翌</option><option value="丞">丞</option>
-                <option value="馨">馨</option><option value="子">子</option><option value="嚕">嚕</option><option value="珮">珮</option>
+                <option value="馨">馨</option><option value="子">子</option><option value="嚕">嚕</option>
             </select>
             <div style="display:flex; gap:10px;"><input type="number" id="mPrice" placeholder="總金額"><select id="mCur" style="width:80px;"><option value="f">円</option><option value="t">元</option></select></div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><small>成員與金額</small><button onclick="toggleSplitMode()" id="modeBtn" style="font-size:0.7rem; border:1px solid #ccc; background:#eee; padding:2px 8px; border-radius:5px;">切換手動模式</button></div>
@@ -87,24 +87,33 @@
 <div class="summary-bar"><span style="font-size:0.7rem; color:#78909c;">個人總支出預估 (NT)</span><br><span id="statMyTotal" style="font-size:1.3rem; font-weight:900; color:var(--accent-blue);">$0</span></div>
 
 <script>
-    let names = ["ME", "翌", "丞", "馨", "子", "嚕", "珮"];
-    // 預填行李清單 (滑雪強化)
+    let names = ["ME", "翌", "丞", "馨", "子", "嚕"]; // 移除珮
+    
+    // 預填行李清單
     const defaultPacking = [
         {t:"護照/簽證/保險單", d:false}, {t:"日幣現金/信用卡", d:false},
         {t:"發熱衣/發熱褲 (多套)", d:false}, {t:"毛料厚長襪 (滑雪用)", d:false},
         {t:"防水防滑雪靴", d:false}, {t:"防風防水外套 (Gore-Tex)", d:false},
         {t:"毛帽/圍巾/耳罩", d:false}, {t:"防水滑雪手套", d:false},
-        {t:"太陽眼鏡/雪鏡 (防雪盲)", d:false}, {t:"暖暖包/貼身暖暖包", d:false},
+        {t:"雪鏡 (防雪盲)", d:false}, {t:"暖暖包", d:false},
         {t:"行動電源/萬用插頭", d:false}, {t:"常備感冒藥/腸胃藥", d:false},
-        {t:"保濕乳液/護唇膏 (日本很乾)", d:false}
-    ];
-    // 預填之前範例行程避免空白
-    const defaultIt = [
-        {day:1, n:"登別水族館", p:612, t:"t", time:"09:00"}, {day:2, n:"熊牧場", p:3200, t:"f", time:"09:30"}, 
-        {day:5, n:"滑雪教學", p:4500, t:"t", time:"4小時"}, {day:6, n:"旭山動物園", p:1838, t:"t", time:"全天"}
+        {t:"保濕乳液/護唇膏", d:false}
     ];
 
-    let data = JSON.parse(localStorage.getItem('hokkaido_v_final')) || { itinerary: defaultIt, split: [], private: [], todos: [], packing: defaultPacking };
+    // 補足 Day 3 & 4 的內容
+    const defaultIt = [
+        {day:1, n:"登別水族館", p:612, t:"t", time:"09:00"}, 
+        {day:2, n:"熊牧場", p:3200, t:"f", time:"09:30"}, 
+        {day:3, n:"移動至旭川/美瑛", p:0, t:"f", time:"上午"},
+        {day:3, n:"美瑛青池/白鬚瀑布", p:0, t:"f", time:"下午"},
+        {day:4, n:"富良野滑雪場 (預約)", p:0, t:"f", time:"08:30"},
+        {day:5, n:"滑雪教學", p:4500, t:"t", time:"4小時"}, 
+        {day:6, n:"旭山動物園", p:1838, t:"t", time:"全天"},
+        {day:7, n:"札幌市區購物", p:0, t:"f", time:"下午"},
+        {day:8, n:"新千歲機場/回台", p:0, t:"f", time:"15:00"}
+    ];
+
+    let data = JSON.parse(localStorage.getItem('hokkaido_v_stable')) || { itinerary: defaultIt, split: [], private: [], todos: [], packing: defaultPacking };
     let currentMode = '', editIdx = -1, isManual = false;
 
     window.onload = () => { buildTargetGrid(); renderAll(); };
@@ -135,7 +144,8 @@
         document.getElementById('splitFields').style.display = (mode==='SPLIT'?'block':'none');
         buildTargetGrid();
         if(idx > -1) {
-            const it = (mode==='ITINERARY'?data.itinerary : mode==='SPLIT'?data.split : data.private)[idx];
+            const list = (mode==='ITINERARY'?data.itinerary : mode==='SPLIT'?data.split : data.private);
+            const it = list[idx];
             document.getElementById('mName').value = it.n; document.getElementById('mPrice').value = it.p; document.getElementById('mCur').value = it.t;
             if(mode==='SPLIT') {
                 document.getElementById('mPayer').value = it.payer;
@@ -162,22 +172,20 @@
     function handleDelete() { if(confirm("確定刪除？")) { (currentMode==='ITINERARY'?data.itinerary : currentMode==='SPLIT'?data.split : data.private).splice(editIdx,1); saveAll(); closeModal(); } }
     function addTodo() { const v=document.getElementById('newTodo').value; if(v){data.todos.push({txt:v, done:false}); document.getElementById('newTodo').value=''; saveAll();}}
     function addPack() { const v=document.getElementById('newPack').value; if(v){data.packing.push({t:v, d:false}); document.getElementById('newPack').value=''; saveAll();}}
-    function saveAll() { localStorage.setItem('hokkaido_v_final', JSON.stringify(data)); renderAll(); }
+    function saveAll() { localStorage.setItem('hokkaido_v_stable', JSON.stringify(data)); renderAll(); }
 
     function renderAll() {
         const rate = parseFloat(document.getElementById('exRate').value)||0.2;
-        
-        // 行程
         const itDiv = document.getElementById('itList'); itDiv.innerHTML = '';
         [1,2,3,4,5,6,7,8].forEach(d => {
             const items = data.itinerary.filter(i => i.day === d);
-            if(items.length) { itDiv.innerHTML += `<div class="day-title">Day ${d}</div>`;
+            itDiv.innerHTML += `<div class="day-title">Day ${d}</div>`;
+            if(items.length) {
                 items.forEach(it => { itDiv.innerHTML += `<div class="list-item" onclick="openModal('ITINERARY', ${data.itinerary.indexOf(it)})"><div><b>${it.n}</b><br><small>${it.p}${it.t=='f'?'円':'元'}</small></div><span>🚗</span></div>`; });
-            }
+            } else { itDiv.innerHTML += `<div style="padding:10px; color:#ccc; font-size:0.8rem;">尚無行程</div>`; }
         });
 
-        // 拆帳
-        let balances = {翌:0,丞:0,馨:0,子:0,嚕:0,珮:0}, myTotalDebt = 0;
+        let balances = {翌:0,丞:0,馨:0,子:0,嚕:0}, myTotalDebt = 0;
         const sDiv = document.getElementById('splitList'); sDiv.innerHTML = '';
         data.split.forEach((s, i) => {
             const totalNT = Math.round(s.t==='f' ? s.p*rate : s.p);
@@ -193,15 +201,13 @@
 
         document.getElementById('splitSummary').innerHTML = Object.entries(balances).map(([p, b]) => b > 0 ? `<span style="color:green">● ${p} 應給你：$${b} NT</span><br>` : b < 0 ? `<span style="color:red">● 你應給 ${p}：$${Math.abs(b)} NT</span><br>` : '').join('');
 
-        // 總計
         const hotelNT = Math.round((eval(document.getElementById('hotelTotal').value.replace(/[^\d+*/.-]/g, ''))||0) * rate / 6);
         const itNT = data.itinerary.reduce((s, i) => s + (i.t=='f' ? i.p*rate : i.p), 0);
         let myPrivTotal = 0; data.private.forEach(p => myPrivTotal += Math.round(p.t==='f'?p.p*rate : p.p));
         document.getElementById('statMyTotal').innerText = `$${Math.round(parseFloat(document.getElementById('flight').value) + hotelNT + itNT + myTotalDebt + myPrivTotal).toLocaleString()}`;
 
-        // 渲染剩餘
         const pkDiv = document.getElementById('packingList'); pkDiv.innerHTML = ''; data.packing.forEach((p, i) => { pkDiv.innerHTML += `<div class="list-item"><span style="${p.d?'text-decoration:line-through;color:gray':''}" onclick="data.packing[${i}].d=!data.packing[${i}].d;saveAll()">${p.t}</span><b onclick="data.packing.splice(${i},1);saveAll()">✕</b></div>`; });
-        const pDiv = document.getElementById('privSpendList'); pDiv.innerHTML = ''; data.private.forEach((p, i) => { pDiv.innerHTML += `<div class="list-item" onclick="openModal('PRIVATE', i)"><span>${p.n}</span><span>$${Math.round(p.t==='f'?p.p*rate:p.p)}</span></div>`; });
+        const pDiv = document.getElementById('privSpendList'); pDiv.innerHTML = ''; data.private.forEach((p, i) => { pDiv.innerHTML += `<div class="list-item" onclick="openModal('PRIVATE', ${i})"><span>${p.n}</span><span>$${Math.round(p.t==='f'?p.p*rate:p.p)}</span></div>`; });
         const tDiv = document.getElementById('todoList'); tDiv.innerHTML = ''; data.todos.forEach((t, i) => { tDiv.innerHTML += `<div class="list-item"><span style="${t.done?'text-decoration:line-through;color:gray':''}" onclick="data.todos[${i}].done=!data.todos[${i}].done;saveAll()">${t.txt}</span><b onclick="data.todos.splice(${i},1);saveAll()">✕</b></div>`; });
     }
     function updateAll() { renderAll(); }
