@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hokkaido Master V24</title>
+    <title>Hokkaido Master V25</title>
     <style>
         :root { --sky-blue: #90caf9; --accent-blue: #1565c0; --private-purple: #9c27b0; --orange: #ffa726; }
         body { font-family: "PingFang TC", sans-serif; background: #f4f7f9; margin: 0; padding-bottom: 110px; color: #2c3e50; }
@@ -65,19 +65,38 @@
 <div id="editModal" class="modal">
     <div class="modal-content">
         <h3 id="modalTitle">編輯項目</h3>
+        
+        <div id="itFields">
+            <small>選擇天數</small>
+            <select id="mDay"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option><option value="6">Day 6</option><option value="7">Day 7</option><option value="8">Day 8</option></select>
+            <small>預計時間</small>
+            <input type="text" id="mTime" placeholder="⏰ 例如：09:00 或 全天">
+        </div>
+
         <div id="splitFields">
             <small>誰先付款？</small>
             <select id="mPayer">
                 <option value="ME">我</option><option value="翌">翌</option><option value="丞">丞</option>
                 <option value="馨">馨</option><option value="子">子</option><option value="嚕">嚕</option>
             </select>
-            <div style="display:flex; gap:10px;"><input type="number" id="mPrice" placeholder="總金額"><select id="mCur" style="width:80px;"><option value="f">円</option><option value="t">元</option></select></div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><small>成員與金額</small><button onclick="toggleSplitMode()" id="modeBtn" style="font-size:0.7rem; border:1px solid #ccc; background:#eee; padding:2px 8px; border-radius:5px;">切換手動模式</button></div>
+        </div>
+
+        <div id="commonPriceFields">
+            <small>金額與幣別</small>
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="mPrice" placeholder="輸入金額">
+                <select id="mCur" style="width:80px;"><option value="f">円</option><option value="t">元</option></select>
+            </div>
+        </div>
+
+        <div id="targetFields">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><small>分帳成員與金額</small><button onclick="toggleSplitMode()" id="modeBtn" style="font-size:0.7rem; border:1px solid #ccc; background:#eee; padding:2px 8px; border-radius:5px;">切換手動模式</button></div>
             <div id="targetGrid" style="background:#f9f9f9; padding:10px; border-radius:10px; margin:5px 0;"></div>
         </div>
-        <div id="itFields"><select id="mDay"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option><option value="6">Day 6</option><option value="7">Day 7</option><option value="8">Day 8</option></select></div>
-        <input type="text" id="mName" placeholder="項目名稱">
-        <div id="itFields2"><input type="text" id="mTime" placeholder="⏰ 時間"></div>
+
+        <small>項目名稱</small>
+        <input type="text" id="mName" placeholder="例如：飯店、拉麵、滑雪...">
+        
         <div style="display:flex; gap:10px; margin-top:15px;"><button class="btn" style="background:#eee;" onclick="closeModal()">取消</button><button class="btn btn-main" onclick="handleSave()">儲存</button></div>
         <button id="btnDel" onclick="handleDelete()" style="background:none; border:none; color:red; width:100%; margin-top:15px; font-size:0.8rem;">🗑️ 刪除</button>
     </div>
@@ -114,26 +133,45 @@
     function openModal(mode, idx = -1) {
         currentMode = mode; editIdx = idx; isManual = false;
         document.getElementById('editModal').style.display = 'flex';
+        
+        // 根據模式顯示/隱藏欄位
         document.getElementById('itFields').style.display = (mode==='ITINERARY'?'block':'none');
-        document.getElementById('itFields2').style.display = (mode==='ITINERARY'?'block':'none');
         document.getElementById('splitFields').style.display = (mode==='SPLIT'?'block':'none');
+        document.getElementById('targetFields').style.display = (mode==='SPLIT'?'block':'none');
+        
         buildTargetGrid();
+
         if(idx > -1) {
             const list = (mode==='ITINERARY'?data.itinerary : mode==='SPLIT'?data.split : data.private);
             const it = list[idx];
-            document.getElementById('mName').value = it.n; document.getElementById('mPrice').value = it.p; document.getElementById('mCur').value = it.t;
+            document.getElementById('mName').value = it.n; 
+            document.getElementById('mPrice').value = it.p; 
+            document.getElementById('mCur').value = it.t || 'f';
+            if(mode==='ITINERARY') {
+                document.getElementById('mDay').value = it.day;
+                document.getElementById('mTime').value = it.time || "";
+            }
             if(mode==='SPLIT') {
                 document.getElementById('mPayer').value = it.payer;
                 if(it.isManual) { toggleSplitMode(); it.targets.forEach(tg => { document.getElementById(`cb_${tg.u}`).checked = true; document.getElementById(`amt_${tg.u}`).value = tg.a; }); }
                 else { it.targets.forEach(tg => { document.getElementById(`cb_${tg.u}`).checked = true; }); }
             }
-        } else { document.getElementById('mName').value = ""; document.getElementById('mPrice').value = ""; }
+        } else { 
+            document.getElementById('mName').value = ""; 
+            document.getElementById('mPrice').value = ""; 
+            document.getElementById('mCur').value = "f";
+            document.getElementById('mTime').value = "";
+        }
     }
 
     function closeModal() { document.getElementById('editModal').style.display='none'; }
 
     function handleSave() {
-        const it = { n: document.getElementById('mName').value, p: parseFloat(document.getElementById('mPrice').value)||0, t: document.getElementById('mCur').value };
+        const it = { 
+            n: document.getElementById('mName').value, 
+            p: parseFloat(document.getElementById('mPrice').value)||0, 
+            t: document.getElementById('mCur').value 
+        };
         if(currentMode==='ITINERARY'){ it.day=parseInt(document.getElementById('mDay').value); it.time=document.getElementById('mTime').value; }
         if(currentMode==='SPLIT'){ 
             it.payer=document.getElementById('mPayer').value; it.isManual = isManual;
@@ -151,34 +189,23 @@
 
     function renderAll() {
         const rate = parseFloat(document.getElementById('exRate').value)||0.2;
-        
-        // 行程
         const itDiv = document.getElementById('itList'); itDiv.innerHTML = '';
         [1,2,3,4,5,6,7,8].forEach(d => {
             const items = data.itinerary.filter(i => i.day === d);
             itDiv.innerHTML += `<div class="day-title">Day ${d}</div>`;
             if(items.length) {
-                items.forEach(it => { itDiv.innerHTML += `<div class="list-item" onclick="openModal('ITINERARY', ${data.itinerary.indexOf(it)})"><div><b>${it.n}</b><br><small>${it.p}${it.t=='f'?'円':'元'}</small></div><span>🚗</span></div>`; });
+                items.forEach(it => { itDiv.innerHTML += `<div class="list-item" onclick="openModal('ITINERARY', ${data.itinerary.indexOf(it)})"><div><b>${it.n}</b><br><small>${it.time ? it.time+' | ' : ''}${it.p}${it.t=='f'?'円':'元'}</small></div><span>🚗</span></div>`; });
             } else { itDiv.innerHTML += `<div style="padding:10px; color:#ccc; font-size:0.8rem;">尚無行程</div>`; }
         });
 
-        // 拆帳邏輯：日幣、台幣分開
         let balF = {翌:0,丞:0,馨:0,子:0,嚕:0}, balT = {翌:0,丞:0,馨:0,子:0,嚕:0};
         let myTotalDebtNT = 0;
         const sDiv = document.getElementById('splitList'); sDiv.innerHTML = '';
-
         data.split.forEach((s, i) => {
-            let itemDisplayStr = "";
             s.targets.forEach(tg => {
                 let share = s.isManual ? tg.a : (s.p / s.targets.length);
-                if(s.payer === 'ME') {
-                    if(tg.u !== 'ME') { if(s.t==='f') balF[tg.u] += share; else balT[tg.u] += share; }
-                } else {
-                    if(tg.u === 'ME') {
-                        if(s.t==='f') balF[s.payer] -= share; else balT[s.payer] -= share;
-                        myTotalDebtNT += (s.t==='f' ? share * rate : share);
-                    }
-                }
+                if(s.payer === 'ME') { if(tg.u !== 'ME') { if(s.t==='f') balF[tg.u] += share; else balT[tg.u] += share; } }
+                else { if(tg.u === 'ME') { if(s.t==='f') balF[s.payer] -= share; else balT[s.payer] -= share; myTotalDebtNT += (s.t==='f' ? share * rate : share); } }
             });
             const color = s.payer==='ME'?'green':(s.targets.some(t=>t.u==='ME')?'red':'gray');
             sDiv.innerHTML += `<div class="list-item" onclick="openModal('SPLIT', ${i})"><span>${s.payer==='ME'?'(我墊)':'('+s.payer+'墊)'} ${s.n}</span><b style="color:${color}">${s.p}${s.t==='f'?'円':'元'}</b></div>`;
@@ -187,28 +214,19 @@
         let summaryHtml = "";
         names.filter(n => n !== 'ME').forEach(p => {
             let line = "";
-            if(balF[p] > 0) line += `<span style="color:green">● ${p} 應給你：${Math.round(balF[p])} 円</span>`;
-            else if(balF[p] < 0) line += `<span style="color:red">● 你應給 ${p}：${Math.round(Math.abs(balF[p]))} 円</span>`;
-            
-            if(balT[p] !== 0) {
-                if(line) line += " / ";
-                if(balT[p] > 0) line += `<span style="color:green">${line?"":"● "+p+" 應給你："}${Math.round(balT[p])} 元</span>`;
-                else if(balT[p] < 0) line += `<span style="color:red">${line?"":"● 你應給 "+p+"："}${Math.round(Math.abs(balT[p]))} 元</span>`;
-            }
+            if(Math.abs(balF[p]) > 0.1) line += `<span style="color:${balF[p]>0?'green':'red'}">● ${p} ${balF[p]>0?'應給你':'你應給'}：${Math.round(Math.abs(balF[p]))} 円</span>`;
+            if(Math.abs(balT[p]) > 0.1) { if(line) line += " / "; line += `<span style="color:${balT[p]>0?'green':'red'}">${line?"":"● "+p+(balT[p]>0?' 應給你':' 你應給')+"："} ${Math.round(Math.abs(balT[p]))} 元</span>`; }
             if(line) summaryHtml += line + "<br>";
         });
         document.getElementById('splitSummary').innerHTML = summaryHtml || "暫無收支狀況";
 
-        // 總預算計算
-        const flight = parseFloat(document.getElementById('flight').value)||0;
         const hotelNT = Math.round((eval(document.getElementById('hotelTotal').value.replace(/[^\d+*/.-]/g, ''))||0) * rate / 6);
         const itNT = data.itinerary.reduce((s, i) => s + (i.t=='f' ? i.p*rate : i.p), 0);
         let myPrivTotalNT = 0; data.private.forEach(p => myPrivTotalNT += Math.round(p.t==='f'?p.p*rate : p.p));
-        document.getElementById('statMyTotal').innerText = `$${Math.round(flight + hotelNT + itNT + myTotalDebtNT + myPrivTotalNT).toLocaleString()}`;
+        document.getElementById('statMyTotal').innerText = `$${Math.round(parseFloat(document.getElementById('flight').value) + hotelNT + itNT + myTotalDebtNT + myPrivTotalNT).toLocaleString()}`;
 
-        // 渲染剩餘
         const pkDiv = document.getElementById('packingList'); pkDiv.innerHTML = ''; data.packing.forEach((p, i) => { pkDiv.innerHTML += `<div class="list-item"><span style="${p.d?'text-decoration:line-through;color:gray':''}" onclick="data.packing[${i}].d=!data.packing[${i}].d;saveAll()">${p.t}</span><b onclick="data.packing.splice(${i},1);saveAll()">✕</b></div>`; });
-        const pDiv = document.getElementById('privSpendList'); pDiv.innerHTML = ''; data.private.forEach((p, i) => { pDiv.innerHTML += `<div class="list-item" onclick="openModal('PRIVATE', ${i})"><span>${p.n}</span><span>$${Math.round(p.t==='f'?p.p*rate:p.p)}</span></div>`; });
+        const pDiv = document.getElementById('privSpendList'); pDiv.innerHTML = ''; data.private.forEach((p, i) => { pDiv.innerHTML += `<div class="list-item" onclick="openModal('PRIVATE', ${i})"><span>${p.n}</span><span>${p.p}${p.t==='f'?'円':'元'}</span></div>`; });
         const tDiv = document.getElementById('todoList'); tDiv.innerHTML = ''; data.todos.forEach((t, i) => { tDiv.innerHTML += `<div class="list-item"><span style="${t.done?'text-decoration:line-through;color:gray':''}" onclick="data.todos[${i}].done=!data.todos[${i}].done;saveAll()">${t.txt}</span><b onclick="data.todos.splice(${i},1);saveAll()">✕</b></div>`; });
     }
     function updateAll() { renderAll(); }
