@@ -3,48 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hokkaido Trip Manager</title>
+    <title>Hokkaido Travel Hub</title>
     <style>
-        :root { --sky-blue: #90caf9; --accent-blue: #1565c0; --snow: #f0f8ff; --private-purple: #9c27b0; }
-        body { font-family: "PingFang TC", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 140px; color: #2c3e50; min-height: 100vh; }
-        
-        /* 導覽列 */
+        :root { --sky-blue: #90caf9; --accent-blue: #1565c0; --private-purple: #9c27b0; --debt-red: #e57373; --gain-green: #66bb6a; }
+        body { font-family: "PingFang TC", sans-serif; background: #f4f7f9; margin: 0; padding-bottom: 140px; color: #2c3e50; }
         .nav-tabs { display: flex; background: white; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .tab { flex: 1; text-align: center; padding: 15px 0; font-weight: bold; color: #546e7a; cursor: pointer; font-size: 0.9rem; }
         .tab.active { color: var(--accent-blue); border-bottom: 3px solid var(--accent-blue); }
         .tab.private-tab.active { color: var(--private-purple); border-bottom: 3px solid var(--private-purple); }
-
         .container { padding: 15px; }
         .page { display: none; }
         .page.active { display: block; }
-
         .card { background: white; padding: 18px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        h3 { margin-top: 0; color: var(--accent-blue); font-size: 1rem; margin-bottom: 15px; }
-        .private-h3 { color: var(--private-purple); }
-
-        /* 行程與列表樣式 */
-        .day-title { font-weight: bold; color: white; background: #64b5f6; padding: 4px 12px; border-radius: 15px; margin: 15px 0 10px 0; font-size: 0.8rem; }
+        h3 { margin-top: 0; color: var(--accent-blue); font-size: 1rem; margin-bottom: 12px; }
+        .day-title { font-weight: bold; color: white; background: #64b5f6; padding: 4px 12px; border-radius: 15px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
         .list-item { background: #fff; padding: 12px 15px; border-radius: 15px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; }
-        
-        /* 表單樣式 */
         input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 16px; }
         .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; width: 100%; }
         .btn-main { background: var(--accent-blue); color: white; }
-        .btn-priv { background: var(--private-purple); color: white; }
-
-        /* 彈出視窗 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
-        .modal-content { background: white; width: 85%; max-width: 400px; padding: 25px; border-radius: 24px; }
-
-        /* 懸浮按鈕 */
-        .fab { position: fixed; bottom: 110px; right: 20px; width: 56px; height: 56px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; border: none; z-index: 1500; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-
-        /* 底部統計 */
+        .modal-content { background: white; width: 85%; max-width: 400px; padding: 25px; border-radius: 24px; max-height: 90vh; overflow-y: auto; }
+        .fab { position: fixed; bottom: 120px; right: 20px; width: 56px; height: 56px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; border: none; z-index: 1500; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px 20px; border-top: 1px solid #eee; z-index: 900; }
-        .stat-grid { display: flex; justify-content: space-between; text-align: center; }
+        .stat-grid { display: flex; justify-content: space-between; text-align: center; gap: 10px; }
         .stat-item { flex: 1; }
         .stat-label { font-size: 0.7rem; color: #78909c; }
-        .stat-val { font-size: 1.1rem; font-weight: 900; display: block; }
+        .stat-val { font-size: 1rem; font-weight: 900; display: block; }
     </style>
 </head>
 <body>
@@ -56,41 +40,30 @@
 </div>
 
 <div class="container">
-    
-    <div id="itinerary" class="page active">
-        <div id="itList"></div>
-    </div>
+    <div id="itinerary" class="page active"><div id="itList"></div></div>
 
     <div id="split" class="page">
         <div class="card">
-            <h3>👥 團體公費墊付 (你先出的)</h3>
+            <h3>💸 代墊記錄</h3>
             <div id="splitList"></div>
-            <button class="btn btn-main" onclick="openModal('SPLIT')">+ 新增代墊款項</button>
+            <button class="btn btn-main" onclick="openModal('SPLIT')">+ 新增帳目</button>
         </div>
-        <div class="card" style="background:#e8f5e9;">
-            <h3>📊 拆帳結算</h3>
-            <div id="splitSummary"></div>
+        <div class="card" style="background:#f1f8e9;">
+            <h3>📊 最終結算 (NT)</h3>
+            <div id="splitSummary" style="font-size: 0.9rem; line-height: 1.8;"></div>
         </div>
     </div>
 
     <div id="private" class="page">
         <div class="card" style="border-left: 5px solid var(--private-purple);">
-            <h3 class="private-h3">✅ 待辦事項</h3>
+            <h3 style="color:var(--private-purple)">✅ 私人待辦</h3>
             <div id="todoList"></div>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="newTodo" placeholder="買藥妝、換日幣..." style="margin:0;">
-                <button class="btn-priv" style="width:60px;" onclick="addTodo()">+</button>
-            </div>
-        </div>
-        <div class="card" style="border-left: 5px solid var(--private-purple);">
-            <h3 class="private-h3">🛍️ 個人私有支出</h3>
-            <div id="privateSpendList"></div>
-            <button class="btn btn-priv" onclick="openModal('PRIVATE')">+ 新增個人支出</button>
+            <div style="display:flex; gap:5px;"><input type="text" id="newTodo" placeholder="買藥妝..." style="margin:0;"><button class="btn" style="background:var(--private-purple); color:white; width:60px;" onclick="addTodo()">+</button></div>
         </div>
         <div class="card">
             <h3>⚙️ 基礎設定</h3>
             <small>機票(NT)</small><input type="number" id="flight" value="21255" oninput="updateAll()">
-            <small>日幣匯率</small><input type="number" id="exRate" value="0.22" step="0.001" oninput="updateAll()">
+            <small>匯率</small><input type="number" id="exRate" value="0.22" step="0.001" oninput="updateAll()">
             <small>住宿(日幣算式)</small><input type="text" id="hotelTotal" value="97742 + 276517" oninput="updateAll()">
         </div>
     </div>
@@ -98,24 +71,30 @@
 
 <div id="editModal" class="modal">
     <div class="modal-content">
-        <h3 id="modalTitle">編輯行程</h3>
-        <div id="modalDayField">
+        <h3 id="modalTitle">編輯帳目</h3>
+        <div id="splitOnlyField">
+            <small>誰付的款？</small>
+            <select id="mPayer">
+                <option value="ME">我付的 (墊給別人)</option>
+                <option value="OTHER">別人付的 (我欠別人)</option>
+            </select>
+            <small>這筆錢幾個人分？</small>
+            <input type="number" id="mSplitNum" value="6" placeholder="幾人分擔？">
+        </div>
+        <div id="itOnlyField">
             <select id="mDay"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option><option value="6">Day 6</option><option value="7">Day 7</option><option value="8">Day 8</option></select>
         </div>
-        <input type="text" id="mName" placeholder="名稱">
+        <input type="text" id="mName" placeholder="項目名稱 (例如: A墊飯錢)">
         <div style="display:flex; gap:10px;">
             <input type="number" id="mPrice" placeholder="金額">
             <select id="mCur" style="width:80px;"><option value="f">円</option><option value="t">元</option></select>
         </div>
-        <div id="modalExtraFields">
-            <input type="text" id="mTime" placeholder="⏰ 營業時間">
-            <input type="text" id="mNote" placeholder="備註">
-        </div>
-        <div style="display:flex; gap:10px; margin-top:15px;">
-            <button class="btn" style="background:#ffebee; color:red;" id="btnDel" onclick="handleDelete()">刪除</button>
+        <div id="itOnlyField2"><input type="text" id="mTime" placeholder="⏰ 營業時間"></div>
+        <div class="stat-grid" style="margin-top:15px;">
             <button class="btn" style="background:#eee;" onclick="closeModal()">取消</button>
             <button class="btn btn-main" onclick="handleSave()">儲存</button>
         </div>
+        <button id="btnDel" onclick="handleDelete()" style="background:none; border:none; color:red; width:100%; margin-top:10px; font-size:0.8rem;">🗑️ 刪除此項目</button>
     </div>
 </div>
 
@@ -123,189 +102,129 @@
 
 <div class="summary-bar">
     <div class="stat-grid">
-        <div class="stat-item">
-            <span class="stat-label">別人欠你</span>
-            <span class="stat-val" id="totalOwed" style="color:green;">0</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-label">個人總預算</span>
-            <span class="stat-val" id="myTotal" style="color:var(--accent-blue);">0</span>
-        </div>
+        <div class="stat-item"><span class="stat-label">別人欠我</span><span id="statOwed" class="stat-val" style="color:green;">0</span></div>
+        <div class="stat-item"><span class="stat-label">我欠別人</span><span id="statDebt" class="stat-val" style="color:red;">0</span></div>
+        <div class="stat-item"><span class="stat-label">總花費(含欠款)</span><span id="statMyTotal" class="stat-val" style="color:var(--accent-blue);">0</span></div>
     </div>
 </div>
 
 <script>
-    // 【重點：原本所有的行程資料都補回來了！】
-    let data = JSON.parse(localStorage.getItem('hokkaido_v14')) || {
+    let data = JSON.parse(localStorage.getItem('hokkaido_v15')) || {
         itinerary: [
-            {day: 1, n: "登別水族館門票", p: 612, t: "t", time: "09:00-17:00", note: ""},
-            {day: 2, n: "熊牧場門票", p: 3200, t: "f", time: "09:30-16:30", note: ""},
-            {day: 4, n: "天狗山纜車", p: 449, t: "t", time: "09:00-21:00", note: ""},
-            {day: 5, n: "滑雪教學(方案1)", p: 4500, t: "t", time: "4小時", note: ""},
-            {day: 6, n: "旭山動物園一日遊", p: 1838, t: "t", time: "全天", note: ""},
-            {day: 7, n: "美唄雪上樂園", p: 2000, t: "f", time: "09:00-16:15", note: ""}
+            {day:1, n:"登別水族館", p:612, t:"t", time:"09:00-17:00"},
+            {day:2, n:"熊牧場", p:3200, t:"f", time:"09:30-16:30"},
+            {day:4, n:"天狗山纜車", p:449, t:"t", time:"09:00-21:00"},
+            {day:5, n:"滑雪教學", p:4500, t:"t", time:"4小時"},
+            {day:6, n:"旭山動物園", p:1838, t:"t", time:"全天"},
+            {day:7, n:"美唄雪上樂園", p:2000, t:"f", time:"09:00-16:15"}
         ],
-        split: [],
-        private: [],
-        todos: []
+        split: [], todos: []
     };
+    let currentMode = '', editIdx = -1;
 
-    let currentMode = ''; 
-    let editIdx = -1;
+    window.onload = () => renderAll();
 
-    window.onload = () => { renderAll(); };
-
-    function showPage(pageId, el) {
+    function showPage(pId, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
+        document.getElementById(pId).classList.add('active');
         el.classList.add('active');
-        document.getElementById('mainFab').style.display = (pageId === 'itinerary') ? 'flex' : 'none';
+        document.getElementById('mainFab').style.display = (pId === 'itinerary') ? 'flex' : 'none';
     }
 
     function openModal(mode, idx = -1) {
-        currentMode = mode;
-        editIdx = idx;
+        currentMode = mode; editIdx = idx;
         document.getElementById('editModal').style.display = 'flex';
-        document.getElementById('btnDel').style.display = (idx === -1) ? 'none' : 'block';
-        document.getElementById('modalDayField').style.display = (mode === 'ITINERARY') ? 'block' : 'none';
-        document.getElementById('modalExtraFields').style.display = (mode === 'ITINERARY') ? 'block' : 'none';
+        document.getElementById('itOnlyField').style.display = (mode==='ITINERARY'?'block':'none');
+        document.getElementById('itOnlyField2').style.display = (mode==='ITINERARY'?'block':'none');
+        document.getElementById('splitOnlyField').style.display = (mode==='SPLIT'?'block':'none');
+        document.getElementById('btnDel').style.display = (idx===-1?'none':'block');
         
         if(idx > -1) {
-            const list = mode==='ITINERARY'?data.itinerary:mode==='SPLIT'?data.split:data.private;
-            const item = list[idx];
-            document.getElementById('mName').value = item.n;
-            document.getElementById('mPrice').value = item.p;
-            document.getElementById('mCur').value = item.t;
-            if(mode==='ITINERARY') {
-                document.getElementById('mDay').value = item.day;
-                document.getElementById('mTime').value = item.time || "";
-                document.getElementById('mNote').value = item.note || "";
-            }
+            const it = (mode==='ITINERARY'?data.itinerary:data.split)[idx];
+            document.getElementById('mName').value = it.n;
+            document.getElementById('mPrice').value = it.p;
+            document.getElementById('mCur').value = it.t;
+            if(mode==='ITINERARY') { document.getElementById('mDay').value = it.day; document.getElementById('mTime').value = it.time; }
+            if(mode==='SPLIT') { document.getElementById('mPayer').value = it.payer; document.getElementById('mSplitNum').value = it.sNum; }
         } else {
-            document.getElementById('mName').value = "";
-            document.getElementById('mPrice').value = "";
+            document.getElementById('mName').value = ""; document.getElementById('mPrice').value = "";
         }
     }
 
-    function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+    function closeModal() { document.getElementById('editModal').style.display='none'; }
 
     function handleSave() {
-        const item = {
-            n: document.getElementById('mName').value,
-            p: parseFloat(document.getElementById('mPrice').value)||0,
-            t: document.getElementById('mCur').value
-        };
-        if(currentMode === 'ITINERARY') {
-            item.day = parseInt(document.getElementById('mDay').value);
-            item.time = document.getElementById('mTime').value;
-            item.note = document.getElementById('mNote').value;
-        }
-
-        if(editIdx > -1) {
-            if(currentMode==='ITINERARY') data.itinerary[editIdx] = item;
-            if(currentMode==='SPLIT') data.split[editIdx] = item;
-            if(currentMode==='PRIVATE') data.private[editIdx] = item;
-        } else {
-            if(currentMode==='ITINERARY') data.itinerary.push(item);
-            if(currentMode==='SPLIT') data.split.push(item);
-            if(currentMode==='PRIVATE') data.private.push(item);
-        }
-        saveAndRender();
-        closeModal();
+        const it = { n: document.getElementById('mName').value, p: parseFloat(document.getElementById('mPrice').value)||0, t: document.getElementById('mCur').value };
+        if(currentMode==='ITINERARY'){ it.day=parseInt(document.getElementById('mDay').value); it.time=document.getElementById('mTime').value; }
+        if(currentMode==='SPLIT'){ it.payer=document.getElementById('mPayer').value; it.sNum=parseInt(document.getElementById('mSplitNum').value)||1; }
+        
+        if(editIdx > -1) (currentMode==='ITINERARY'?data.itinerary:data.split)[editIdx] = it;
+        else (currentMode==='ITINERARY'?data.itinerary:data.split).push(it);
+        
+        saveAll(); closeModal();
     }
 
-    function handleDelete() {
-        if(!confirm("確定刪除？")) return;
-        if(currentMode==='ITINERARY') data.itinerary.splice(editIdx, 1);
-        if(currentMode==='SPLIT') data.split.splice(editIdx, 1);
-        if(currentMode==='PRIVATE') data.private.splice(editIdx, 1);
-        saveAndRender();
-        closeModal();
-    }
+    function handleDelete() { if(confirm("刪除？")) { (currentMode==='ITINERARY'?data.itinerary:data.split).splice(editIdx,1); saveAll(); closeModal(); } }
 
-    function addTodo() {
-        const val = document.getElementById('newTodo').value;
-        if(!val) return;
-        data.todos.push({txt: val, done: false});
-        document.getElementById('newTodo').value = '';
-        saveAndRender();
-    }
-    function toggleTodo(i) { data.todos[i].done = !data.todos[i].done; saveAndRender(); }
-    function delTodo(i) { data.todos.splice(i, 1); saveAndRender(); }
-
-    function saveAndRender() {
-        localStorage.setItem('hokkaido_v14', JSON.stringify(data));
-        renderAll();
-    }
+    function addTodo() { const v=document.getElementById('newTodo').value; if(v){data.todos.push({txt:v, done:false}); document.getElementById('newTodo').value=''; saveAll();}}
+    function saveAll() { localStorage.setItem('hokkaido_v15', JSON.stringify(data)); renderAll(); }
 
     function renderAll() {
         const rate = parseFloat(document.getElementById('exRate').value)||0.22;
         
-        // 行程渲染
-        const itDiv = document.getElementById('itList');
-        itDiv.innerHTML = '';
-        const days = [1,2,3,4,5,6,7,8];
-        days.forEach(d => {
-            const dItems = data.itinerary.filter(i => i.day === d);
-            if(dItems.length > 0) {
+        // 行程
+        const itDiv = document.getElementById('itList'); itDiv.innerHTML = '';
+        [1,2,3,4,5,6,7,8].forEach(d => {
+            const items = data.itinerary.filter(i => i.day === d);
+            if(items.length) {
                 itDiv.innerHTML += `<div class="day-title">Day ${d}</div>`;
-                dItems.forEach((it) => {
-                    const realIdx = data.itinerary.indexOf(it);
-                    itDiv.innerHTML += `
-                    <div class="list-item">
-                        <div style="flex:1" onclick="openModal('ITINERARY', ${realIdx})">
-                            <div style="font-weight:bold;">${it.n}</div>
-                            <div style="font-size:0.75rem; color:#1565c0;">${it.p.toLocaleString()}${it.t=='f'?'円':'元'} ${it.time?' | '+it.time:''}</div>
-                        </div>
-                        <a href="https://www.google.com/maps/search/${encodeURIComponent(it.n)}" target="_blank" style="font-size:1.2rem; text-decoration:none;">🚗</a>
-                    </div>`;
+                items.forEach(it => {
+                    itDiv.innerHTML += `<div class="list-item" onclick="openModal('ITINERARY', ${data.itinerary.indexOf(it)})"><div><b>${it.n}</b><br><small>${it.p}${it.t=='f'?'円':'元'} ${it.time?'| '+it.time:''}</small></div><span>🚗</span></div>`;
                 });
             }
         });
 
-        // 拆帳渲染
-        let totalSplitNT = 0;
-        const splitDiv = document.getElementById('splitList');
-        splitDiv.innerHTML = '';
+        // 拆帳與結算
+        let owedToMe = 0, debtToOthers = 0;
+        const sDiv = document.getElementById('splitList'); sDiv.innerHTML = '';
         data.split.forEach((s, i) => {
-            const nt = s.t==='f' ? Math.round(s.p * rate) : s.p;
-            totalSplitNT += nt;
-            splitDiv.innerHTML += `<div class="list-item" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><span>$${nt}</span></div>`;
-        });
-        const perPerson = Math.round(totalSplitNT / 6);
-        document.getElementById('splitSummary').innerHTML = `總代墊：$${totalSplitNT} NT<br>每人分擔：$${perPerson} NT<br><strong style="color:green;">其餘 5 人應付給你：$${perPerson * 5} NT</strong>`;
-
-        // 私人渲染
-        let myPrivNT = 0;
-        const privSpendDiv = document.getElementById('privateSpendList');
-        privSpendDiv.innerHTML = '';
-        data.private.forEach((p, i) => {
-            const nt = p.t==='f' ? Math.round(p.p * rate) : p.p;
-            myPrivNT += nt;
-            privSpendDiv.innerHTML += `<div class="list-item" onclick="openModal('PRIVATE', ${i})"><span>${p.n}</span><span>$${nt}</span></div>`;
+            const nt = Math.round(s.t==='f' ? s.p*rate : s.p);
+            const share = Math.round(nt / s.sNum);
+            if(s.payer === 'ME') {
+                owedToMe += (nt - share); // 我墊的，扣除我自己的份
+                sDiv.innerHTML += `<div class="list-item" onclick="openModal('SPLIT', ${i})"><span>(我墊) ${s.n}</span><span style="color:green">+$${nt-share}</span></div>`;
+            } else {
+                debtToOthers += share; // 別人墊的，我欠那一份
+                sDiv.innerHTML += `<div class="list-item" onclick="openModal('SPLIT', ${i})"><span>(欠人) ${s.n}</span><span style="color:red">-$${share}</span></div>`;
+            }
         });
 
-        // 待辦渲染
-        const todoDiv = document.getElementById('todoList');
-        todoDiv.innerHTML = '';
-        data.todos.forEach((t, i) => {
-            todoDiv.innerHTML += `<div class="list-item"><span style="text-decoration:${t.done?'line-through':'none'}" onclick="toggleTodo(${i})">${t.txt}</span><span onclick="delTodo(${i})" style="color:red;">✕</span></div>`;
-        });
-
-        // 計算統計
+        // 統計顯示
+        document.getElementById('statOwed').innerText = `$${owedToMe.toLocaleString()}`;
+        document.getElementById('statDebt').innerText = `$${debtToOthers.toLocaleString()}`;
+        
         const flight = parseFloat(document.getElementById('flight').value)||0;
         const hVal = document.getElementById('hotelTotal').value;
         let hT = 0; try { hT = eval(hVal.replace(/[^\d+*/.-]/g, '')) || 0; } catch(e) {}
         const hotelNT = Math.round(hT * rate / 6);
-        const myItTotal = data.itinerary.reduce((s, i) => s + (i.t=='f' ? i.p*rate : i.p), 0);
+        const itNT = data.itinerary.reduce((s, i) => s + (i.t=='f' ? i.p*rate : i.p), 0);
         
-        const myTotal = flight + hotelNT + myItTotal + perPerson + myPrivNT;
+        // 總花費 = 機票 + 住宿/6 + 行程門票 + 我欠別人的錢 + (我自己墊的那份公費已經在itNT或代墊中)
+        const total = flight + hotelNT + itNT + debtToOthers;
+        document.getElementById('statMyTotal').innerText = `$${Math.round(total).toLocaleString()}`;
         
-        document.getElementById('totalOwed').innerText = `$${(perPerson * 5).toLocaleString()}`;
-        document.getElementById('myTotal').innerText = `$${Math.round(myTotal).toLocaleString()}`;
-    }
+        document.getElementById('splitSummary').innerHTML = `
+            ✅ <b>應收回：$${owedToMe} NT</b> (其餘人應還你)<br>
+            ❌ <b>應付給人：$${debtToOthers} NT</b> (你要給別人)<br>
+            <hr>
+            💰 <b>結算淨額：${owedToMe >= debtToOthers ? '收回 $'+(owedToMe-debtToOthers) : '需付 $'+(debtToOthers-owedToMe)} NT</b>
+        `;
 
+        // 待辦
+        const tDiv = document.getElementById('todoList'); tDiv.innerHTML = '';
+        data.todos.forEach((t, i) => { tDiv.innerHTML += `<div class="list-item"><span style="${t.done?'text-decoration:line-through;color:gray':''}" onclick="data.todos[${i}].done=!data.todos[${i}].done;saveAll()">${t.txt}</span><b onclick="data.todos.splice(${i},1);saveAll()">✕</b></div>`; });
+    }
     function updateAll() { renderAll(); }
 </script>
 </body>
