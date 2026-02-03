@@ -3,39 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V1</title>
+    <title>去北海道被雪玩 V44</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
-        :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --green: #43a047; --red: #e53935; --gray: #eceff1; }
-        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); user-select: none; }
+        :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --green: #43a047; --red: #e53935; }
+        body { font-family: "PingFang TC", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); user-select: none; }
         .nav-tabs { display: flex; background: rgba(255,255,255,0.95); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); backdrop-filter: blur(10px); }
-        .tab { flex: 1; text-align: center; padding: 15px 0; font-weight: bold; color: #546e7a; cursor: pointer; transition: 0.3s; }
+        .tab { flex: 1; text-align: center; padding: 15px 0; font-weight: bold; color: #546e7a; cursor: pointer; }
         .tab.active { color: var(--accent-blue); border-bottom: 3px solid var(--accent-blue); background: #f8fbff; }
         .container { padding: 15px; }
         .page { display: none; }
         .page.active { display: block; }
-        .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; font-weight: bold; }
-        .it-card { background: white; border-radius: 15px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: grab; }
+        .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
+        
+        /* 行程卡片 */
+        .it-card { background: white; border-radius: 15px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .it-time { min-width: 50px; font-weight: 900; color: var(--accent-blue); font-size: 0.9rem; text-align: center; border-right: 1px solid #eee; padding-right: 5px; }
         .it-info { flex: 1; }
         .it-name { font-weight: bold; font-size: 1rem; color: #1a237e; display: block; }
         .it-cost-tag { font-size: 0.75rem; color: var(--green); font-weight: bold; margin-top: 4px; display: block; }
-        .list-item { background: white; border-radius: 12px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; }
-        .member-row { background: #fff; border: 1px solid #eee; padding: 10px 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        
+        .member-row { background: #fff; border: 1px solid #eee; padding: 10px 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
         .member-row.active { border-color: var(--accent-blue); background: #f0f7ff; }
-        .amt-input { width: 90px !important; text-align: right; border-radius: 8px !important; border: 1px solid #ccc !important; padding: 6px !important; margin: 0 !important; }
+        .amt-input { width: 90px !important; text-align: right; border-radius: 8px !important; border: 1px solid #ccc !important; padding: 6px !important; }
+        
         .card { background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
-        .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 12px; border-top: 1px solid #eee; z-index: 900; backdrop-filter: blur(5px); }
-        input, select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 1rem; }
-        .btn { padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-main { background: var(--accent-blue); color: white; width: 100%; margin-top: 10px; }
+        .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 10px; border-top: 1px solid #eee; z-index: 900; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 10px; }
+        .btn { padding: 10px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-main { background: var(--accent-blue); color: white; width: 100%; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background: white; width: 90%; max-width: 380px; padding: 20px; border-radius: 22px; max-height: 85vh; overflow-y: auto; }
-        .del-btn { color: var(--red); font-size: 0.8rem; text-decoration: underline; margin-top: 10px; display: block; text-align: center; }
+        .modal-content { background: white; width: 90%; max-width: 380px; padding: 18px; border-radius: 22px; max-height: 85vh; overflow-y: auto; }
     </style>
 </head>
 <body>
-
 <div class="nav-tabs">
     <div class="tab active" onclick="showPage('itinerary', this)">📅 行程</div>
     <div class="tab" onclick="showPage('split', this)">💰 拆帳</div>
@@ -43,11 +44,7 @@
 </div>
 
 <div class="container">
-    <div id="itinerary" class="page active">
-        <div id="itList"></div>
-        <button class="btn btn-main" onclick="openModal('ITINERARY')">+ 新增行程項目</button>
-    </div>
-
+    <div id="itinerary" class="page active"><div id="itList"></div></div>
     <div id="split" class="page">
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -59,109 +56,67 @@
         </div>
         <div class="card" style="background: #f1f8e9;">
             <h3 style="margin:0 0 10px 0; font-size:0.95rem; color:var(--accent-blue);">📊 結算 (誰該給誰)</h3>
-            <div id="splitSummary" style="font-size: 0.85rem; line-height: 1.6;"></div>
+            <div id="splitSummary" style="font-size: 0.85rem;"></div>
         </div>
     </div>
-
     <div id="private" class="page">
         <div class="card">
             <h3>🧳 備忘行李清單</h3>
             <div id="packingList"></div>
-            <div style="display:flex; gap:8px; margin-top:10px;">
-                <input type="text" id="newPack" placeholder="增加物品..." style="margin:0;">
-                <button class="btn" style="background:var(--orange); color:white; width:60px;" onclick="addItem('packing','newPack')">+</button>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="newPack" placeholder="增加...">
+                <button class="btn" style="background:var(--orange); color:white; width:50px;" onclick="addItem('packing','newPack')">+</button>
             </div>
         </div>
         <div class="card">
             <h3>⚙️ 旅遊設定</h3>
-            <label><small>當前匯率 (1日幣 = ? 台幣)</small></label>
-            <input type="number" id="exRate" step="0.001" oninput="saveSettings()">
-            <label><small>住宿總計 (日幣)</small></label>
-            <input type="number" id="hotelTotal" oninput="saveSettings()">
-            <div id="hotelPreview" style="font-size:0.8rem; color:var(--green); font-weight:bold; margin-top:5px;"></div>
+            <small>匯率</small><input type="number" id="exRate" value="0.2" step="0.001" oninput="updateAll()">
+            <small>住宿總計 (日幣)</small><input type="text" id="hotelTotal" value="374259" oninput="updateAll()">
+            <div id="hotelPreview" style="font-size:0.8rem; color:var(--green); font-weight:bold;"></div>
         </div>
     </div>
 </div>
 
 <div id="editModal" class="modal">
     <div class="modal-content">
-        <h3 id="modalTitle" style="margin-top:0;">編輯內容</h3>
+        <h3 id="modalTitle">編輯內容</h3>
         <div id="itFields">
-            <small>天數</small>
-            <select id="mDay">
-                <option value="1">Day 1</option><option value="2">Day 2</option>
-                <option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option>
-            </select>
-            <small>時間</small><input type="text" id="mTime" placeholder="例如 14:00">
-            <small>行程名稱</small><input type="text" id="mName">
+            <small>天數</small><select id="mDay"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option></select>
+            <small>名稱</small><input type="text" id="mName">
+            <small>時間</small><input type="text" id="mTime" placeholder="14:00">
         </div>
         <div id="splitFields" style="display:none">
-            <small>支出項目 (與行程同名將同步顯示)</small>
-            <input type="text" id="mSplitName" list="itineraryOptions" placeholder="請輸入名稱">
+            <small>支出項目 (若與行程同名會同步金額)</small>
+            <input type="text" id="mSplitName" list="itineraryOptions">
             <datalist id="itineraryOptions"></datalist>
-            <small>付款人</small>
-            <select id="mPayer">
-                <option value="ME">我</option><option value="翌">翌</option>
-                <option value="丞">丞</option><option value="馨">馨</option>
-                <option value="子">子</option><option value="嚕">嚕</option>
-            </select>
+            <small>付款人</small><select id="mPayer"><option value="ME">我</option><option value="翌">翌</option><option value="丞">丞</option><option value="馨">馨</option><option value="子">子</option><option value="嚕">嚕</option></select>
             <div id="targetGrid" style="margin-top:10px;"></div>
         </div>
-        <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+        <hr>
         <small>金額</small>
         <div style="display:flex; gap:5px;">
-            <input type="number" id="mPrice" oninput="autoFillRest()" style="flex:1;" placeholder="0">
-            <select id="mCur" style="width:80px;" onchange="autoFillRest()">
-                <option value="f">円</option><option value="t">元</option>
-            </select>
+            <input type="text" id="mPrice" oninput="autoFillRest()" style="flex:1;"><select id="mCur" style="width:70px;"><option value="f">円</option><option value="t">元</option></select>
         </div>
         <div style="display:flex; gap:10px; margin-top:15px;">
             <button class="btn" style="flex:1; background:#eee;" onclick="closeModal()">取消</button>
             <button class="btn btn-main" style="flex:1;" onclick="handleSave()">儲存</button>
         </div>
-        <span class="del-btn" id="delBtn" onclick="deleteItem()">刪除此項</span>
     </div>
 </div>
 
 <div class="summary-bar">
-    <div style="display:flex; justify-content:space-around; text-align:center;">
-        <div>
-            <small style="font-size:0.6rem; color:#666;">個人實花 (NT)</small><br>
-            <b id="statMyTotal" style="color:var(--accent-blue); font-size:1.1rem;">$0</b>
-        </div>
-        <div>
-            <small style="font-size:0.6rem; color:#666;">代墊待收 (NT)</small><br>
-            <b id="statMyLend" style="color:var(--red); font-size:1.1rem;">$0</b>
-        </div>
+    <div style="display:flex; justify-content:space-around;">
+        <div><small style="font-size:0.6rem;">個人實花 (NT)</small><br><b id="statMyTotal" style="color:var(--accent-blue);">$0</b></div>
+        <div><small style="font-size:0.6rem;">代墊待收 (NT)</small><br><b id="statMyLend" style="color:var(--red);">$0</b></div>
     </div>
 </div>
 
 <script>
-    const OLD_KEY = 'hokkaido_v44'; // 舊抽屜
-    const NEW_KEY = 'hokkaido_v1';  // 新抽屜
-
-    // 搬家邏輯：如果新抽屜是空的，但舊抽屜有東西，就搬過來
-    if (!localStorage.getItem(NEW_KEY) && localStorage.getItem(OLD_KEY)) {
-        localStorage.setItem(NEW_KEY, localStorage.getItem(OLD_KEY));
-        console.log("資料搬家成功！從 V44 轉移至 V1");
-    }
-
-    let data = JSON.parse(localStorage.getItem(NEW_KEY)) || { 
-        itinerary: [], split: [], packing: [], archives: [], 
-        settings: { rate: 0.215, hotel: 374259 } 
-    };
-    
-    // 確保搬家過來的資料結構完整
-    if(!data.settings) data.settings = { rate: 0.215, hotel: 374259 };
-
-    const names = ["ME", "翌", "丞", "馨", "子", "嚕"];
+    let data = JSON.parse(localStorage.getItem('hokkaido_v44')) || { itinerary: [], split: [], packing: [], archives: [] };
+    let names = ["ME", "翌", "丞", "馨", "子", "嚕"];
     let currentMode = '', editIdx = -1;
 
-    window.onload = () => {
-        document.getElementById('exRate').value = data.settings.rate;
-        document.getElementById('hotelTotal').value = data.settings.hotel;
-        renderAll();
-    };
+    window.onload = () => { renderAll(); };
 
     function showPage(id, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -170,10 +125,10 @@
         el.classList.add('active');
     }
 
-    function saveSettings() {
-        data.settings.rate = parseFloat(document.getElementById('exRate').value) || 0;
-        data.settings.hotel = parseFloat(document.getElementById('hotelTotal').value) || 0;
-        saveAll();
+    function archiveSplitData() {
+        if(!confirm("結帳並清空目前明細？金額會存入歷史紀錄。")) return;
+        data.archives.push({ time: new Date().toLocaleString(), info: document.getElementById('splitSummary').innerText });
+        data.split = []; saveAll();
     }
 
     function openModal(mode, idx = -1) {
@@ -181,37 +136,45 @@
         document.getElementById('editModal').style.display = 'flex';
         document.getElementById('itFields').style.display = mode==='ITINERARY'?'block':'none';
         document.getElementById('splitFields').style.display = mode==='SPLIT'?'block':'none';
-        document.getElementById('delBtn').style.display = idx > -1 ? 'block' : 'none';
+        
         const dl = document.getElementById('itineraryOptions');
         dl.innerHTML = data.itinerary.map(it => `<option value="${it.n}">`).join('');
+
         if(idx > -1) {
-            const d = (mode==='ITINERARY' ? data.itinerary : data.split)[idx];
-            if(mode==='ITINERARY') {
-                document.getElementById('mName').value = d.n;
-                document.getElementById('mTime').value = d.time;
-                document.getElementById('mDay').value = d.day;
-            } else {
-                document.getElementById('mSplitName').value = d.n;
-                document.getElementById('mPayer').value = d.payer;
-                buildTargetGrid(d.targets);
-            }
-            document.getElementById('mPrice').value = d.p;
-            document.getElementById('mCur').value = d.t;
+            const d = (mode==='ITINERARY'?data.itinerary:data.split)[idx];
+            if(mode==='ITINERARY') { document.getElementById('mName').value=d.n; document.getElementById('mTime').value=d.time; document.getElementById('mDay').value=d.day; }
+            else { document.getElementById('mSplitName').value=d.n; document.getElementById('mPayer').value=d.payer; buildTargetGrid(d.targets); }
+            document.getElementById('mPrice').value=d.p; document.getElementById('mCur').value=d.t;
         } else {
             ['mName','mSplitName','mPrice','mTime'].forEach(id=>document.getElementById(id).value='');
             if(mode==='SPLIT') buildTargetGrid();
         }
     }
 
+    function handleSave() {
+        const p = parseFloat(document.getElementById('mPrice').value)||0;
+        const t = document.getElementById('mCur').value;
+        if(currentMode==='ITINERARY') {
+            const it = { n: document.getElementById('mName').value, day: parseInt(document.getElementById('mDay').value), time: document.getElementById('mTime').value, p, t };
+            if(editIdx > -1) data.itinerary[editIdx] = it; else data.itinerary.push(it);
+        } else {
+            const targets = names.filter(n => document.getElementById(`cb_${n}`).checked).map(n => ({
+                u: n, a: parseFloat(document.getElementById(`amt_${n}`).value) || parseFloat(document.getElementById(`amt_${n}`).placeholder)
+            }));
+            const s = { n: document.getElementById('mSplitName').value, payer: document.getElementById('mPayer').value, p, t, targets };
+            if(editIdx > -1) data.split[editIdx] = s; else data.split.push(s);
+        }
+        saveAll(); closeModal();
+    }
+
     function buildTargetGrid(st = null) {
         const g = document.getElementById('targetGrid');
         g.innerHTML = names.map(n => {
             let isC = st ? st.some(x=>x.u===n) : (n==='ME');
-            let val = st ? st.find(x=>x.u===n)?.a || '' : '';
             return `<div class="member-row ${isC?'active':''}" id="tag_${n}">
                 <input type="checkbox" id="cb_${n}" ${isC?'checked':''} onchange="this.parentElement.classList.toggle('active');autoFillRest()">
                 <label style="flex:1; margin-left:10px;">${n==='ME'?'我':n}</label>
-                <input type="number" id="amt_${n}" class="amt-input" value="${val}" placeholder="0" oninput="autoFillRest()">
+                <input type="text" id="amt_${n}" class="amt-input" placeholder="0" oninput="autoFillRest()">
             </div>`;
         }).join('');
         autoFillRest();
@@ -220,35 +183,10 @@
     function autoFillRest() {
         const total = parseFloat(document.getElementById('mPrice').value) || 0;
         const checked = names.filter(n => document.getElementById(`cb_${n}`).checked);
-        if(checked.length > 0) {
-            checked.forEach(n => {
-                const input = document.getElementById(`amt_${n}`);
-                input.placeholder = Math.round(total / checked.length);
-            });
-        }
-    }
-
-    function handleSave() {
-        const p = parseFloat(document.getElementById('mPrice').value) || 0;
-        const t = document.getElementById('mCur').value;
-        if(currentMode === 'ITINERARY') {
-            const it = { n: document.getElementById('mName').value, day: parseInt(document.getElementById('mDay').value), time: document.getElementById('mTime').value, p, t };
-            if(editIdx > -1) data.itinerary[editIdx] = it; else data.itinerary.push(it);
-        } else {
-            const targets = names.filter(n => document.getElementById(`cb_${n}`).checked).map(n => ({
-                u: n, a: parseFloat(document.getElementById(`amt_${n}`).value) || parseFloat(document.getElementById(`amt_${n}`).placeholder) || 0
-            }));
-            const s = { n: document.getElementById('mSplitName').value, payer: document.getElementById('mPayer').value, p, t, targets };
-            if(editIdx > -1) data.split[editIdx] = s; else data.split.push(s);
-        }
-        saveAll(); closeModal();
-    }
-
-    function deleteItem() {
-        if(!confirm("確定要刪除嗎？")) return;
-        if(currentMode==='ITINERARY') data.itinerary.splice(editIdx, 1);
-        else data.split.splice(editIdx, 1);
-        saveAll(); closeModal();
+        checked.forEach(n => {
+            const el = document.getElementById(`amt_${n}`);
+            if(el) el.placeholder = Math.round(total / checked.length);
+        });
     }
 
     function addItem(type, inputId) {
@@ -259,78 +197,49 @@
         saveAll();
     }
 
-    function archiveSplitData() {
-        if(!confirm("結算將封存目前明細，確定嗎？")) return;
-        data.archives.push({ time: new Date().toLocaleString(), info: document.getElementById('splitSummary').innerText });
-        data.split = []; saveAll();
-    }
-
-    function saveAll() { localStorage.setItem(NEW_KEY, JSON.stringify(data)); renderAll(); }
+    function saveAll() { localStorage.setItem('hokkaido_v44', JSON.stringify(data)); renderAll(); }
     function closeModal() { document.getElementById('editModal').style.display='none'; }
 
+    function updateAll() { renderAll(); }
+
     function renderAll() {
-        const rate = data.settings.rate;
+        const rate = parseFloat(document.getElementById('exRate').value)||0.2;
         const itDiv = document.getElementById('itList'); itDiv.innerHTML = '';
         const actualCosts = {};
         data.split.forEach(s => { actualCosts[s.n] = { p: s.p, t: s.t }; });
 
         [1,2,3,4,5].forEach(d => {
-            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-box-${d}"></div>`;
-        });
-
-        data.itinerary.forEach((it, idx) => {
-            const real = actualCosts[it.n];
-            const targetBox = document.getElementById(`day-box-${it.day}`);
-            if(targetBox) {
-                targetBox.innerHTML += `
-                <div class="it-card" onclick="openModal('ITINERARY', ${idx})">
-                    <div class="it-time">${it.time||'--:--'}</div>
-                    <div class="it-info">
-                        <span class="it-name">${it.n}</span>
-                        ${real ? `<span class="it-cost-tag">💰 實支: ${real.p} ${real.t==='f'?'円':'元'}</span>` : ''}
-                    </div>
-                </div>`;
-            }
-        });
-
-        let myPureSpend = 0, myLending = 0;
-        let debtMap = { 翌:0, 丞:0, 馨:0, 子:0, 嚕:0 };
-
-        data.split.forEach(s => {
-            const isYen = (s.t === 'f');
-            s.targets.forEach(tg => {
-                const amtTWD = isYen ? tg.a * rate : tg.a;
-                if(s.payer === 'ME') {
-                    if(tg.u === 'ME') myPureSpend += amtTWD;
-                    else { myLending += amtTWD; debtMap[tg.u] += tg.a; }
-                } else if(tg.u === 'ME') {
-                    myPureSpend += amtTWD; debtMap[s.payer] -= tg.a;
-                }
+            itDiv.innerHTML += `<div class="day-header">Day ${d}</div>`;
+            data.itinerary.filter(i => i.day === d).forEach((it) => {
+                const real = actualCosts[it.n];
+                itDiv.innerHTML += `
+                    <div class="it-card" onclick="openModal('ITINERARY', ${data.itinerary.indexOf(it)})">
+                        <div class="it-time">${it.time||'--'}</div>
+                        <div class="it-info">
+                            <span class="it-name">${it.n}</span>
+                            ${real ? `<span class="it-cost-tag">💰 實支: ${real.p}${real.t==='f'?'円':'元'}</span>` : ''}
+                        </div>
+                    </div>`;
             });
         });
 
-        const hotelPerPersonTWD = (data.settings.hotel / 6) * rate;
-        document.getElementById('hotelPreview').innerText = `每人約分擔: ${Math.round(hotelPerPersonTWD)} 元`;
+        let myPure = 0, myLend = 0, balF = {翌:0,丞:0,馨:0,子:0,嚕:0};
+        data.split.forEach(s => {
+            s.targets.forEach(tg => {
+                let v = (s.t==='f' ? tg.a * rate : tg.a);
+                if(s.payer==='ME') { if(tg.u==='ME') myPure+=v; else { myLend+=v; balF[tg.u]+=tg.a; } }
+                else if(tg.u==='ME') { myPure+=v; balF[s.payer]-=tg.a; }
+            });
+        });
 
-        document.getElementById('splitList').innerHTML = data.split.map((s,i) => `
-            <div class="list-item" onclick="openModal('SPLIT', ${i})">
-                <span>${s.n} <small>(${s.payer})</small></span>
-                <span style="color:var(--accent-blue); font-weight:bold;">${s.p}${s.t==='f'?'円':'元'}</span>
-            </div>`).join('');
-
-        document.getElementById('splitSummary').innerHTML = Object.entries(debtMap)
-            .map(([n,v]) => v > 1 ? `● ${n} 應還我: <b style="color:var(--green)">${Math.round(v)}</b> 円` : (v < -1 ? `● 我應還 ${n}: <b style="color:var(--red)">${Math.round(Math.abs(v))}</b> 円` : ''))
-            .filter(t => t !== '').join('<br>') || '目前無待結帳款項';
-
-        document.getElementById('statMyTotal').innerText = `$${Math.round(myPureSpend + hotelPerPersonTWD).toLocaleString()}`;
-        document.getElementById('statMyLend').innerText = `$${Math.round(myLending).toLocaleString()}`;
+        document.getElementById('splitList').innerHTML = data.split.map((s,i)=>`<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><span>${s.p}${s.t==='f'?'円':'元'}</span></div>`).join('');
+        document.getElementById('splitSummary').innerHTML = Object.entries(balF).map(([n,v])=>Math.abs(v)>1?`● ${n}: ${Math.round(v)}円<br>`:'').join('');
+        const hotelTwd = (parseFloat(document.getElementById('hotelTotal').value)/6*rate);
+        document.getElementById('hotelPreview').innerText = `每人約分擔: ${Math.round(hotelTwd)} 元`;
+        document.getElementById('statMyTotal').innerText = `$${Math.round(myPure + hotelTwd).toLocaleString()}`;
+        document.getElementById('statMyLend').innerText = `$${Math.round(myLend).toLocaleString()}`;
         
-        const pk = document.getElementById('packingList');
-        pk.innerHTML = data.packing.map((p,i) => `
-            <div class="list-item" onclick="data.packing[${i}].d=!data.packing[${i}].d;saveAll()">
-                <span style="${p.d?'text-decoration:line-through;opacity:0.5':''}">${p.t}</span>
-                <span style="color:${p.d?'#ccc':'var(--orange)'}">${p.d?'✓':'☐'}</span>
-            </div>`).join('');
+        const pk = document.getElementById('packingList'); pk.innerHTML = data.packing.map((p,i)=>`<div><span onclick="data.packing[${i}].d=!data.packing[${i}].d;saveAll()" style="${p.d?'text-decoration:line-through;opacity:0.5':''}">${p.t}</span></div>`).join('');
     }
 </script>
 </body>
