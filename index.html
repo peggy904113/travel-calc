@@ -30,7 +30,7 @@
         .target-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
         .member-tag { background: #fff; border: 2px solid #eee; padding: 10px; border-radius: 12px; display: flex; align-items: center; gap: 8px; }
         .member-tag.active { border-color: var(--accent-blue); background: #f0f7ff; }
-        .amt-input { width: 70px !important; padding: 5px !important; margin: 0 !important; font-size: 13px !important; text-align: right; border-radius: 8px !important; border: 1px solid #ccc !important; }
+        .amt-input { width: 75px !important; padding: 5px !important; margin: 0 !important; font-size: 13px !important; text-align: right; border-radius: 8px !important; border: 1px solid #ccc !important; }
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; box-sizing: border-box; }
         .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
         .btn-main { background: var(--accent-blue); color: white; width: 100%; }
@@ -75,7 +75,7 @@
             <h3>⚙️ 旅遊設定</h3>
             <small>個人機票 (NT)</small><input type="number" id="flight" value="21255" oninput="updateAll()">
             <small>目前匯率</small><input type="number" id="exRate" value="0.2" step="0.001" oninput="updateAll()">
-            <small>住宿日幣算式 (平分6人)</small><input type="text" id="hotelTotal" value="97742 + 276517" oninput="updateAll()">
+            <small>住宿日幣總額 (自動 ÷ 6 算入個人花費)</small><input type="text" id="hotelTotal" value="97742 + 276517" oninput="updateAll()">
         </div>
     </div>
 </div>
@@ -96,7 +96,7 @@
             <select id="mCur" style="width:80px;"><option value="f">円</option><option value="t">元</option></select>
         </div>
         <div id="targetFields">
-            <div style="display:flex; justify-content:space-between; margin-top:10px;"><small>分帳成員</small><button onclick="toggleSplitMode()" id="modeBtn" style="font-size:0.7rem;">手動</button></div>
+            <div style="display:flex; justify-content:space-between; margin-top:10px;"><small>分帳成員 (可填寫特定金額)</small></div>
             <div id="targetGrid" class="target-grid"></div>
         </div>
         <small>項目名稱</small><input type="text" id="mName">
@@ -105,12 +105,12 @@
     </div>
 </div>
 <button class="fab" id="mainFab" onclick="openModal('ITINERARY')">+</button>
-<div class="summary-bar"><span style="font-size:0.75rem; color:#78909c;">❄️ 個人預估花費總計 (NT)</span><br><span id="statMyTotal" style="font-size:1.3rem; font-weight:900; color:var(--accent-blue);">$0</span></div>
+<div class="summary-bar"><span style="font-size:0.75rem; color:#78909c;">❄️ 個人總預估花費 (NT)</span><br><span id="statMyTotal" style="font-size:1.3rem; font-weight:900; color:var(--accent-blue);">$0</span></div>
 
 <script>
     let data = JSON.parse(localStorage.getItem('hokkaido_v31')) || JSON.parse(localStorage.getItem('hokkaido_v_stable')) || { itinerary: [], split: [], packing: [] };
     let names = ["ME", "翌", "丞", "馨", "子", "嚕"];
-    let currentMode = '', editIdx = -1, isManual = false;
+    let currentMode = '', editIdx = -1;
 
     window.onload = () => { createSnow(); renderAll(); };
     function createSnow() {
@@ -132,15 +132,16 @@
         const grid = document.getElementById('targetGrid');
         grid.innerHTML = names.map(n => {
             let isChecked = savedTargets ? savedTargets.some(t => t.u === n) : (n === 'ME');
-            return `<div class="member-tag ${isChecked?'active':''}" id="tag_${n}"><input type="checkbox" id="cb_${n}" value="${n}" ${isChecked?'checked':''} onchange="updateTagStyle('${n}')"><label for="cb_${n}" style="flex:1;">${n==='ME'?'我':n}</label><input type="text" id="amt_${n}" class="amt-input" placeholder="0" style="display:${isManual?'block':'none'}" oninput="autoFillRest()"></div>`;
+            let val = (savedTargets && savedTargets.find(t => t.u === n)) ? (savedTargets.find(t => t.u === n).isManualVal ? savedTargets.find(t => t.u === n).a : "") : "";
+            return `<div class="member-tag ${isChecked?'active':''}" id="tag_${n}"><input type="checkbox" id="cb_${n}" value="${n}" ${isChecked?'checked':''} onchange="updateTagStyle('${n}')"><label for="cb_${n}" style="flex:1;">${n==='ME'?'我':n}</label><input type="text" id="amt_${n}" class="amt-input" placeholder="0" value="${val}" oninput="autoFillRest()"></div>`;
         }).join('');
+        autoFillRest();
     }
     function updateTagStyle(n) { document.getElementById(`tag_${n}`).classList.toggle('active', document.getElementById(`cb_${n}`).checked); autoFillRest(); }
-    function goNav(dest) { if(!dest) return; if(dest.startsWith('http')) window.open(dest, '_blank'); else window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dest)}`, '_blank'); }
+    function goNav(dest) { if(!dest) return; if(dest.startsWith('http')) window.open(dest, '_blank'); else window.open(`https://www.google.com/maps/search/${encodeURIComponent(dest)}`, '_blank'); }
     function doCalc(id) { const input = document.getElementById(id); try { let res = eval(input.value.replace(/[^\d+*/.-]/g, '')); input.value = isNaN(res) ? "" : Math.round(res * 100) / 100; autoFillRest(); } catch(e) {} }
     
     function autoFillRest() {
-        if(!isManual) return;
         const total = parseFloat(document.getElementById('mPrice').value) || 0;
         const checkedNames = names.filter(n => document.getElementById(`cb_${n}`).checked);
         let filledSum = 0;
@@ -150,7 +151,6 @@
             if(!isNaN(v)) filledSum += v;
             else unfilled.push(n);
         });
-        // 只有一個沒填的時候，自動把 placeholder 設為餘額
         checkedNames.forEach(n => { document.getElementById(`amt_${n}`).placeholder = "0"; });
         if(unfilled.length > 0) {
             let restEach = Math.max(0, (total - filledSum) / unfilled.length);
@@ -158,14 +158,8 @@
         }
     }
 
-    function toggleSplitMode() {
-        isManual = !isManual;
-        document.getElementById('modeBtn').innerText = isManual ? "自動" : "手動";
-        names.forEach(n => { document.getElementById(`amt_${n}`).style.display = isManual ? "block" : "none"; });
-        autoFillRest();
-    }
     function openModal(mode, idx = -1) {
-        currentMode = mode; editIdx = idx; isManual = false;
+        currentMode = mode; editIdx = idx;
         document.getElementById('editModal').style.display = 'flex';
         document.getElementById('itFields').style.display = mode==='ITINERARY'?'block':'none';
         document.getElementById('splitFields').style.display = mode==='SPLIT'?'block':'none';
@@ -175,7 +169,7 @@
             const it = (mode==='ITINERARY'?data.itinerary : data.split)[idx];
             document.getElementById('mName').value = it.n||""; document.getElementById('mPrice').value = it.p||""; document.getElementById('mCur').value = it.t || 'f';
             if(mode==='ITINERARY') { document.getElementById('mDay').value = it.day; document.getElementById('mTime').value = it.time||""; document.getElementById('mOpen').value = it.open||""; document.getElementById('mMap').value = it.map||""; document.getElementById('mImgBase64').value = it.img || ""; }
-            if(mode==='SPLIT') { document.getElementById('mPayer').value = it.payer; buildTargetGrid(it.targets); if(it.isManual) { toggleSplitMode(); it.targets.forEach(tg => { if(document.getElementById(`amt_${tg.u}`)) document.getElementById(`amt_${tg.u}`).value = tg.a; }); } }
+            if(mode==='SPLIT') { document.getElementById('mPayer').value = it.payer; buildTargetGrid(it.targets); }
         } else {
             document.getElementById('mName').value = ""; document.getElementById('mPrice').value = ""; document.getElementById('mImgBase64').value = "";
             buildTargetGrid();
@@ -184,7 +178,16 @@
     function handleSave() {
         const it = { n: document.getElementById('mName').value, p: parseFloat(document.getElementById('mPrice').value)||0, t: document.getElementById('mCur').value };
         if(currentMode==='ITINERARY'){ it.day=parseInt(document.getElementById('mDay').value); it.time=document.getElementById('mTime').value; it.open=document.getElementById('mOpen').value; it.map=document.getElementById('mMap').value; it.img=document.getElementById('mImgBase64').value; }
-        if(currentMode==='SPLIT'){ it.payer=document.getElementById('mPayer').value; it.isManual = isManual; it.targets = names.filter(n => document.getElementById(`cb_${n}`).checked).map(n => { let v = parseFloat(document.getElementById(`amt_${n}`).value); if(isManual && isNaN(v)) v = parseFloat(document.getElementById(`amt_${n}`).placeholder) || 0; return { u: n, a: v }; }); }
+        if(currentMode==='SPLIT'){ 
+            it.payer=document.getElementById('mPayer').value; 
+            it.targets = names.filter(n => document.getElementById(`cb_${n}`).checked).map(n => { 
+                let rawV = document.getElementById(`amt_${n}`).value;
+                let v = parseFloat(rawV);
+                let isManualVal = !isNaN(v);
+                if(!isManualVal) v = parseFloat(document.getElementById(`amt_${n}`).placeholder) || 0;
+                return { u: n, a: v, isManualVal: isManualVal }; 
+            }); 
+        }
         if(editIdx > -1) (currentMode==='ITINERARY'?data.itinerary : data.split)[editIdx]=it;
         else (currentMode==='ITINERARY'?data.itinerary : data.split).push(it);
         saveAll(); closeModal();
@@ -209,15 +212,19 @@
         data.split.forEach((s, i) => {
             sList.innerHTML += `<div class="list-item" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><span>${s.p}${s.t==='f'?'円':'元'}</span></div>`;
             s.targets.forEach(tg => {
-                let share = s.isManual ? tg.a : (s.p / (s.targets.length || 1));
+                let share = tg.a;
                 if(s.payer==='ME') { if(tg.u!=='ME') { if(s.t==='f') balF[tg.u]+=share; else balT[tg.u]+=share; } else { myDirectNT+=(s.t==='f'?share*rate:share); } }
                 else if(tg.u==='ME') { if(s.t==='f') balF[s.payer]-=share; else balT[s.payer]-=share; myDebtNT+=(s.t==='f'?share*rate:share); }
             });
         });
         document.getElementById('splitSummary').innerHTML = Object.entries(balF).map(([p, f]) => { let t = balT[p]; return (Math.abs(f)>0.1 || Math.abs(t)>0.1) ? `● ${p}: ${Math.round(f)}円 / ${Math.round(t)}元<br>` : ""; }).join("");
-        const hotelPerNT = (eval(document.getElementById('hotelTotal').value.replace(/[^\d+*/.-]/g, ''))||0) / 6 * rate;
+        
+        // 住宿費用計算：日幣總額 / 6 人 * 匯率 = 個人應負擔的台幣
+        let hotelTotalVal = 0; try { hotelTotalVal = eval(document.getElementById('hotelTotal').value.replace(/[^\d+*/.-]/g, '')) || 0; } catch(e){}
+        const myHotelNT = (hotelTotalVal / 6) * rate;
+        
         const itBudgetNT = data.itinerary.reduce((s, i) => s + (i.t=='f' ? i.p*rate : i.p), 0);
-        document.getElementById('statMyTotal').innerText = `$${Math.round(parseFloat(document.getElementById('flight').value)+hotelPerNT+myDebtNT+myDirectNT+itBudgetNT).toLocaleString()}`;
+        document.getElementById('statMyTotal').innerText = `$${Math.round(parseFloat(document.getElementById('flight').value) + myHotelNT + myDebtNT + myDirectNT + itBudgetNT).toLocaleString()}`;
         const pkDiv = document.getElementById('packingList'); pkDiv.innerHTML = ''; 
         data.packing.forEach((p, i) => { pkDiv.innerHTML += `<div class="todo-item"><span class="${p.d?'done':''}" onclick="data.packing[${i}].d=!data.packing[${i}].d;saveAll()">${p.t}</span><b style="padding:5px; color:#f44336;" onclick="data.packing.splice(${i},1);saveAll()">✕</b></div>`; });
     }
