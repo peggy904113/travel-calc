@@ -33,7 +33,7 @@
     <h3>❄️ 北海道 8D7N 預算管家</h3>
     <div class="row">
         <div style="flex:1"><small>日幣匯率</small><input type="number" id="exRate" value="0.22" step="0.001" oninput="update()"></div>
-        <div style="flex:1"><small>機票總額(NT)</small><input type="number" id="flight" value="21215" oninput="update()"></div>
+        <div style="flex:1"><small>機票總額(NT)</small><input type="number" id="flight" value="21255" oninput="update()"></div>
     </div>
     <div class="row">
         <div style="flex:2"><small>住宿總額(日幣)</small><input type="text" id="hotelTotal" value="97742 + 276517" placeholder="例如: 100+200" oninput="update()"></div>
@@ -70,17 +70,17 @@
 </div>
 
 <script>
-    // 預填你核對後的資料
+    // 預先 key 入的行程項目
     const defaultItems = [
-        {day: 1, cat: "🎫", n: "登別水族館門票", p: 612, t: "t", time: "09:00-17:00", note: "門票"},
-        {day: 2, cat: "🎫", n: "熊牧場門票", p: 3200, t: "f", time: "09:30-16:30", note: "登別景點"},
-        {day: 4, cat: "🎫", n: "天狗山門票", p: 449, t: "t", time: "09:00-21:00", note: "纜車"},
-        {day: 5, cat: "🎿", n: "滑雪教學(方案1)", p: 4500, t: "t", time: "4小時", note: "雙板入門"},
-        {day: 6, cat: "📍", n: "旭山動物園一日遊", p: 1838, t: "t", time: "全天", note: "KKday"},
-        {day: 7, cat: "🎫", n: "美唄雪上樂園門票", p: 2000, t: "f", time: "09:00-16:15", note: "雪上活動"}
+        {day: 1, n: "登別水族館門票", p: 612, t: "t", time: "09:00-17:00", note: "門票"},
+        {day: 2, n: "熊牧場門票", p: 3200, t: "f", time: "09:30-16:30", note: "登別景點"},
+        {day: 4, n: "天狗山門票", p: 449, t: "t", time: "09:00-21:00", note: "纜車"},
+        {day: 5, n: "滑雪教學(方案1)", p: 4500, t: "t", time: "4小時", note: "雙板入門"},
+        {day: 6, n: "旭山動物園一日遊", p: 1838, t: "t", time: "全天", note: "KKday"},
+        {day: 7, n: "美唄雪上樂園門票", p: 2000, t: "f", time: "09:00-16:15", note: "雪上活動"}
     ];
 
-    let items = JSON.parse(localStorage.getItem('h_it_v7')) || defaultItems;
+    let items = JSON.parse(localStorage.getItem('h_it_v8')) || defaultItems;
 
     window.onload = function() { render(); };
 
@@ -132,9 +132,9 @@
         let hT = 0;
         try { hT = eval(hVal.replace(/[^\d+*/.-]/g, '')) || 0; } catch(e) { hT = 0; }
         
-        localStorage.setItem('h_f_v7', f);
-        localStorage.setItem('h_h_v7', hVal);
-        localStorage.setItem('h_it_v7', JSON.stringify(items));
+        localStorage.setItem('h_f_v8', f);
+        localStorage.setItem('h_h_v8', hVal);
+        localStorage.setItem('h_it_v8', JSON.stringify(items));
 
         let dTotal = items.reduce((s, i) => s + (i.t=='f' ? i.p*r : i.p), 0);
         const gTotal = Math.round(f + (hT * r / pC) + dTotal);
