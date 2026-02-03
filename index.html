@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V44</title>
+    <title>去北海道被雪玩 V43</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --green: #43a047; --red: #e53935; }
@@ -16,24 +16,24 @@
         .page.active { display: block; }
         .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
         
-        /* 行程卡片：新增實支顯示 */
-        .it-card { background: white; border-radius: 15px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .it-time { min-width: 50px; font-weight: 900; color: var(--accent-blue); font-size: 0.9rem; text-align: center; border-right: 1px solid #eee; padding-right: 5px; }
-        .it-info { flex: 1; }
-        .it-name { font-weight: bold; font-size: 1rem; color: #1a237e; display: block; }
-        .it-cost-tag { font-size: 0.75rem; color: var(--green); font-weight: bold; margin-top: 4px; display: block; }
-        
-        .member-row { background: #fff; border: 1px solid #eee; padding: 10px 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+        /* 支出項目樣式 */
+        .header-with-btn { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .clear-btn { background: #ffebee; color: var(--red); border: 1px solid #ffcdd2; padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; }
+        .target-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+        .member-row { background: #fff; border: 1px solid #eee; padding: 10px 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; }
         .member-row.active { border-color: var(--accent-blue); background: #f0f7ff; }
-        .amt-input { width: 90px !important; text-align: right; border-radius: 8px !important; border: 1px solid #ccc !important; padding: 6px !important; }
+        .member-info { display: flex; align-items: center; gap: 12px; }
+        .amt-input { width: 90px !important; padding: 6px !important; margin: 0 !important; font-size: 14px !important; text-align: right; border-radius: 8px !important; border: 1px solid #ccc !important; }
         
         .card { background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
-        .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 10px; border-top: 1px solid #eee; z-index: 900; }
-        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 10px; }
+        .card h3 { margin: 0; font-size: 0.95rem; color: var(--accent-blue); }
+        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; }
         .btn { padding: 10px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
         .btn-main { background: var(--accent-blue); color: white; width: 100%; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-content { background: white; width: 90%; max-width: 380px; padding: 18px; border-radius: 22px; max-height: 85vh; overflow-y: auto; }
+        .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 10px; border-top: 1px solid #eee; z-index: 900; text-align: center; }
+        .fab { position: fixed; bottom: 105px; right: 20px; width: 55px; height: 55px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 25px; border: none; z-index: 1100; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
@@ -42,20 +42,19 @@
     <div class="tab" onclick="showPage('split', this)">💰 拆帳</div>
     <div class="tab" onclick="showPage('private', this)">🔒 私人</div>
 </div>
-
 <div class="container">
     <div id="itinerary" class="page active"><div id="itList"></div></div>
     <div id="split" class="page">
         <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 style="margin:0; font-size:0.95rem; color:var(--accent-blue);">💸 支出明細</h3>
-                <button class="btn" style="background:#ffebee; color:var(--red); font-size:0.75rem; padding:4px 10px;" onclick="archiveSplitData()">結帳封存</button>
+            <div class="header-with-btn">
+                <h3>💸 支出明細</h3>
+                <button class="clear-btn" onclick="archiveSplitData()">🧹 結帳並封存</button>
             </div>
             <div id="splitList"></div>
             <button class="btn btn-main" onclick="openModal('SPLIT')">+ 新增紀錄</button>
         </div>
         <div class="card" style="background: #f1f8e9;">
-            <h3 style="margin:0 0 10px 0; font-size:0.95rem; color:var(--accent-blue);">📊 結算 (誰該給誰)</h3>
+            <h3>📊 最終收支結算 (誰該給誰)</h3>
             <div id="splitSummary" style="font-size: 0.85rem;"></div>
         </div>
     </div>
@@ -63,15 +62,21 @@
         <div class="card">
             <h3>🧳 備忘行李清單</h3>
             <div id="packingList"></div>
-            <div style="display:flex; gap:8px;">
-                <input type="text" id="newPack" placeholder="增加..." style="margin:0;">
+            <div style="display:flex; gap:8px; margin-top:10px;">
+                <input type="text" id="newPack" placeholder="增加項目..." style="margin:0;">
                 <button class="btn" style="background:var(--orange); color:white; width:50px;" onclick="addItem('packing','newPack')">+</button>
             </div>
         </div>
+        <div class="card" id="archiveArea" style="display:none;">
+            <h3>📜 歷史結帳紀錄</h3>
+            <div id="archiveList" style="font-size:0.8rem; color:#666;"></div>
+        </div>
         <div class="card">
             <h3>⚙️ 旅遊設定</h3>
-            <small>匯率</small><input type="number" id="exRate" value="0.2" step="0.001" oninput="updateAll()">
-            <small>住宿總計 (日幣)</small><input type="text" id="hotelTotal" value="374259" oninput="updateAll()">
+            <small>個人機票 (NT)</small><input type="number" id="flight" value="21255" oninput="updateAll()">
+            <small>目前匯率</small><input type="number" id="exRate" value="0.2" step="0.001" oninput="updateAll()">
+            <small>住宿費總計 (日幣算式)</small>
+            <input type="text" id="hotelTotal" value="97742 + 276517" oninput="updateAll()">
             <div id="hotelPreview" style="font-size:0.8rem; color:var(--green); font-weight:bold;"></div>
         </div>
     </div>
@@ -81,149 +86,217 @@
     <div class="modal-content">
         <h3 id="modalTitle">編輯內容</h3>
         <div id="itFields">
-            <small>天數</small><select id="mDay"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option></select>
-            <small>名稱</small><input type="text" id="mName">
-            <small>時間</small><input type="text" id="mTime" placeholder="14:00">
+            <small>天數</small><select id="mDay"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option><option value="6">Day 6</option><option value="7">Day 7</option><option value="8">Day 8</option></select>
+            <small>項目名稱</small><input type="text" id="mName" oninput="syncMap()">
+            <small>地點/網址</small><input type="text" id="mMap">
+            <small>抵達時間</small><input type="text" id="mTime" placeholder="14:00">
+            <small>營業時間</small><input type="text" id="mOpen">
         </div>
         <div id="splitFields" style="display:none">
-            <small>支出項目 (若與行程同名會同步金額)</small>
-            <input type="text" id="mSplitName" list="itineraryOptions">
-            <datalist id="itineraryOptions"></datalist>
+            <small>項目名稱</small><input type="text" id="mSplitName">
             <small>付款人</small><select id="mPayer"><option value="ME">我</option><option value="翌">翌</option><option value="丞">丞</option><option value="馨">馨</option><option value="子">子</option><option value="嚕">嚕</option></select>
-            <div id="targetGrid" style="margin-top:10px;"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><small>分帳成員</small><button class="btn" style="padding:4px 8px; font-size:11px;" onclick="selectAllTargets()">勾選全部</button></div>
+            <div id="targetGrid" class="target-grid"></div>
         </div>
-        <hr>
+        <hr style="margin:15px 0; border:0; border-top:1px solid #eee;">
         <small>金額</small>
-        <div style="display:flex; gap:5px;">
-            <input type="text" id="mPrice" oninput="autoFillRest()" style="flex:1;"><select id="mCur" style="width:70px;"><option value="f">円</option><option value="t">元</option></select>
+        <div style="display:flex; gap:5px; align-items:center;">
+            <input type="text" id="mPrice" oninput="autoFillRest()" style="flex:1;"><button onclick="doCalc('mPrice')" style="padding:10px; border-radius:8px; border:1px solid #ddd;">=</button>
+            <select id="mCur" style="width:70px;"><option value="f">円</option><option value="t">元</option></select>
         </div>
-        <div style="display:flex; gap:10px; margin-top:15px;">
-            <button class="btn" style="flex:1; background:#eee;" onclick="closeModal()">取消</button>
-            <button class="btn btn-main" style="flex:1;" onclick="handleSave()">儲存</button>
-        </div>
+        <div style="display:flex; gap:10px; margin-top:15px;"><button class="btn" style="flex:1; background:#eee;" onclick="closeModal()">取消</button><button class="btn btn-main" style="flex:1;" onclick="handleSave()">儲存</button></div>
+        <button id="btnDel" onclick="handleDelete()" style="background:none; border:none; color:red; width:100%; margin-top:10px; cursor:pointer;">🗑️ 刪除紀錄</button>
     </div>
 </div>
 
+<button class="fab" id="mainFab" onclick="openModal('ITINERARY')">+</button>
 <div class="summary-bar">
-    <div style="display:flex; justify-content:space-around;">
-        <div><small style="font-size:0.6rem;">個人實花 (NT)</small><br><b id="statMyTotal" style="color:var(--accent-blue);">$0</b></div>
-        <div><small style="font-size:0.6rem;">代墊待收 (NT)</small><br><b id="statMyLend" style="color:var(--red);">$0</b></div>
+    <div style="display:flex; justify-content:space-around; align-items:center;">
+        <div>
+            <span style="font-size:0.65rem; color:#78909c;">❄️ 個人預估實花 (NT)</span><br>
+            <span id="statMyTotal" style="font-size:1.1rem; font-weight:900; color:var(--accent-blue);">$0</span>
+        </div>
+        <div style="border-left:1px solid #ddd; padding-left:15px;">
+            <span style="font-size:0.65rem; color:#e53935;">🧧 目前代墊待收 (NT)</span><br>
+            <span id="statMyLend" style="font-size:1.1rem; font-weight:900; color:#e53935;">$0</span>
+        </div>
     </div>
 </div>
 
 <script>
-    let data = JSON.parse(localStorage.getItem('hokkaido_v44')) || { itinerary: [], split: [], packing: [], archives: [] };
+    const versions = ['hokkaido_v42', 'hokkaido_v41', 'hokkaido_v40', 'hokkaido_v39'];
+    let fullData = { itinerary: [], split: [], packing: [], archives: [] };
+    versions.reverse().forEach(v => {
+        let d = localStorage.getItem(v);
+        if (d) {
+            let parsed = JSON.parse(d);
+            if (parsed.itinerary) fullData.itinerary = parsed.itinerary;
+            if (parsed.split) fullData.split = parsed.split;
+            if (parsed.packing && fullData.packing.length===0) fullData.packing = parsed.packing;
+            if (parsed.archives) fullData.archives = parsed.archives;
+        }
+    });
+
+    let data = fullData;
     let names = ["ME", "翌", "丞", "馨", "子", "嚕"];
     let currentMode = '', editIdx = -1;
 
     window.onload = () => { renderAll(); };
 
-    function archiveSplitData() {
-        if(!confirm("結帳並清空目前明細？金額會存入歷史紀錄。")) return;
-        data.archives.push({ time: new Date().toLocaleString(), info: document.getElementById('splitSummary').innerText });
-        data.split = []; saveAll();
+    function showPage(pId, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(pId).classList.add('active'); el.classList.add('active');
+        document.getElementById('mainFab').style.display = (pId === 'itinerary') ? 'flex' : 'none';
     }
 
+    function archiveSplitData() {
+        if(data.split.length === 0) return;
+        if(confirm("確定要結帳並清除嗎？目前的結算結果會存入『歷史紀錄』供日後查閱。")) {
+            const now = new Date();
+            const tag = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes()}`;
+            const summary = document.getElementById('splitSummary').innerText.replace(/\n/g, ' / ');
+            data.archives.push({ time: tag, info: summary });
+            data.split = [];
+            saveAll();
+        }
+    }
+
+    function syncMap() { if (currentMode === 'ITINERARY') document.getElementById('mMap').value = document.getElementById('mName').value; }
     function openModal(mode, idx = -1) {
         currentMode = mode; editIdx = idx;
         document.getElementById('editModal').style.display = 'flex';
         document.getElementById('itFields').style.display = mode==='ITINERARY'?'block':'none';
         document.getElementById('splitFields').style.display = mode==='SPLIT'?'block':'none';
-        
-        // 更新下拉選單
-        const dl = document.getElementById('itineraryOptions');
-        dl.innerHTML = data.itinerary.map(it => `<option value="${it.n}">`).join('');
-
+        document.getElementById('btnDel').style.display = idx > -1 ? 'block' : 'none';
+        ['mName','mMap','mTime','mOpen','mSplitName','mPrice'].forEach(id => document.getElementById(id).value = "");
         if(idx > -1) {
-            const d = (mode==='ITINERARY'?data.itinerary:data.split)[idx];
-            if(mode==='ITINERARY') { document.getElementById('mName').value=d.n; document.getElementById('mTime').value=d.time; document.getElementById('mDay').value=d.day; }
-            else { document.getElementById('mSplitName').value=d.n; document.getElementById('mPayer').value=d.payer; buildTargetGrid(d.targets); }
-            document.getElementById('mPrice').value=d.p; document.getElementById('mCur').value=d.t;
-        } else {
-            ['mName','mSplitName','mPrice','mTime'].forEach(id=>document.getElementById(id).value='');
-            if(mode==='SPLIT') buildTargetGrid();
-        }
+            const it = (mode==='ITINERARY' ? data.itinerary : data.split)[idx];
+            if(mode==='ITINERARY'){ document.getElementById('mName').value = it.n; document.getElementById('mMap').value = it.map; document.getElementById('mDay').value = it.day; document.getElementById('mTime').value = it.time; document.getElementById('mOpen').value = it.open; }
+            else { document.getElementById('mSplitName').value = it.n; document.getElementById('mPayer').value = it.payer; buildTargetGrid(it.targets); }
+            document.getElementById('mPrice').value = it.p; document.getElementById('mCur').value = it.t || 'f';
+        } else if(mode==='SPLIT') buildTargetGrid();
     }
 
     function handleSave() {
-        const p = parseFloat(document.getElementById('mPrice').value)||0;
-        const t = document.getElementById('mCur').value;
+        const p = parseFloat(document.getElementById('mPrice').value)||0; const t = document.getElementById('mCur').value;
         if(currentMode==='ITINERARY') {
-            const it = { n: document.getElementById('mName').value, day: parseInt(document.getElementById('mDay').value), time: document.getElementById('mTime').value, p, t };
+            const it = { n: document.getElementById('mName').value, map: document.getElementById('mMap').value, day: parseInt(document.getElementById('mDay').value), time: document.getElementById('mTime').value, open: document.getElementById('mOpen').value, p, t };
             if(editIdx > -1) data.itinerary[editIdx] = it; else data.itinerary.push(it);
         } else {
-            const targets = names.filter(n => document.getElementById(`cb_${n}`).checked).map(n => ({
-                u: n, a: parseFloat(document.getElementById(`amt_${n}`).value) || parseFloat(document.getElementById(`amt_${n}`).placeholder)
-            }));
+            const targets = names.filter(n => document.getElementById(`cb_${n}`).checked).map(n => {
+                let v = parseFloat(document.getElementById(`amt_${n}`).value);
+                return { u: n, a: isNaN(v) ? parseFloat(document.getElementById(`amt_${n}`).placeholder) : v, isManualVal: !isNaN(v) };
+            });
             const s = { n: document.getElementById('mSplitName').value, payer: document.getElementById('mPayer').value, p, t, targets };
             if(editIdx > -1) data.split[editIdx] = s; else data.split.push(s);
         }
         saveAll(); closeModal();
     }
 
-    function buildTargetGrid(st = null) {
-        const g = document.getElementById('targetGrid');
-        g.innerHTML = names.map(n => {
-            let isC = st ? st.some(x=>x.u===n) : (n==='ME');
-            return `<div class="member-row ${isC?'active':''}" id="tag_${n}">
-                <input type="checkbox" id="cb_${n}" ${isC?'checked':''} onchange="this.parentElement.classList.toggle('active');autoFillRest()">
-                <label style="flex:1; margin-left:10px;">${n==='ME'?'我':n}</label>
-                <input type="text" id="amt_${n}" class="amt-input" placeholder="0" oninput="autoFillRest()">
+    function buildTargetGrid(savedTargets = null) {
+        const grid = document.getElementById('targetGrid');
+        grid.innerHTML = names.map(n => {
+            let isChecked = savedTargets ? savedTargets.some(t => t.u === n) : (n === 'ME');
+            let val = (savedTargets && savedTargets.find(t => t.u === n)) ? (savedTargets.find(t => t.u === n).isManualVal ? savedTargets.find(t => t.u === n).a : "") : "";
+            return `
+            <div class="member-row ${isChecked?'active':''}" id="tag_${n}">
+                <div class="member-info">
+                    <input type="checkbox" id="cb_${n}" value="${n}" ${isChecked?'checked':''} onchange="updateTagStyle('${n}')">
+                    <label for="cb_${n}" style="font-weight:bold;">${n==='ME'?'我':n}</label>
+                </div>
+                <input type="text" id="amt_${n}" class="amt-input" placeholder="0" value="${val}" oninput="autoFillRest()">
             </div>`;
         }).join('');
         autoFillRest();
     }
-
+    function updateTagStyle(n) { document.getElementById(`tag_${n}`).classList.toggle('active', document.getElementById(`cb_${n}`).checked); autoFillRest(); }
+    function selectAllTargets() { names.forEach(n => { document.getElementById(`cb_${n}`).checked = true; document.getElementById(`tag_${n}`).classList.add('active'); }); autoFillRest(); }
     function autoFillRest() {
         const total = parseFloat(document.getElementById('mPrice').value) || 0;
         const checked = names.filter(n => document.getElementById(`cb_${n}`).checked);
-        checked.forEach(n => document.getElementById(`amt_${n}`).placeholder = Math.round(total / checked.length));
+        let filled = 0, unfilled = [];
+        checked.forEach(n => { let v = parseFloat(document.getElementById(`amt_${n}`).value); if(!isNaN(v)) filled += v; else unfilled.push(n); });
+        checked.forEach(n => { document.getElementById(`amt_${n}`).placeholder = Math.round(unfilled.length > 0 ? (total - filled) / unfilled.length : 0); });
     }
-
-    function saveAll() { localStorage.setItem('hokkaido_v44', JSON.stringify(data)); renderAll(); }
+    function doCalc(id) { const input = document.getElementById(id); try { let res = eval(input.value.replace(/[^\d+*/.-]/g, '')); input.value = isNaN(res) ? "" : Math.round(res * 100) / 100; autoFillRest(); } catch(e) {} }
+    function saveAll() { localStorage.setItem('hokkaido_v43', JSON.stringify(data)); renderAll(); }
     function closeModal() { document.getElementById('editModal').style.display='none'; }
+    function handleDelete() { if(confirm("確定刪除？")) { (currentMode==='ITINERARY'?data.itinerary:data.split).splice(editIdx,1); saveAll(); closeModal(); } }
+    function goNav(dest) { if(!dest) return; window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dest)}`, '_blank'); }
 
     function renderAll() {
         const rate = parseFloat(document.getElementById('exRate').value)||0.2;
         const itDiv = document.getElementById('itList'); itDiv.innerHTML = '';
-        
-        // 1. 先從分帳資料中建立「實際花費索引」
-        const actualCosts = {};
-        data.split.forEach(s => { actualCosts[s.n] = { p: s.p, t: s.t }; });
-
-        // 2. 渲染行程，並同步顯示分帳金額
-        [1,2,3,4,5].forEach(d => {
-            itDiv.innerHTML += `<div class="day-header">Day ${d}</div>`;
-            data.itinerary.filter(i => i.day === d).forEach((it, idx) => {
-                const real = actualCosts[it.n]; // 檢查是否有同名的分帳紀錄
-                itDiv.innerHTML += `
-                    <div class="it-card" onclick="openModal('ITINERARY', ${data.itinerary.indexOf(it)})">
-                        <div class="it-time">${it.time||'--'}</div>
-                        <div class="it-info">
-                            <span class="it-name">${it.n}</span>
-                            ${real ? `<span class="it-cost-tag">💰 實支: ${real.p}${real.t==='f'?'円':'元'}</span>` : ''}
-                        </div>
-                    </div>`;
-            });
+        [1,2,3,4,5,6,7,8].forEach(d => {
+            const dayItems = data.itinerary.filter(i => i.day === d);
+            if(dayItems.length > 0 || d <= 5) {
+                itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}"></div>`;
+                setTimeout(() => {
+                    const group = document.getElementById(`day-group-${d}`);
+                    dayItems.forEach(it => {
+                        const idx = data.itinerary.indexOf(it);
+                        group.innerHTML += `
+                            <div class="it-card" data-idx="${idx}">
+                                <div class="it-time">${it.time || '--:--'}</div>
+                                <div class="it-info" onclick="openModal('ITINERARY', ${idx})">
+                                    <span class="it-name">${it.n}</span>
+                                    ${it.open ? `<span class="it-open">營: ${it.open}</span>` : ''}
+                                </div>
+                                <span class="map-link" onclick="goNav('${it.map}')">📍</span>
+                            </div>`;
+                    });
+                }, 0);
+            }
         });
-
-        // 3. 財務計算
-        let myPure = 0, myLend = 0, balF = {翌:0,丞:0,馨:0,子:0,嚕:0};
-        data.split.forEach(s => {
+        
+        // 財務核心邏輯修正
+        let balF = {翌:0,丞:0,馨:0,子:0,嚕:0}, balT = {翌:0,丞:0,馨:0,子:0,嚕:0};
+        let myPureSpendNT = 0; // 真正花在自己身上的錢
+        let myLendOutNT = 0;   // 幫別人墊、最後會拿回來的錢
+        
+        data.split.forEach((s) => {
             s.targets.forEach(tg => {
-                let v = (s.t==='f' ? tg.a * rate : tg.a);
-                if(s.payer==='ME') { if(tg.u==='ME') myPure+=v; else { myLend+=v; balF[tg.u]+=tg.a; } }
-                else if(tg.u==='ME') { myPure+=v; balF[s.payer]-=tg.a; }
+                let shareNT = (s.t==='f' ? tg.a * rate : tg.a);
+                if(s.payer === 'ME') {
+                    if(tg.u === 'ME') { myPureSpendNT += shareNT; } 
+                    else { 
+                        myLendOutNT += shareNT; // 我墊的，別人欠我的錢
+                        if(s.t==='f') balF[tg.u] += tg.a; else balT[tg.u] += tg.a;
+                    }
+                } else {
+                    if(tg.u === 'ME') { 
+                        myPureSpendNT += shareNT; // 別人墊的，但我自己該出的錢
+                        if(s.t==='f') balF[s.payer] -= tg.a; else balT[s.payer] -= tg.a;
+                    }
+                }
             });
         });
-
-        document.getElementById('splitList').innerHTML = data.split.map((s,i)=>`<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><span>${s.p}${s.t==='f'?'円':'元'}</span></div>`).join('');
-        document.getElementById('splitSummary').innerHTML = Object.entries(balF).map(([n,v])=>Math.abs(v)>1?`● ${n}: ${Math.round(v)}円<br>`:'').join('');
-        document.getElementById('statMyTotal').innerText = `$${Math.round(myPure + (parseFloat(document.getElementById('hotelTotal').value)/6*rate)).toLocaleString()}`;
-        document.getElementById('statMyLend').innerText = `$${Math.round(myLend).toLocaleString()}`;
         
-        const pk = document.getElementById('packingList'); pk.innerHTML = data.packing.map((p,i)=>`<div><span onclick="data.packing[${i}].d=!data.packing[${i}].d;saveAll()" style="${p.d?'text-decoration:line-through;opacity:0.5':''}">${p.t}</span></div>`).join('');
+        document.getElementById('splitList').innerHTML = data.split.map((s,i) => `<div class="list-item" style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><span>${s.p}${s.t==='f'?'円':'元'}</span></div>`).join('');
+        document.getElementById('splitSummary').innerHTML = Object.entries(balF).map(([p, f]) => { let t = balT[p]; return (Math.abs(f)>0.1 || Math.abs(t)>0.1) ? `● ${p}: ${Math.round(f)}円 / ${Math.round(t)}元<br>` : ""; }).join("");
+        
+        let hTotal = 0; try { hTotal = eval(document.getElementById('hotelTotal').value.replace(/[^\d+*/.-]/g, '')) || 0; } catch(e){}
+        const hNT = (hTotal/6) * rate;
+        document.getElementById('hotelPreview').innerHTML = `💡 每人預估住宿費 ≈ 台幣 ${Math.round(hNT).toLocaleString()} 元`;
+        
+        const itBudget = data.itinerary.reduce((s, i) => s + (i.t=='f' ? i.p*rate : i.p), 0);
+        const flight = parseFloat(document.getElementById('flight').value) || 0;
+        
+        // 更新底部面板
+        document.getElementById('statMyTotal').innerText = `$${Math.round(flight + hNT + myPureSpendNT + itBudget).toLocaleString()}`;
+        document.getElementById('statMyLend').innerText = `$${Math.round(myLendOutNT).toLocaleString()}`;
+        
+        const pkDiv = document.getElementById('packingList'); pkDiv.innerHTML = ''; 
+        data.packing.forEach((p, i) => { pkDiv.innerHTML += `<div class="todo-item"><span style="${p.d?'text-decoration:line-through;color:#ccc':''}" onclick="data.packing[${i}].d=!data.packing[${i}].d;saveAll()">${p.t}</span><b style="color:red; padding:5px;" onclick="data.packing.splice(${i},1);saveAll()">✕</b></div>`; });
+
+        if(data.archives && data.archives.length > 0) {
+            document.getElementById('archiveArea').style.display = 'block';
+            document.getElementById('archiveList').innerHTML = data.archives.map(a => `<div style="margin-bottom:8px; border-bottom:1px dashed #ddd; padding-bottom:4px;"><b>[${a.time}]</b><br>${a.info}</div>`).join('');
+        }
     }
+    function updateAll() { renderAll(); }
+    function addItem(type, id) { const v = document.getElementById(id).value; if(v){ data[type].push({t:v, d:false}); document.getElementById(id).value=''; saveAll(); } }
 </script>
 </body>
 </html>
