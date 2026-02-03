@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩</title>
+    <title>Hokkaido Master V29</title>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --private-purple: #9c27b0; --orange: #ffa726; --text: #2c3e50; }
         body { font-family: "PingFang TC", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); }
@@ -21,10 +21,18 @@
         .it-info { flex: 1; }
         .it-name { font-weight: bold; font-size: 0.95rem; display: block; margin-bottom: 3px; }
         .it-amt-tag { font-size: 0.7rem; color: #666; background: #eee; padding: 1px 5px; border-radius: 4px; }
-        .it-img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; margin-top: 5px; }
-        .map-link { position: absolute; right: 12px; top: 12px; font-size: 1.2rem; text-decoration: none; }
+        .it-img { width: 100%; max-width: 150px; border-radius: 8px; margin-top: 8px; display: block; }
+        .map-link { position: absolute; right: 12px; top: 12px; font-size: 1.2rem; cursor: pointer; }
+
+        /* 分帳成員美化 */
+        .target-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+        .member-tag { background: #fff; border: 1px solid #ddd; padding: 10px; border-radius: 12px; display: flex; align-items: center; gap: 8px; }
+        .member-tag.active { border-color: var(--accent-blue); background: #e3f2fd; }
+        .member-tag input[type="checkbox"] { width: 18px; height: 18px; margin: 0; }
+        .amt-input { width: 70px !important; padding: 5px !important; margin: 0 !important; font-size: 13px !important; text-align: right; border-radius: 5px !important; }
 
         .card { background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .card h3 { margin-top: 0; font-size: 1rem; color: var(--accent-blue); display: flex; justify-content: space-between; }
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; box-sizing: border-box; }
         .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; width: 100%; }
         .btn-main { background: var(--accent-blue); color: white; }
@@ -34,6 +42,7 @@
         .calc-btn { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; border-radius: 8px; padding: 10px; font-weight: bold; }
         .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 12px; border-top: 1px solid #eee; z-index: 900; text-align: center; }
         .fab { position: fixed; bottom: 85px; right: 20px; width: 56px; height: 56px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; border: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .todo-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
     </style>
 </head>
 <body>
@@ -46,11 +55,14 @@
 
 <div class="container">
     <div id="itinerary" class="page active"><div id="itList"></div></div>
+    
     <div id="split" class="page">
         <div class="card"><h3>💸 拆帳記錄</h3><div id="splitList"></div><button class="btn btn-main" onclick="openModal('SPLIT')">+ 新增帳目</button></div>
         <div class="card" style="background:#f1f8e9;"><h3>📊 最終收支結算</h3><div id="splitSummary" style="font-size: 0.9rem;"></div></div>
     </div>
+
     <div id="private" class="page">
+        <div class="card"><h3>🧳 備忘/行李清單</h3><div id="packingList"></div><div style="display:flex; gap:5px;"><input type="text" id="newPack" placeholder="增加項目..." style="margin:0;"><button class="btn" style="background:var(--orange); color:white; width:60px;" onclick="addItem('packing','newPack')">+</button></div></div>
         <div class="card"><h3>⚙️ 設定</h3><small>機票(NT)</small><input type="number" id="flight" value="21255" oninput="updateAll()"><small>匯率</small><input type="number" id="exRate" value="0.2" step="0.001" oninput="updateAll()"><small>住宿(日幣算式)</small><input type="text" id="hotelTotal" value="97742 + 276517" oninput="updateAll()"></div>
     </div>
 </div>
@@ -58,18 +70,16 @@
 <div id="editModal" class="modal">
     <div class="modal-content">
         <h3 id="modalTitle">編輯項目</h3>
-        
         <div id="itFields">
             <small>天數</small><select id="mDay"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option><option value="6">Day 6</option><option value="7">Day 7</option><option value="8">Day 8</option></select>
             <small>時間</small><input type="text" id="mTime" placeholder="例如：09:00">
-            <small>Google 地圖連結</small><input type="text" id="mMap" placeholder="貼上 Google Map 網址">
-            <small>上傳照片</small><input type="file" id="mImgFile" accept="image/*" onchange="handleImgUpload(this)">
-            <input type="hidden" id="mImgBase64">
+            <small>地點/網址 (點擊📍導航)</small><input type="text" id="mMap" placeholder="景點名稱或 Google Map 連結">
+            <small>照片</small><input type="file" id="mImgFile" accept="image/*" onchange="handleImgUpload(this)"><input type="hidden" id="mImgBase64">
         </div>
 
-        <div id="splitFields"><small>誰先付款？</small><select id="mPayer"><option value="ME">我</option><option value="翌">翌</option><option value="丞">丞</option><option value="馨">馨</option><option value="子">子</option><option value="嚕">嚕</option></select></div>
+        <div id="splitFields"><small>付款人</small><select id="mPayer"><option value="ME">我</option><option value="翌">翌</option><option value="丞">丞</option><option value="馨">馨</option><option value="子">子</option><option value="嚕">嚕</option></select></div>
 
-        <small>總金額 (支援算式)</small>
+        <small>金額 (可用算式)</small>
         <div class="calc-input-group">
             <input type="text" id="mPrice" placeholder="金額" oninput="autoFillRest()">
             <button class="calc-btn" onclick="doCalc('mPrice')">=</button>
@@ -77,14 +87,14 @@
         </div>
 
         <div id="targetFields">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><small>分帳成員</small><button onclick="toggleSplitMode()" id="modeBtn" style="font-size:0.7rem; border:1px solid #ccc; background:#eee; padding:2px 8px; border-radius:5px;">切換手動</button></div>
-            <div id="targetGrid" style="background:#f9f9f9; padding:10px; border-radius:10px; margin:5px 0;"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;"><small>成員分帳</small><button onclick="toggleSplitMode()" id="modeBtn" style="font-size:0.7rem; border:1px solid #ccc; background:#eee; padding:2px 8px; border-radius:5px;">切換手動模式</button></div>
+            <div id="targetGrid" class="target-grid"></div>
         </div>
 
-        <small>項目名稱</small><input type="text" id="mName" placeholder="名稱">
+        <small>項目名稱</small><input type="text" id="mName" placeholder="例如：飯店、晚餐">
         
         <div style="display:flex; gap:10px; margin-top:15px;"><button class="btn" style="background:#eee;" onclick="closeModal()">取消</button><button class="btn btn-main" onclick="handleSave()">儲存</button></div>
-        <button id="btnDel" onclick="handleDelete()" style="background:none; border:none; color:red; width:100%; margin-top:15px; font-size:0.8rem;">🗑️ 刪除</button>
+        <button id="btnDel" onclick="handleDelete()" style="background:none; border:none; color:red; width:100%; margin-top:15px; font-size:0.8rem;">🗑️ 刪除項目</button>
     </div>
 </div>
 
@@ -96,16 +106,21 @@
     let data = JSON.parse(localStorage.getItem('hokkaido_v_stable')) || { itinerary: [], split: [], private: [], packing: [] };
     let currentMode = '', editIdx = -1, isManual = false;
 
-    window.onload = () => { buildTargetGrid(); renderAll(); };
+    window.onload = () => { renderAll(); };
 
     function buildTargetGrid() {
         const grid = document.getElementById('targetGrid');
         grid.innerHTML = names.map(n => `
-            <div class="target-row">
-                <input type="checkbox" id="cb_${n}" value="${n}" checked onchange="autoFillRest()">
-                <label for="cb_${n}" style="flex:1">${n==='ME'?'我':n}</label>
-                <input type="text" id="amt_${n}" placeholder="餘額" style="width:100px; display:${isManual?'block':'none'}; padding:5px; margin:0;" oninput="autoFillRest()">
+            <div class="member-tag" id="tag_${n}">
+                <input type="checkbox" id="cb_${n}" value="${n}" checked onchange="updateTagStyle('${n}')">
+                <label for="cb_${n}" style="flex:1; font-size:14px;">${n==='ME'?'我':n}</label>
+                <input type="text" id="amt_${n}" class="amt-input" placeholder="0" style="display:${isManual?'block':'none'}" oninput="autoFillRest()">
             </div>`).join('');
+    }
+
+    function updateTagStyle(n) {
+        document.getElementById(`tag_${n}`).classList.toggle('active', document.getElementById(`cb_${n}`).checked);
+        autoFillRest();
     }
 
     function handleImgUpload(el) {
@@ -116,9 +131,14 @@
         reader.readAsDataURL(file);
     }
 
+    function goNav(dest) {
+        if(!dest) return;
+        if(dest.startsWith('http')) window.open(dest, '_blank');
+        else window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`, '_blank');
+    }
+
     function doCalc(id) {
         const input = document.getElementById(id);
-        if(!input || !input.value) return;
         try { 
             let res = eval(input.value.toString().replace(/[^\d+*/.-]/g, ''));
             input.value = isNaN(res) ? "" : Math.round(res * 100) / 100;
@@ -130,20 +150,16 @@
         if(!isManual) return;
         const total = parseFloat(document.getElementById('mPrice').value) || 0;
         const checkedNames = names.filter(n => document.getElementById(`cb_${n}`).checked);
-        let filledSum = 0;
-        let lastBox = null;
-        
+        let sum = 0; let lastN = '';
         checkedNames.forEach(n => {
-            const inputEl = document.getElementById(`amt_${n}`);
-            const val = parseFloat(inputEl.value);
-            if(!isNaN(val)) filledSum += val;
-            lastBox = inputEl; // 不斷更新最後一個被勾選的框
-            inputEl.placeholder = "餘額";
+            const v = parseFloat(document.getElementById(`amt_${n}`).value);
+            if(!isNaN(v)) sum += v;
+            lastN = n;
+            document.getElementById(`amt_${n}`).placeholder = "餘額";
         });
-
-        if(lastBox && isNaN(parseFloat(lastBox.value))) {
-            let rest = total - filledSum;
-            lastBox.placeholder = rest > 0 ? Math.round(rest*100)/100 : "餘額";
+        if(lastN && isNaN(parseFloat(document.getElementById(`amt_${lastN}`).value))) {
+            let rest = total - sum;
+            document.getElementById(`amt_${lastN}`).placeholder = rest > 0 ? Math.round(rest*100)/100 : "0";
         }
     }
 
@@ -167,8 +183,6 @@
         document.getElementById('itFields').style.display = (mode==='ITINERARY'?'block':'none');
         document.getElementById('splitFields').style.display = (mode==='SPLIT'?'block':'none');
         document.getElementById('targetFields').style.display = (mode==='SPLIT'?'block':'none');
-        document.getElementById('mImgBase64').value = "";
-        document.getElementById('mImgFile').value = "";
         buildTargetGrid();
         if(idx > -1) {
             const it = (mode==='ITINERARY'?data.itinerary : mode==='SPLIT'?data.split : data.private)[idx];
@@ -187,9 +201,9 @@
         if(currentMode==='SPLIT'){ 
             it.payer=document.getElementById('mPayer').value; it.isManual = isManual;
             it.targets = names.filter(n => document.getElementById(`cb_${n}`).checked).map(n => {
-                let val = parseFloat(document.getElementById(`amt_${n}`).value);
-                if(isManual && isNaN(val)) val = parseFloat(document.getElementById(`amt_${n}`).placeholder) || 0;
-                return { u: n, a: val };
+                let v = parseFloat(document.getElementById(`amt_${n}`).value);
+                if(isManual && isNaN(v)) v = parseFloat(document.getElementById(`amt_${n}`).placeholder) || 0;
+                return { u: n, a: v };
             });
         }
         if(editIdx > -1) (currentMode==='ITINERARY'?data.itinerary : currentMode==='SPLIT'?data.split : data.private)[editIdx]=it;
@@ -198,24 +212,24 @@
     }
 
     function handleDelete() { if(confirm("確定刪除？")) { (currentMode==='ITINERARY'?data.itinerary : currentMode==='SPLIT'?data.split : data.private).splice(editIdx,1); saveAll(); closeModal(); } }
+    function addItem(type, inputId) { const v = document.getElementById(inputId).value; if(v){ data[type].push({t:v, d:false}); document.getElementById(inputId).value=''; saveAll();}}
     function saveAll() { localStorage.setItem('hokkaido_v_stable', JSON.stringify(data)); renderAll(); }
 
     function renderAll() {
         const rate = parseFloat(document.getElementById('exRate').value)||0.2;
         const itDiv = document.getElementById('itList'); itDiv.innerHTML = '';
         [1,2,3,4,5,6,7,8].forEach(d => {
-            const items = data.itinerary.filter(i => i.day === d);
             itDiv.innerHTML += `<div class="day-header">Day ${d}</div>`;
-            items.forEach(it => {
+            data.itinerary.filter(i => i.day === d).forEach(it => {
                 itDiv.innerHTML += `
                 <div class="it-card" onclick="openModal('ITINERARY', ${data.itinerary.indexOf(it)})">
                     <div class="it-time">${it.time || '--:--'}</div>
                     <div class="it-info">
                         <span class="it-name">${it.n}</span>
                         ${it.p > 0 ? `<span class="it-amt-tag">金額: ${it.p}${it.t=='f'?'円':'元'}</span>` : ''}
-                        ${it.img ? `<br><img src="${it.img}" class="it-img">` : ''}
+                        ${it.img ? `<img src="${it.img}" class="it-img">` : ''}
                     </div>
-                    ${it.map ? `<a href="${it.map}" target="_blank" class="map-link" onclick="event.stopPropagation()">📍</a>` : ''}
+                    ${it.map ? `<span class="map-link" onclick="event.stopPropagation(); goNav('${it.map}')">📍</span>` : ''}
                 </div>`;
             });
         });
@@ -228,7 +242,6 @@
                 else if(tg.u === 'ME') { if(s.t==='f') balF[s.payer]-=share; else balT[s.payer]-=share; myDebtNT+=(s.t==='f'?share*rate:share); }
             });
         });
-
         document.getElementById('splitSummary').innerHTML = Object.entries(balF).map(([p, f]) => {
             let t = balT[p], res = "";
             if(Math.abs(f)>0.1) res += `<span style="color:${f>0?'green':'red'}">● ${p} ${f>0?'應給你':'你應給'}：${Math.round(Math.abs(f))} 円</span>`;
@@ -238,8 +251,10 @@
 
         const hotelNT = Math.round((eval(document.getElementById('hotelTotal').value.replace(/[^\d+*/.-]/g, ''))||0) * rate / 6);
         const itNT = data.itinerary.reduce((s, i) => s + (i.t=='f' ? i.p*rate : i.p), 0);
-        let myPrivNT = data.private.reduce((s, p) => s + (p.t==='f'?p.p*rate:p.p), 0);
-        document.getElementById('statMyTotal').innerText = `$${Math.round(parseFloat(document.getElementById('flight').value)+hotelNT+itNT+myDebtNT+myPrivNT).toLocaleString()}`;
+        document.getElementById('statMyTotal').innerText = `$${Math.round(parseFloat(document.getElementById('flight').value)+hotelNT+itNT+myDebtNT).toLocaleString()}`;
+        
+        const pkDiv = document.getElementById('packingList'); pkDiv.innerHTML = ''; 
+        data.packing.forEach((p, i) => { pkDiv.innerHTML += `<div class="todo-item"><span style="${p.d?'text-decoration:line-through;color:gray':''}" onclick="data.packing[${i}].d=!data.packing[${i}].d;saveAll()">${p.t}</span><b onclick="data.packing.splice(${i},1);saveAll()">✕</b></div>`; });
     }
     function updateAll() { renderAll(); }
 </script>
