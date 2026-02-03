@@ -40,6 +40,7 @@
         .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.9); padding: 15px; border-top: 1px solid #eee; z-index: 900; text-align: center; }
         .todo-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f5f5f5; align-items: center; }
         .todo-item span.done { text-decoration: line-through; color: #ccc; }
+        .mini-btn { padding: 4px 8px; font-size: 0.7rem; background: #eee; border-radius: 6px; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -96,7 +97,10 @@
             <select id="mCur" style="width:80px;"><option value="f">円</option><option value="t">元</option></select>
         </div>
         <div id="targetFields">
-            <div style="display:flex; justify-content:space-between; margin-top:10px;"><small>分帳成員 (可填寫特定金額)</small></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                <small>分帳成員 (可手動填額)</small>
+                <button class="mini-btn" onclick="selectAllTargets()">勾選全部</button>
+            </div>
             <div id="targetGrid" class="target-grid"></div>
         </div>
         <small>項目名稱</small><input type="text" id="mName">
@@ -105,7 +109,7 @@
     </div>
 </div>
 <button class="fab" id="mainFab" onclick="openModal('ITINERARY')">+</button>
-<div class="summary-bar"><span style="font-size:0.75rem; color:#78909c;">❄️ 個人總預估花費 (NT)</span><br><span id="statMyTotal" style="font-size:1.3rem; font-weight:900; color:var(--accent-blue);">$0</span></div>
+<div class="summary-bar"><span style="font-size:0.75rem; color:#78909c;">❄️ 個人總花費預估 (NT)</span><br><span id="statMyTotal" style="font-size:1.3rem; font-weight:900; color:var(--accent-blue);">$0</span></div>
 
 <script>
     let data = JSON.parse(localStorage.getItem('hokkaido_v31')) || JSON.parse(localStorage.getItem('hokkaido_v_stable')) || { itinerary: [], split: [], packing: [] };
@@ -128,6 +132,7 @@
         document.getElementById(pId).classList.add('active'); el.classList.add('active');
         document.getElementById('mainFab').style.display = (pId === 'itinerary') ? 'flex' : 'none';
     }
+    function selectAllTargets() { names.forEach(n => { document.getElementById(`cb_${n}`).checked = true; document.getElementById(`tag_${n}`).classList.add('active'); }); autoFillRest(); }
     function buildTargetGrid(savedTargets = null) {
         const grid = document.getElementById('targetGrid');
         grid.innerHTML = names.map(n => {
@@ -144,12 +149,10 @@
     function autoFillRest() {
         const total = parseFloat(document.getElementById('mPrice').value) || 0;
         const checkedNames = names.filter(n => document.getElementById(`cb_${n}`).checked);
-        let filledSum = 0;
-        let unfilled = [];
+        let filledSum = 0; let unfilled = [];
         checkedNames.forEach(n => {
             const v = parseFloat(document.getElementById(`amt_${n}`).value);
-            if(!isNaN(v)) filledSum += v;
-            else unfilled.push(n);
+            if(!isNaN(v)) filledSum += v; else unfilled.push(n);
         });
         checkedNames.forEach(n => { document.getElementById(`amt_${n}`).placeholder = "0"; });
         if(unfilled.length > 0) {
@@ -181,8 +184,7 @@
         if(currentMode==='SPLIT'){ 
             it.payer=document.getElementById('mPayer').value; 
             it.targets = names.filter(n => document.getElementById(`cb_${n}`).checked).map(n => { 
-                let rawV = document.getElementById(`amt_${n}`).value;
-                let v = parseFloat(rawV);
+                let rawV = document.getElementById(`amt_${n}`).value; let v = parseFloat(rawV);
                 let isManualVal = !isNaN(v);
                 if(!isManualVal) v = parseFloat(document.getElementById(`amt_${n}`).placeholder) || 0;
                 return { u: n, a: v, isManualVal: isManualVal }; 
@@ -219,12 +221,13 @@
         });
         document.getElementById('splitSummary').innerHTML = Object.entries(balF).map(([p, f]) => { let t = balT[p]; return (Math.abs(f)>0.1 || Math.abs(t)>0.1) ? `● ${p}: ${Math.round(f)}円 / ${Math.round(t)}元<br>` : ""; }).join("");
         
-        // 住宿費用計算：日幣總額 / 6 人 * 匯率 = 個人應負擔的台幣
         let hotelTotalVal = 0; try { hotelTotalVal = eval(document.getElementById('hotelTotal').value.replace(/[^\d+*/.-]/g, '')) || 0; } catch(e){}
-        const myHotelNT = (hotelTotalVal / 6) * rate;
+        const myHotelNT = (hotelTotalVal / 6) * rate; // 這邊會計算日幣總額除以6人後的個人台幣花費
         
         const itBudgetNT = data.itinerary.reduce((s, i) => s + (i.t=='f' ? i.p*rate : i.p), 0);
-        document.getElementById('statMyTotal').innerText = `$${Math.round(parseFloat(document.getElementById('flight').value) + myHotelNT + myDebtNT + myDirectNT + itBudgetNT).toLocaleString()}`;
+        const flightNT = parseFloat(document.getElementById('flight').value) || 0;
+        document.getElementById('statMyTotal').innerText = `$${Math.round(flightNT + myHotelNT + myDebtNT + myDirectNT + itBudgetNT).toLocaleString()}`;
+        
         const pkDiv = document.getElementById('packingList'); pkDiv.innerHTML = ''; 
         data.packing.forEach((p, i) => { pkDiv.innerHTML += `<div class="todo-item"><span class="${p.d?'done':''}" onclick="data.packing[${i}].d=!data.packing[${i}].d;saveAll()">${p.t}</span><b style="padding:5px; color:#f44336;" onclick="data.packing.splice(${i},1);saveAll()">✕</b></div>`; });
     }
