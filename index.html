@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hokkaido Master V23</title>
+    <title>Hokkaido Master V24</title>
     <style>
         :root { --sky-blue: #90caf9; --accent-blue: #1565c0; --private-purple: #9c27b0; --orange: #ffa726; }
         body { font-family: "PingFang TC", sans-serif; background: #f4f7f9; margin: 0; padding-bottom: 110px; color: #2c3e50; }
@@ -41,18 +41,18 @@
     <div id="itinerary" class="page active"><div id="itList"></div></div>
     <div id="split" class="page">
         <div class="card">
-            <h3>💸 拆帳記錄 (匯率 0.2)</h3>
+            <h3>💸 拆帳記錄 (日/台幣獨立)</h3>
             <div id="splitList"></div>
             <button class="btn btn-main" onclick="openModal('SPLIT')">+ 新增帳目</button>
         </div>
         <div class="card" style="background:#f1f8e9;">
-            <h3>📊 最終收支結算 (台幣)</h3>
+            <h3>📊 最終收支結算 (分幣別)</h3>
             <div id="splitSummary" style="font-size: 0.9rem; line-height: 1.8;"></div>
         </div>
     </div>
     <div id="private" class="page">
         <div class="card" style="border-left: 5px solid var(--orange);">
-            <h3 style="color:var(--orange)">🧳 北海道行李清單</h3>
+            <h3 style="color:var(--orange)">🧳 行李清單</h3>
             <div id="packingList"></div>
             <div style="display:flex; gap:5px;"><input type="text" id="newPack" placeholder="增加項目..." style="margin:0;"><button class="btn" style="background:var(--orange); color:white; width:60px;" onclick="addPack()">+</button></div>
         </div>
@@ -76,7 +76,7 @@
             <div id="targetGrid" style="background:#f9f9f9; padding:10px; border-radius:10px; margin:5px 0;"></div>
         </div>
         <div id="itFields"><select id="mDay"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option><option value="6">Day 6</option><option value="7">Day 7</option><option value="8">Day 8</option></select></div>
-        <input type="text" id="mName" placeholder="名稱">
+        <input type="text" id="mName" placeholder="項目名稱">
         <div id="itFields2"><input type="text" id="mTime" placeholder="⏰ 時間"></div>
         <div style="display:flex; gap:10px; margin-top:15px;"><button class="btn" style="background:#eee;" onclick="closeModal()">取消</button><button class="btn btn-main" onclick="handleSave()">儲存</button></div>
         <button id="btnDel" onclick="handleDelete()" style="background:none; border:none; color:red; width:100%; margin-top:15px; font-size:0.8rem;">🗑️ 刪除</button>
@@ -84,36 +84,11 @@
 </div>
 
 <button class="fab" id="mainFab" onclick="openModal('ITINERARY')">+</button>
-<div class="summary-bar"><span style="font-size:0.7rem; color:#78909c;">個人總支出預估 (NT)</span><br><span id="statMyTotal" style="font-size:1.3rem; font-weight:900; color:var(--accent-blue);">$0</span></div>
+<div class="summary-bar"><span style="font-size:0.7rem; color:#78909c;">預估個人總花費 (NT計)</span><br><span id="statMyTotal" style="font-size:1.3rem; font-weight:900; color:var(--accent-blue);">$0</span></div>
 
 <script>
-    let names = ["ME", "翌", "丞", "馨", "子", "嚕"]; // 移除珮
-    
-    // 預填行李清單
-    const defaultPacking = [
-        {t:"護照/簽證/保險單", d:false}, {t:"日幣現金/信用卡", d:false},
-        {t:"發熱衣/發熱褲 (多套)", d:false}, {t:"毛料厚長襪 (滑雪用)", d:false},
-        {t:"防水防滑雪靴", d:false}, {t:"防風防水外套 (Gore-Tex)", d:false},
-        {t:"毛帽/圍巾/耳罩", d:false}, {t:"防水滑雪手套", d:false},
-        {t:"雪鏡 (防雪盲)", d:false}, {t:"暖暖包", d:false},
-        {t:"行動電源/萬用插頭", d:false}, {t:"常備感冒藥/腸胃藥", d:false},
-        {t:"保濕乳液/護唇膏", d:false}
-    ];
-
-    // 補足 Day 3 & 4 的內容
-    const defaultIt = [
-        {day:1, n:"登別水族館", p:612, t:"t", time:"09:00"}, 
-        {day:2, n:"熊牧場", p:3200, t:"f", time:"09:30"}, 
-        {day:3, n:"移動至旭川/美瑛", p:0, t:"f", time:"上午"},
-        {day:3, n:"美瑛青池/白鬚瀑布", p:0, t:"f", time:"下午"},
-        {day:4, n:"富良野滑雪場 (預約)", p:0, t:"f", time:"08:30"},
-        {day:5, n:"滑雪教學", p:4500, t:"t", time:"4小時"}, 
-        {day:6, n:"旭山動物園", p:1838, t:"t", time:"全天"},
-        {day:7, n:"札幌市區購物", p:0, t:"f", time:"下午"},
-        {day:8, n:"新千歲機場/回台", p:0, t:"f", time:"15:00"}
-    ];
-
-    let data = JSON.parse(localStorage.getItem('hokkaido_v_stable')) || { itinerary: defaultIt, split: [], private: [], todos: [], packing: defaultPacking };
+    let names = ["ME", "翌", "丞", "馨", "子", "嚕"];
+    let data = JSON.parse(localStorage.getItem('hokkaido_v_stable')) || { itinerary: [], split: [], private: [], todos: [], packing: [] };
     let currentMode = '', editIdx = -1, isManual = false;
 
     window.onload = () => { buildTargetGrid(); renderAll(); };
@@ -176,6 +151,8 @@
 
     function renderAll() {
         const rate = parseFloat(document.getElementById('exRate').value)||0.2;
+        
+        // 行程
         const itDiv = document.getElementById('itList'); itDiv.innerHTML = '';
         [1,2,3,4,5,6,7,8].forEach(d => {
             const items = data.itinerary.filter(i => i.day === d);
@@ -185,27 +162,51 @@
             } else { itDiv.innerHTML += `<div style="padding:10px; color:#ccc; font-size:0.8rem;">尚無行程</div>`; }
         });
 
-        let balances = {翌:0,丞:0,馨:0,子:0,嚕:0}, myTotalDebt = 0;
+        // 拆帳邏輯：日幣、台幣分開
+        let balF = {翌:0,丞:0,馨:0,子:0,嚕:0}, balT = {翌:0,丞:0,馨:0,子:0,嚕:0};
+        let myTotalDebtNT = 0;
         const sDiv = document.getElementById('splitList'); sDiv.innerHTML = '';
+
         data.split.forEach((s, i) => {
-            const totalNT = Math.round(s.t==='f' ? s.p*rate : s.p);
-            let subtotalNT = 0;
+            let itemDisplayStr = "";
             s.targets.forEach(tg => {
-                let shareNT = s.isManual ? Math.round(s.t==='f'?tg.a*rate : tg.a) : Math.round(totalNT / s.targets.length);
-                if(s.payer === 'ME') { if(tg.u !== 'ME') { balances[tg.u] += shareNT; subtotalNT += shareNT; } }
-                else { if(tg.u === 'ME') { balances[s.payer] -= shareNT; myTotalDebt += shareNT; subtotalNT = shareNT; } }
+                let share = s.isManual ? tg.a : (s.p / s.targets.length);
+                if(s.payer === 'ME') {
+                    if(tg.u !== 'ME') { if(s.t==='f') balF[tg.u] += share; else balT[tg.u] += share; }
+                } else {
+                    if(tg.u === 'ME') {
+                        if(s.t==='f') balF[s.payer] -= share; else balT[s.payer] -= share;
+                        myTotalDebtNT += (s.t==='f' ? share * rate : share);
+                    }
+                }
             });
             const color = s.payer==='ME'?'green':(s.targets.some(t=>t.u==='ME')?'red':'gray');
-            sDiv.innerHTML += `<div class="list-item" onclick="openModal('SPLIT', ${i})"><span>${s.payer==='ME'?'(我墊)':'('+s.payer+'墊)'} ${s.n}</span><b style="color:${color}">${s.payer==='ME'?'+':'-'}$${subtotalNT}</b></div>`;
+            sDiv.innerHTML += `<div class="list-item" onclick="openModal('SPLIT', ${i})"><span>${s.payer==='ME'?'(我墊)':'('+s.payer+'墊)'} ${s.n}</span><b style="color:${color}">${s.p}${s.t==='f'?'円':'元'}</b></div>`;
         });
 
-        document.getElementById('splitSummary').innerHTML = Object.entries(balances).map(([p, b]) => b > 0 ? `<span style="color:green">● ${p} 應給你：$${b} NT</span><br>` : b < 0 ? `<span style="color:red">● 你應給 ${p}：$${Math.abs(b)} NT</span><br>` : '').join('');
+        let summaryHtml = "";
+        names.filter(n => n !== 'ME').forEach(p => {
+            let line = "";
+            if(balF[p] > 0) line += `<span style="color:green">● ${p} 應給你：${Math.round(balF[p])} 円</span>`;
+            else if(balF[p] < 0) line += `<span style="color:red">● 你應給 ${p}：${Math.round(Math.abs(balF[p]))} 円</span>`;
+            
+            if(balT[p] !== 0) {
+                if(line) line += " / ";
+                if(balT[p] > 0) line += `<span style="color:green">${line?"":"● "+p+" 應給你："}${Math.round(balT[p])} 元</span>`;
+                else if(balT[p] < 0) line += `<span style="color:red">${line?"":"● 你應給 "+p+"："}${Math.round(Math.abs(balT[p]))} 元</span>`;
+            }
+            if(line) summaryHtml += line + "<br>";
+        });
+        document.getElementById('splitSummary').innerHTML = summaryHtml || "暫無收支狀況";
 
+        // 總預算計算
+        const flight = parseFloat(document.getElementById('flight').value)||0;
         const hotelNT = Math.round((eval(document.getElementById('hotelTotal').value.replace(/[^\d+*/.-]/g, ''))||0) * rate / 6);
         const itNT = data.itinerary.reduce((s, i) => s + (i.t=='f' ? i.p*rate : i.p), 0);
-        let myPrivTotal = 0; data.private.forEach(p => myPrivTotal += Math.round(p.t==='f'?p.p*rate : p.p));
-        document.getElementById('statMyTotal').innerText = `$${Math.round(parseFloat(document.getElementById('flight').value) + hotelNT + itNT + myTotalDebt + myPrivTotal).toLocaleString()}`;
+        let myPrivTotalNT = 0; data.private.forEach(p => myPrivTotalNT += Math.round(p.t==='f'?p.p*rate : p.p));
+        document.getElementById('statMyTotal').innerText = `$${Math.round(flight + hotelNT + itNT + myTotalDebtNT + myPrivTotalNT).toLocaleString()}`;
 
+        // 渲染剩餘
         const pkDiv = document.getElementById('packingList'); pkDiv.innerHTML = ''; data.packing.forEach((p, i) => { pkDiv.innerHTML += `<div class="list-item"><span style="${p.d?'text-decoration:line-through;color:gray':''}" onclick="data.packing[${i}].d=!data.packing[${i}].d;saveAll()">${p.t}</span><b onclick="data.packing.splice(${i},1);saveAll()">✕</b></div>`; });
         const pDiv = document.getElementById('privSpendList'); pDiv.innerHTML = ''; data.private.forEach((p, i) => { pDiv.innerHTML += `<div class="list-item" onclick="openModal('PRIVATE', ${i})"><span>${p.n}</span><span>$${Math.round(p.t==='f'?p.p*rate:p.p)}</span></div>`; });
         const tDiv = document.getElementById('todoList'); tDiv.innerHTML = ''; data.todos.forEach((t, i) => { tDiv.innerHTML += `<div class="list-item"><span style="${t.done?'text-decoration:line-through;color:gray':''}" onclick="data.todos[${i}].done=!data.todos[${i}].done;saveAll()">${t.txt}</span><b onclick="data.todos.splice(${i},1);saveAll()">✕</b></div>`; });
