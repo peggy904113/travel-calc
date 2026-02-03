@@ -3,53 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V52</title>
+    <title>去北海道被雪玩 V43</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --green: #43a047; --red: #e53935; }
-        body { font-family: "PingFang TC", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); user-select: none; overflow-x: hidden; }
+        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); user-select: none; overflow-x: hidden; }
         
-        /* 雪花層 */
-        #snow-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
-        .snowflake { position: absolute; color: white; opacity: 0.6; animation: fall linear infinite; }
-        @keyframes fall { 0% { transform: translateY(-10vh) rotate(0); } 100% { transform: translateY(110vh) rotate(360deg); } }
+        /* 經典雪花 */
+        body::before {
+            content: "❄"; position: fixed; top: -10%; left: 10%; font-size: 20px; color: white; opacity: 0.5;
+            animation: snow 12s linear infinite; z-index: -1;
+            text-shadow: 40vw 15vh white, 70vw 35vh white, 25vw 55vh white, 85vw 75vh white, 15vw 95vh white;
+        }
+        @keyframes snow { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(110vh) rotate(360deg); } }
 
         .nav-tabs { display: flex; background: rgba(255,255,255,0.9); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); backdrop-filter: blur(10px); }
         .tab { flex: 1; text-align: center; padding: 15px 0; font-weight: bold; color: #546e7a; cursor: pointer; }
-        .tab.active { color: var(--accent-blue); border-bottom: 3px solid var(--accent-blue); }
-        
+        .tab.active { color: var(--accent-blue); border-bottom: 3px solid var(--accent-blue); background: rgba(248,251,255,0.5); }
         .container { padding: 15px; }
         .page { display: none; }
         .page.active { display: block; }
         
         /* 行程卡片 */
-        .it-card { background: white; border-radius: 15px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .it-info { flex: 1; cursor: pointer; }
-        .it-name { font-weight: bold; color: #1a237e; }
-        
-        /* 分帳勾選列：修復名字顯示 */
-        .member-row { background: #fff; border: 1px solid #eee; padding: 12px 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; cursor: pointer; }
-        .member-row.active { border-color: var(--accent-blue); background: #f0f7ff; }
-        .member-label { flex: 1; font-weight: bold; display: flex; align-items: center; pointer-events: none; }
-        .amt-input { width: 90px; text-align: right; border: 1px solid #ccc; border-radius: 8px; padding: 6px; pointer-events: auto; }
+        .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
+        .it-card { background: rgba(255,255,255,0.9); border-radius: 15px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: grab; }
+        .it-time { min-width: 50px; font-weight: 900; color: var(--accent-blue); font-size: 0.9rem; text-align: center; border-right: 1px solid #eee; padding-right: 5px; }
+        .it-info { flex: 1; }
+        .it-name { font-weight: bold; font-size: 1rem; color: #1a237e; display: block; }
+        .map-link { font-size: 1.2rem; padding: 5px; cursor: pointer; filter: grayscale(0.5); }
 
-        .card { background: rgba(255,255,255,0.85); padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
-        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        /* 分帳成員勾選區 (經典紅框版) */
+        .target-item { 
+            border: 2px solid #ffcdd2; border-radius: 12px; padding: 10px; margin-bottom: 8px; 
+            display: flex; align-items: center; justify-content: space-between; background: white;
+        }
+        .target-item.active { border-color: var(--accent-blue); background: #f0f7ff; }
+        .amt-input { width: 80px; text-align: right; border: 1px solid #ddd; border-radius: 6px; padding: 4px; }
+
+        .card { background: rgba(255,255,255,0.85); padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); backdrop-filter: blur(5px); }
+        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; }
         .btn { padding: 10px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
         .btn-main { background: var(--accent-blue); color: white; width: 100%; }
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-content { background: white; width: 90%; max-width: 380px; padding: 20px; border-radius: 22px; max-height: 85vh; overflow-y: auto; }
-        .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 10px; border-top: 1px solid #eee; z-index: 900; }
-        .fab { position: fixed; bottom: 105px; right: 20px; width: 55px; height: 55px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 25px; border: none; z-index: 1100; }
+        
+        .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.9); padding: 12px; border-top: 1px solid #eee; z-index: 900; backdrop-filter: blur(10px); }
+        .fab { position: fixed; bottom: 105px; right: 20px; width: 55px; height: 55px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 25px; border: none; z-index: 1100; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
-<div id="snow-wrapper"></div>
+
 <div class="nav-tabs">
     <div class="tab active" onclick="showPage('itinerary', this)">📅 行程</div>
     <div class="tab" onclick="showPage('split', this)">💰 拆帳</div>
-    <div class="tab" onclick="showPage('private', this)">🔒 私人</div>
+    <div class="tab" onclick="showPage('private', this)">🔒 設定</div>
 </div>
 
 <div class="container">
@@ -60,100 +68,77 @@
             <div id="splitList"></div>
             <button class="btn btn-main" onclick="openModal('SPLIT')">+ 新增紀錄</button>
         </div>
-        <div class="card" style="background: #f1f8e9;">
-            <h3>📊 誰該給誰</h3>
+        <div class="card" style="background: rgba(241, 248, 233, 0.8);">
+            <h3>📊 結算</h3>
             <div id="splitSummary"></div>
         </div>
     </div>
     <div id="private" class="page">
         <div class="card">
-            <h3>⚙️ 設定</h3>
-            <small>成員 (用逗號隔開)</small>
-            <input type="text" id="memberNames" value="我,翌,丞,馨,子,嚕" onchange="updateMembers()">
-            <small>匯率</small><input type="number" id="exRate" value="0.2" oninput="saveAll()">
+            <h3>⚙️ 旅遊參數</h3>
+            <small>匯率</small><input type="number" id="exRate" value="0.21" step="0.01" oninput="saveAll()">
+            <small>機票台幣</small><input type="number" id="flight" value="21255" oninput="saveAll()">
         </div>
     </div>
 </div>
 
 <div id="editModal" class="modal">
     <div class="modal-content">
-        <h3 id="modalTitle">編輯</h3>
+        <h3 id="modalTitle">編輯項目</h3>
         <div id="itFields">
-            <small>項目名稱 (輸入後地點會自動同步)</small>
-            <input type="text" id="mName" oninput="syncNameIntoMap()">
-            <small>地點/網址</small>
-            <input type="text" id="mMap" placeholder="會預設為項目名稱">
-            <small>時間</small><input type="text" id="mTime" placeholder="12:00">
             <small>天數</small><select id="mDay"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option></select>
+            <small>項目名稱</small><input type="text" id="mName">
+            <small>地點/網址</small><input type="text" id="mMap">
+            <small>時間</small><input type="text" id="mTime" placeholder="12:00">
         </div>
         <div id="splitFields" style="display:none">
-            <small>支出項目</small><input type="text" id="mSplitName">
-            <small>付款人</small><select id="mPayer"></select>
-            <div id="targetGrid" style="margin-top:10px;"></div>
+            <small>支出名稱</small><input type="text" id="mSplitName">
+            <small>付款人</small><select id="mPayer"><option value="ME">我</option><option value="翌">翌</option><option value="丞">丞</option><option value="馨">馨</option><option value="子">子</option><option value="嚕">嚕</option></select>
+            <div id="targetList" style="margin-top:10px;"></div>
         </div>
         <hr>
         <small>金額</small>
-        <input type="text" id="mPrice" oninput="autoFillRest()">
-        <select id="mCur"><option value="f">円</option><option value="t">元</option></select>
-        <div style="display:flex; gap:10px; margin-top:15px;">
+        <div style="display:flex; gap:5px;"><input type="number" id="mPrice" oninput="autoSplit()" style="flex:1;"><select id="mCur" style="width:70px;"><option value="f">円</option><option value="t">元</option></select></div>
+        <div style="display:flex; gap:10px; margin-top:20px;">
             <button class="btn" style="flex:1; background:#eee;" onclick="closeModal()">取消</button>
             <button class="btn btn-main" style="flex:1;" onclick="handleSave()">儲存</button>
         </div>
-        <button onclick="handleDelete()" style="color:red; background:none; border:none; width:100%; margin-top:10px;">🗑️ 刪除</button>
+        <button id="btnDel" onclick="handleDelete()" style="color:red; background:none; border:none; width:100%; margin-top:15px;">🗑️ 刪除項目</button>
     </div>
 </div>
 
 <button class="fab" id="mainFab" onclick="openModal('ITINERARY')">+</button>
+
 <div class="summary-bar">
-    <div style="display:flex; justify-content:space-around;">
-        <div style="text-align:center;"><small>實花 (NT)</small><br><b id="statMyTotal">$0</b></div>
-        <div style="text-align:center;"><small>待收 (NT)</small><br><b id="statMyLend" style="color:red;">$0</b></div>
+    <div style="display:flex; justify-content:space-around; align-items:center;">
+        <div><small style="font-size:0.6rem; color:#78909c;">❄️ 個人實花 (NT)</small><br><b id="statMyTotal" style="font-size:1.1rem; color:var(--accent-blue);">$0</b></div>
+        <div style="border-left:1px solid #ddd; padding-left:15px;"><small style="font-size:0.6rem; color:#e53935;">🧧 代墊待收 (NT)</small><br><b id="statMyLend" style="font-size:1.1rem; color:#e53935;">$0</b></div>
     </div>
 </div>
 
 <script>
-    let data = JSON.parse(localStorage.getItem('hokkaido_v52')) || { itinerary: [], split: [], members: "我,翌,丞,馨,子,嚕" };
+    let data = JSON.parse(localStorage.getItem('hokkaido_v43')) || { itinerary: [], split: [] };
+    let names = ["ME", "翌", "丞", "馨", "子", "嚕"];
     let currentMode = '', editIdx = -1;
 
-    // 核心 1：輸入名稱即時同步地點 (預設)
-    function syncNameIntoMap() {
-        const nameVal = document.getElementById('mName').value;
-        document.getElementById('mMap').value = nameVal;
-    }
-
-    // 初始化雪花
-    function initSnow() {
-        const container = document.getElementById('snow-wrapper');
-        for(let i=0; i<20; i++) {
-            let s = document.createElement('div');
-            s.className = 'snowflake'; s.innerText = '❄';
-            s.style.left = Math.random()*100+'vw';
-            s.style.animationDuration = (Math.random()*5+5)+'s';
-            s.style.fontSize = (Math.random()*10+10)+'px';
-            container.appendChild(s);
-        }
-    }
-
-    window.onload = () => { initSnow(); renderAll(); };
+    window.onload = () => { renderAll(); };
 
     function showPage(pId, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.getElementById(pId).classList.add('active'); el.classList.add('active');
+        document.getElementById('mainFab').style.display = (pId === 'itinerary') ? 'flex' : 'none';
     }
 
     function openModal(mode, idx = -1) {
         currentMode = mode; editIdx = idx;
-        const members = data.members.split(',');
         document.getElementById('editModal').style.display = 'flex';
-        document.getElementById('itFields').style.display = mode==='ITINERARY'?'block':'none';
-        document.getElementById('splitFields').style.display = mode==='SPLIT'?'block':'none';
+        document.getElementById('itFields').style.display = mode === 'ITINERARY' ? 'block' : 'none';
+        document.getElementById('splitFields').style.display = mode === 'SPLIT' ? 'block' : 'none';
         
-        document.getElementById('mPayer').innerHTML = members.map(m => `<option value="${m}">${m}</option>`).join('');
-
         if(idx > -1) {
-            const d = (mode==='ITINERARY'?data.itinerary:data.split)[idx];
-            if(mode==='ITINERARY') {
+            const d = (mode === 'ITINERARY' ? data.itinerary : data.split)[idx];
+            if(mode === 'ITINERARY') {
                 document.getElementById('mName').value = d.n;
                 document.getElementById('mMap').value = d.map;
                 document.getElementById('mTime').value = d.time;
@@ -161,106 +146,117 @@
             } else {
                 document.getElementById('mSplitName').value = d.n;
                 document.getElementById('mPayer').value = d.payer;
-                buildTargetGrid(d.targets);
+                buildTargetList(d.targets);
             }
             document.getElementById('mPrice').value = d.p;
             document.getElementById('mCur').value = d.t || 'f';
         } else {
-            ['mName','mMap','mSplitName','mPrice','mTime'].forEach(id => document.getElementById(id).value = '');
-            if(mode==='SPLIT') buildTargetGrid();
+            ['mName','mSplitName','mPrice','mTime','mMap'].forEach(id => document.getElementById(id).value = '');
+            if(mode === 'SPLIT') buildTargetList();
         }
     }
 
-    // 核心 2：修復分帳名單名字不顯示問題
-    function buildTargetGrid(st = null) {
-        const g = document.getElementById('targetGrid');
-        const members = data.members.split(',');
-        g.innerHTML = members.map(n => {
-            let isC = st ? st.some(x => x.u === n) : (n === members[0]);
+    function buildTargetList(st = null) {
+        const list = document.getElementById('targetList');
+        list.innerHTML = names.map(n => {
+            let isC = st ? st.some(x => x.u === n) : (n === 'ME');
+            let amt = st ? (st.find(x => x.u === n)?.a || 0) : 0;
             return `
-                <div class="member-row ${isC?'active':''}" onclick="toggleMember('${n}')" id="row_${n}">
-                    <div class="member-label">
-                        <input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="margin-right:10px;">
-                        <span>${n}</span>
+                <div class="target-item ${isC?'active':''}" onclick="toggleT('${n}')" id="titem_${n}">
+                    <div style="display:flex; align-items:center;">
+                        <input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="margin-right:8px;">
+                        <span style="font-weight:bold;">${n==='ME'?'我':n}</span>
                     </div>
-                    <input type="text" id="amt_${n}" class="amt-input" placeholder="0" onclick="event.stopPropagation()" oninput="autoFillRest()">
+                    <input type="number" id="amt_${n}" class="amt-input" value="${amt}" onclick="event.stopPropagation()" oninput="updateTStyle('${n}')">
                 </div>`;
         }).join('');
-        autoFillRest();
     }
 
-    function toggleMember(n) {
+    function toggleT(n) {
         const cb = document.getElementById(`cb_${n}`);
         cb.checked = !cb.checked;
-        document.getElementById(`row_${n}`).classList.toggle('active', cb.checked);
-        autoFillRest();
+        document.getElementById(`titem_${n}`).classList.toggle('active', cb.checked);
+        autoSplit();
     }
 
-    function autoFillRest() {
+    function autoSplit() {
         const total = parseFloat(document.getElementById('mPrice').value) || 0;
-        const members = data.members.split(',');
-        const checked = members.filter(n => document.getElementById(`cb_${n}`).checked);
-        checked.forEach(n => {
-            document.getElementById(`amt_${n}`).placeholder = Math.round(total / (checked.length || 1));
-        });
+        const cbs = names.filter(n => document.getElementById(`cb_${n}`).checked);
+        if(cbs.length > 0) {
+            const avg = Math.round(total / cbs.length);
+            names.forEach(n => {
+                document.getElementById(`amt_${n}`).value = document.getElementById(`cb_${n}`).checked ? avg : 0;
+            });
+        }
     }
 
     function renderAll() {
         const itDiv = document.getElementById('itList'); itDiv.innerHTML = '';
-        const rate = data.exRate || 0.2;
+        const rate = parseFloat(document.getElementById('exRate').value) || 0.21;
         
         [1,2,3,4,5].forEach(d => {
-            itDiv.innerHTML += `<div style="font-weight:bold; color:var(--accent-blue); margin-top:15px;">Day ${d}</div>`;
-            data.itinerary.filter(it => it.day == d).forEach((it, idx) => {
-                itDiv.innerHTML += `
-                    <div class="it-card">
-                        <div style="font-size:0.8rem; color:#999;">${it.time}</div>
+            const dayItems = data.itinerary.filter(i => i.day == d);
+            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}"></div>`;
+            const group = document.getElementById(`day-group-${d}`);
+            dayItems.forEach(it => {
+                group.innerHTML += `
+                    <div class="it-card" data-idx="${data.itinerary.indexOf(it)}">
+                        <div class="it-time">${it.time||'--'}</div>
                         <div class="it-info" onclick="openModal('ITINERARY', ${data.itinerary.indexOf(it)})">
-                            <div class="it-name">${it.n}</div>
+                            <span class="it-name">${it.n}</span>
                         </div>
-                        <div onclick="window.open('https://www.google.com/maps/search/${it.map}')">📍</div>
+                        <span class="map-link" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.map||it.n)}')">📍</span>
                     </div>`;
             });
+            new Sortable(group, { animation: 150, onEnd: () => {
+                let newList = [];
+                document.querySelectorAll('.it-card').forEach(el => newList.push(data.itinerary[el.dataset.idx]));
+                data.itinerary = newList; saveAll();
+            }});
         });
 
         document.getElementById('splitList').innerHTML = data.split.map((s, i) => `
             <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})">
-                <span>${s.n}</span><b>${s.p} ${s.t==='f'?'円':'元'}</b>
+                <span>${s.n}</span><b>${s.p}${s.t==='f'?'円':'元'}</b>
             </div>`).join('');
-        
-        // 簡單計算
-        let myTotal = 0, myLend = 0;
+
+        let myPure = 0, myLend = 0, summary = {};
+        names.filter(n=>n!=='ME').forEach(n => summary[n] = 0);
+
         data.split.forEach(s => {
-            const isMePayer = s.payer === data.members.split(',')[0];
             s.targets.forEach(tg => {
-                const val = (s.t==='f' ? tg.a * rate : tg.a);
-                if(isMePayer && tg.u !== s.payer) myLend += val;
-                if(tg.u === data.members.split(',')[0]) myTotal += val;
+                let valNT = (s.t==='f' ? tg.a * rate : tg.a);
+                if(s.payer === 'ME') {
+                    if(tg.u === 'ME') myPure += valNT;
+                    else { myLend += valNT; summary[tg.u] += tg.a; }
+                } else if(tg.u === 'ME') {
+                    myPure += valNT; summary[s.payer] -= tg.a;
+                }
             });
         });
-        document.getElementById('statMyTotal').innerText = '$' + Math.round(myTotal);
-        document.getElementById('statMyLend').innerText = '$' + Math.round(myLend);
+
+        document.getElementById('statMyTotal').innerText = `$${Math.round(myPure + (parseFloat(document.getElementById('flight').value)||0)).toLocaleString()}`;
+        document.getElementById('statMyLend').innerText = `$${Math.round(myLend).toLocaleString()}`;
+        document.getElementById('splitSummary').innerHTML = Object.entries(summary).map(([n,v]) => v !== 0 ? `● ${n}: ${Math.round(v)}円<br>` : '').join('');
     }
 
     function handleSave() {
+        const p = parseFloat(document.getElementById('mPrice').value) || 0;
+        const t = document.getElementById('mCur').value;
         if(currentMode === 'ITINERARY') {
             const it = { n: document.getElementById('mName').value, map: document.getElementById('mMap').value, time: document.getElementById('mTime').value, day: document.getElementById('mDay').value };
             if(editIdx > -1) data.itinerary[editIdx] = it; else data.itinerary.push(it);
         } else {
-            const members = data.members.split(',');
-            const targets = members.filter(n => document.getElementById(`cb_${n}`).checked).map(n => ({
-                u: n, a: parseFloat(document.getElementById(`amt_${n}`).value) || parseFloat(document.getElementById(`amt_${n}`).placeholder)
-            }));
-            const s = { n: document.getElementById('mSplitName').value, payer: document.getElementById('mPayer').value, p: document.getElementById('mPrice').value, t: document.getElementById('mCur').value, targets };
+            const targets = names.filter(n => document.getElementById(`cb_${n}`).checked).map(n => ({ u: n, a: parseFloat(document.getElementById(`amt_${n}`).value) || 0 }));
+            const s = { n: document.getElementById('mSplitName').value, payer: document.getElementById('mPayer').value, p, t, targets };
             if(editIdx > -1) data.split[editIdx] = s; else data.split.push(s);
         }
         saveAll(); closeModal();
     }
 
-    function updateMembers() { data.members = document.getElementById('memberNames').value; saveAll(); }
-    function saveAll() { localStorage.setItem('hokkaido_v52', JSON.stringify(data)); renderAll(); }
+    function saveAll() { localStorage.setItem('hokkaido_v43', JSON.stringify(data)); renderAll(); }
     function closeModal() { document.getElementById('editModal').style.display = 'none'; }
-    function handleDelete() { data[currentMode==='ITINERARY'?'itinerary':'split'].splice(editIdx, 1); saveAll(); closeModal(); }
+    function handleDelete() { if(confirm("確定刪除？")) { (currentMode==='ITINERARY'?data.itinerary:data.split).splice(editIdx,1); saveAll(); closeModal(); } }
 </script>
 </body>
 </html>
