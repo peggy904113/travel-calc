@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V47</title>
+    <title>去北海道被雪玩 V48</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --green: #43a047; --red: #e53935; }
@@ -16,19 +16,16 @@
         .page.active { display: block; }
         .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
         
-        /* 行程卡片：確保有 grab 手感 */
         .it-card { background: white; border-radius: 15px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: grab; touch-action: none; }
         .it-time { min-width: 50px; font-weight: 900; color: var(--accent-blue); font-size: 0.9rem; text-align: center; border-right: 1px solid #eee; padding-right: 5px; }
-        .it-info { flex: 1; pointer-events: none; }
+        .it-info { flex: 1; }
         .it-name { font-weight: bold; font-size: 1rem; color: #1a237e; display: block; }
         .it-cost-tag { font-size: 0.75rem; color: var(--green); font-weight: bold; margin-top: 4px; display: block; }
-        .map-link { font-size: 1.2rem; padding: 5px; pointer-events: auto; }
+        .map-link { font-size: 1.2rem; padding: 5px; }
 
-        /* 分帳勾選區：整列點擊優化 */
-        .member-row { background: #fff; border: 1px solid #eee; padding: 12px 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; transition: 0.2s; }
-        .member-row.active { border-color: var(--accent-blue); background: #f0f7ff; box-shadow: 0 2px 8px rgba(21, 101, 192, 0.1); }
-        .member-clickable { flex: 1; display: flex; align-items: center; height: 100%; cursor: pointer; }
-        .amt-input { width: 90px !important; text-align: right; border-radius: 8px !important; border: 1px solid #ccc !important; padding: 6px !important; margin: 0 !important; font-size: 14px; }
+        .member-row { background: #fff; border: 1px solid #eee; padding: 12px 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; cursor: pointer; }
+        .member-row.active { border-color: var(--accent-blue); background: #f0f7ff; }
+        .amt-input { width: 90px !important; text-align: right; border-radius: 8px !important; border: 1px solid #ccc !important; padding: 6px !important; margin: 0 !important; }
         
         .card { background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
         input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; }
@@ -58,21 +55,17 @@
             <div id="splitList"></div>
             <button class="btn btn-main" onclick="openModal('SPLIT')">+ 新增紀錄</button>
         </div>
-        <div class="card" style="background: #f1f8e9;">
-            <h3 style="margin:0 0 10px 0;">📊 結算 (誰該給誰)</h3>
-            <div id="splitSummary" style="font-size: 0.85rem;"></div>
-        </div>
+        <div class="card" style="background: #f1f8e9;"><h3 style="margin:0 0 10px 0;">📊 結算 (誰該給誰)</h3><div id="splitSummary" style="font-size: 0.85rem;"></div></div>
     </div>
     <div id="private" class="page">
         <div class="card"><h3>🧳 備忘行李清單</h3><div id="packingList"></div><div style="display:flex; gap:8px;"><input type="text" id="newPack" placeholder="增加項目..." style="margin:0;"><button class="btn" style="background:var(--orange); color:white; width:50px;" onclick="addItem('packing','newPack')">+</button></div></div>
         <div class="card">
             <h3>⚙️ 旅遊設定</h3>
-            <small>機票 (NT)</small><input type="number" id="flight" value="21255" oninput="updateAll()">
-            <small>匯率</small><input type="number" id="exRate" value="0.2" step="0.001" oninput="updateAll()">
-            <small>住宿費日幣</small><input type="text" id="hotelTotal" value="374259" oninput="updateAll()">
+            <small>機票 (NT)</small><input type="number" id="flight" value="21255" oninput="saveAll()">
+            <small>匯率</small><input type="number" id="exRate" value="0.2" step="0.001" oninput="saveAll()">
+            <small>住宿費日幣</small><input type="text" id="hotelTotal" value="374259" oninput="saveAll()">
             <div id="hotelPreview" style="font-size:0.8rem; color:var(--green); font-weight:bold;"></div>
         </div>
-        <div class="card" id="archiveArea" style="display:none;"><h3>📜 歷史紀錄</h3><div id="archiveList" style="font-size:0.8rem; color:#666;"></div></div>
     </div>
 </div>
 
@@ -102,7 +95,12 @@
 <div class="summary-bar"><div style="display:flex; justify-content:space-around; align-items:center;"><div><small style="font-size:0.6rem; color:#78909c;">❄️ 個人實花 (NT)</small><br><b id="statMyTotal" style="font-size:1.1rem; color:var(--accent-blue);">$0</b></div><div style="border-left:1px solid #ddd; padding-left:15px;"><small style="font-size:0.6rem; color:#e53935;">🧧 代墊待收 (NT)</small><br><b id="statMyLend" style="font-size:1.1rem; color:#e53935;">$0</b></div></div></div>
 
 <script>
-    let data = JSON.parse(localStorage.getItem('hokkaido_v47')) || JSON.parse(localStorage.getItem('hokkaido_v46')) || { itinerary: [], split: [], packing: [], archives: [] };
+    // 確保資料連貫讀取
+    let data = JSON.parse(localStorage.getItem('hokkaido_v48')) || 
+               JSON.parse(localStorage.getItem('hokkaido_v47')) || 
+               JSON.parse(localStorage.getItem('hokkaido_v46')) || 
+               { itinerary: [], split: [], packing: [], archives: [] };
+    
     let names = ["ME", "翌", "丞", "馨", "子", "嚕"];
     let currentMode = '', editIdx = -1;
 
@@ -133,17 +131,16 @@
         }
     }
 
-    // 解決勾選區域問題：點擊文字或框框都能觸發
     function buildTargetGrid(st = null) {
         const g = document.getElementById('targetGrid');
         g.innerHTML = names.map(n => {
             let isC = st ? st.some(x=>x.u===n) : (n==='ME');
-            return `<div class="member-row ${isC?'active':''}" id="tag_${n}">
-                <div class="member-clickable" onclick="toggleMember('${n}')">
-                    <input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="pointer-events:none;">
+            return `<div class="member-row ${isC?'active':''}" id="tag_${n}" onclick="toggleMember('${n}')">
+                <div style="display:flex; align-items:center; pointer-events:none;">
+                    <input type="checkbox" id="cb_${n}" ${isC?'checked':''}>
                     <span style="margin-left:12px; font-weight:bold;">${n==='ME'?'我':n}</span>
                 </div>
-                <input type="text" id="amt_${n}" class="amt-input" placeholder="0" oninput="autoFillRest()" onclick="event.stopPropagation()">
+                <input type="text" id="amt_${n}" class="amt-input" placeholder="0" onclick="event.stopPropagation()" oninput="autoFillRest()">
             </div>`;
         }).join('');
         autoFillRest();
@@ -158,7 +155,7 @@
 
     function autoFillRest() {
         const total = parseFloat(document.getElementById('mPrice').value) || 0;
-        const checked = names.filter(n => document.getElementById(`cb_${n}`).checked);
+        const checked = names.filter(n => document.getElementById(`cb_${n}`) && document.getElementById(`cb_${n}`).checked);
         checked.forEach(n => document.getElementById(`amt_${n}`).placeholder = Math.round(total / (checked.length || 1)));
     }
 
@@ -166,12 +163,12 @@
         const rate = parseFloat(document.getElementById('exRate').value)||0.2;
         const itDiv = document.getElementById('itList'); itDiv.innerHTML = '';
         const actualCosts = {}; 
-        data.split.forEach(s => { actualCosts[s.n] = (actualCosts[s.n] || 0) + (s.t==='f' ? s.p : s.p / rate); });
+        if(data.split) data.split.forEach(s => { actualCosts[s.n] = (actualCosts[s.n] || 0) + (s.t==='f' ? s.p : s.p / rate); });
 
         [1,2,3,4,5,6,7,8].forEach(d => {
             const dayItems = data.itinerary.filter(i => i.day === d);
             if(dayItems.length > 0 || d <= 5) {
-                itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" class="sort-group"></div>`;
+                itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" class="sort-group" style="min-height:20px;"></div>`;
                 const group = document.getElementById(`day-group-${d}`);
                 dayItems.forEach(it => {
                     const real = actualCosts[it.n];
@@ -179,17 +176,17 @@
                         <div class="it-card" data-idx="${data.itinerary.indexOf(it)}">
                             <div class="it-time">${it.time||'--'}</div>
                             <div class="it-info" onclick="openModal('ITINERARY', ${data.itinerary.indexOf(it)})">
-                                <span class="it-name" style="pointer-events:auto;">${it.n}</span>
+                                <span class="it-name">${it.n}</span>
                                 ${real ? `<span class="it-cost-tag">💰 實支: ${Math.round(real)}円</span>` : ''}
                             </div>
                             <span class="map-link" onclick="goNav('${it.map||it.n}')">📍</span>
                         </div>`;
                 });
-                // 恢復排序功能
                 new Sortable(group, { animation: 150, handle: '.it-card', onEnd: syncSort });
             }
         });
 
+        // 財務計算
         let myPure = 0, myLend = 0, balF = {翌:0,丞:0,馨:0,子:0,嚕:0};
         data.split.forEach(s => {
             s.targets.forEach(tg => {
@@ -200,7 +197,8 @@
         });
         document.getElementById('splitList').innerHTML = data.split.map((s,i)=>`<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><span>${s.p}${s.t==='f'?'円':'元'}</span></div>`).join('');
         document.getElementById('splitSummary').innerHTML = Object.entries(balF).map(([n,f])=>Math.abs(f)>1?`● ${n}: ${Math.round(f)}円<br>`:'').join('');
-        let hTotal = 0; try { hTotal = eval(document.getElementById('hotelTotal').value.replace(/[^\d+*/.-]/g, '')) || 0; } catch(e){}
+        
+        let hTotal = 0; try { hTotal = eval(document.getElementById('hotelTotal').value.toString().replace(/[^\d+*/.-]/g, '')) || 0; } catch(e){}
         const flight = parseFloat(document.getElementById('flight').value) || 0;
         document.getElementById('statMyTotal').innerText = `$${Math.round(myPure + (hTotal/6*rate) + flight).toLocaleString()}`;
         document.getElementById('statMyLend').innerText = `$${Math.round(myLend).toLocaleString()}`;
@@ -210,12 +208,9 @@
 
     function syncSort() {
         let newList = [];
-        document.querySelectorAll('.it-card').forEach(el => {
-            newList.push(data.itinerary[parseInt(el.dataset.idx)]);
-        });
+        document.querySelectorAll('.it-card').forEach(el => { newList.push(data.itinerary[parseInt(el.dataset.idx)]); });
         data.itinerary = newList;
-        localStorage.setItem('hokkaido_v47', JSON.stringify(data));
-        // 注意：這裡不呼叫 renderAll 以避免拖動時畫面閃爍，但資料已存
+        localStorage.setItem('hokkaido_v48', JSON.stringify(data));
     }
 
     function handleSave() {
@@ -232,10 +227,8 @@
         }
         saveAll(); closeModal();
     }
-    function saveAll() { localStorage.setItem('hokkaido_v47', JSON.stringify(data)); renderAll(); }
+    function saveAll() { localStorage.setItem('hokkaido_v48', JSON.stringify(data)); renderAll(); }
     function closeModal() { document.getElementById('editModal').style.display='none'; }
-    function archiveSplitData() { if(confirm("確定封存？")) { data.archives.push({time:new Date().toLocaleString(), info:document.getElementById('splitSummary').innerText}); data.split=[]; saveAll(); } }
-    function selectAllTargets() { names.forEach(n => { document.getElementById(`cb_${n}`).checked = true; document.getElementById(`tag_${n}`).classList.add('active'); }); autoFillRest(); }
     function doCalc(id) { const input = document.getElementById(id); try { let res = eval(input.value.replace(/[^\d+*/.-]/g, '')); input.value = Math.round(res); autoFillRest(); } catch(e) {} }
     function handleDelete() { if(confirm("確定刪除？")) { (currentMode==='ITINERARY'?data.itinerary:data.split).splice(editIdx,1); saveAll(); closeModal(); } }
     function addItem(type, id) { const v = document.getElementById(id).value; if(v){ data[type].push({t:v, d:false}); document.getElementById(id).value=''; saveAll(); } }
