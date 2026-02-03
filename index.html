@@ -18,8 +18,7 @@
             background: linear-gradient(180deg, var(--sky-blue-top) 0%, var(--sky-blue-mid) 40%, var(--snow-ground) 100%);
             background-attachment: fixed;
             margin: 0; padding: 15px; padding-bottom: 160px;
-            color: var(--text-dark);
-            min-height: 100vh;
+            color: var(--text-dark); min-height: 100vh;
         }
 
         /* 雪花特效 */
@@ -37,8 +36,7 @@
             background: rgba(255, 255, 255, 0.85);
             border-radius: 24px; padding: 20px; 
             box-shadow: 0 8px 25px rgba(144, 202, 249, 0.25); 
-            margin-bottom: 20px;
-            backdrop-filter: blur(8px);
+            margin-bottom: 20px; backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.6);
         }
 
@@ -49,15 +47,12 @@
         input, select { 
             padding: 12px; border: 2px solid #e3f2fd; border-radius: 12px; 
             font-size: 15px; width: 100%; box-sizing: border-box;
-            background: rgba(255,255,255,0.95); transition: 0.3s;
+            background: rgba(255,255,255,0.95);
         }
-        input:focus, select:focus { border-color: #90caf9; outline: none; }
-
-        /* 備註欄位特別樣式 */
-        #itemNote { font-size: 0.9rem; background: #fffde7; border-color: #fff9c4; }
 
         button { cursor: pointer; border: none; border-radius: 12px; padding: 14px; font-weight: bold; width: 100%; }
-        .btn-add { background: linear-gradient(45deg, #42a5f5, #64b5f6); color: white; box-shadow: 0 4px 12px rgba(66, 165, 245, 0.3); }
+        .btn-add { background: linear-gradient(45deg, #42a5f5, #64b5f6); color: white; }
+        .btn-map { background: #fff; color: #1565c0; border: 1px solid #1565c0; padding: 10px; font-size: 0.9rem; }
         .btn-copy { background: #546e7a; color: white; margin-top: 15px; }
 
         .day-title { 
@@ -70,32 +65,22 @@
             background: white; padding: 12px 15px; border-radius: 12px;
             margin-bottom: 10px; border-left: 4px solid #bbdefb;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            position: relative;
         }
         .item-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;}
-        .item-note { 
-            font-size: 0.8rem; color: #666; background: #f5f5f5; 
-            padding: 6px; border-radius: 6px; word-break: break-all; 
-            display: flex; gap: 5px; align-items: center;
-        }
+        .item-note { font-size: 0.8rem; color: #666; background: #f5f5f5; padding: 6px; border-radius: 6px; word-break: break-all; margin-top: 5px; }
         .del-btn { color: #e57373; background: none; border: 1px solid #ffcdd2; font-size: 0.75rem; padding: 2px 8px; border-radius: 6px;}
+        .map-link { color: #1565c0; text-decoration: none; font-size: 0.8rem; font-weight: bold; }
 
-        #textReport { 
-            background: #f1f8e9; border-radius: 12px; padding: 12px; 
-            white-space: pre-wrap; font-size: 0.85rem; color: #37474f; border: 1px dashed #cfd8dc;
-        }
+        #textReport { background: #f1f8e9; border-radius: 12px; padding: 12px; white-space: pre-wrap; font-size: 0.85rem; border: 1px dashed #cfd8dc; }
 
         .summary-bar { 
-            position: fixed; bottom: 20px; left: 20px; right: 20px; width: auto;
+            position: fixed; bottom: 20px; left: 20px; right: 20px;
             background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px);
-            padding: 15px 20px; text-align: center; box-sizing: border-box; 
-            z-index: 1000; border-radius: 25px;
+            padding: 15px 20px; text-align: center; border-radius: 25px;
             box-shadow: 0 10px 30px rgba(21, 101, 192, 0.15); border: 1px solid rgba(255,255,255,0.8);
+            z-index: 1000;
         }
         .total-text { color: var(--accent-blue); font-size: 1.6rem; font-weight: 900; }
-        
-        /* 連結按鈕樣式 */
-        .link-tag { text-decoration: none; color: #0277bd; font-weight: bold; cursor: pointer;}
     </style>
 </head>
 <body>
@@ -110,7 +95,6 @@
         <div style="flex:1"><small>住宿總額(台幣)</small><input type="number" id="hotelTotal" placeholder="總計" oninput="update()"></div>
         <div style="flex:1"><small>分攤人數</small><input type="number" id="peopleCount" value="6" oninput="update()"></div>
     </div>
-    <div style="font-size:0.8rem; color:#666; text-align:right;">* 若住宿為日幣，請自行換算為台幣填入</div>
 </div>
 
 <div class="card">
@@ -123,16 +107,14 @@
             <option value="7">Day 7 (1/5)</option><option value="8">Day 8 (1/6)</option>
         </select>
         <select id="catP" style="width: 80px;">
-            <option value="📍">一般</option>
-            <option value="🚌">交通</option>
-            <option value="🎫">門票</option>
-            <option value="🎿">滑雪</option>
-            <option value="🍜">餐飲</option>
-            <option value="🛍️">購物</option>
+            <option value="📍">一般</option><option value="🚌">交通</option>
+            <option value="🎫">門票</option><option value="🎿">滑雪</option>
+            <option value="🍜">餐飲</option><option value="🛍️">購物</option>
         </select>
     </div>
     <div class="row">
         <input type="text" id="itemName" placeholder="項目名稱 (如: 登別水族館)">
+        <button class="btn-map" onclick="searchMap()" style="width: 100px;">🔍 查地圖</button>
     </div>
     <div class="row">
         <input type="number" id="itemPrice" placeholder="金額">
@@ -146,40 +128,36 @@
 </div>
 
 <div class="card">
-    <h3>📜 預算報表 (含連結)</h3>
+    <h3>📜 預算報表</h3>
     <div id="textReport">等待輸入...</div>
-    <button class="btn-copy" onclick="copy()">📋 複製完整行程與預算</button>
+    <button class="btn-copy" onclick="copy()">📋 複製報表</button>
 </div>
 
 <div class="summary-bar">
-    <div style="font-size:0.8rem; color:#546e7a; margin-bottom:5px;">個人預估總支出</div>
+    <div style="font-size:0.8rem; color:#546e7a;">個人預估總支出</div>
     <span class="total-text" id="gTotal">0</span> <small>TWD</small>
 </div>
 
 <script>
-    // 使用 v4 版本避免資料衝突
-    let items = JSON.parse(localStorage.getItem('h_it_v4')) || [];
+    let items = JSON.parse(localStorage.getItem('h_it_v5')) || [];
     window.onload = function() {
-        document.getElementById('flight').value = localStorage.getItem('h_f_v4') || '';
-        document.getElementById('hotelTotal').value = localStorage.getItem('h_h_v4') || '';
+        document.getElementById('flight').value = localStorage.getItem('h_f_v5') || '';
+        document.getElementById('hotelTotal').value = localStorage.getItem('h_h_v5') || '';
         render();
     };
+
+    function searchMap() {
+        const name = document.getElementById('itemName').value;
+        if(!name) { alert("請先輸入地點名稱！"); return; }
+        window.open(`https://www.google.com/maps/search/${encodeURIComponent(name)}`, '_blank');
+    }
+
     function add() {
-        const d = document.getElementById('dayP').value;
-        const cat = document.getElementById('catP').value;
-        const n = document.getElementById('itemName').value;
-        const p = parseFloat(document.getElementById('itemPrice').value)||0;
-        const t = document.getElementById('curT').value;
-        const note = document.getElementById('itemNote').value;
-        
+        const d = document.getElementById('dayP').value, cat = document.getElementById('catP').value, n = document.getElementById('itemName').value, p = parseFloat(document.getElementById('itemPrice').value)||0, t = document.getElementById('curT').value, note = document.getElementById('itemNote').value;
         if(!n) return;
         items.push({day: parseInt(d), cat, n, p, t, note});
         items.sort((a,b) => a.day - b.day);
-        
-        // 清空輸入
-        document.getElementById('itemName').value=''; 
-        document.getElementById('itemPrice').value='';
-        document.getElementById('itemNote').value='';
+        document.getElementById('itemName').value=''; document.getElementById('itemPrice').value=''; document.getElementById('itemNote').value='';
         render();
     }
 
@@ -189,32 +167,21 @@
         const listDiv = document.getElementById('itList');
         listDiv.innerHTML = '';
         const days = [...new Set(items.map(i => i.day))].sort((a,b)=>a-b);
-        
         days.forEach(day => {
             let dayHtml = `<div class="day-title">Day ${day}</div>`;
             items.forEach((it, idx) => {
                 if(it.day === day) {
-                    // 處理連結顯示
-                    let noteDisplay = '';
-                    if(it.note) {
-                        let linkContent = it.note;
-                        if(it.note.includes('http')) {
-                            // 簡單抓取網址
-                            const urlMatch = it.note.match(/(https?:\/\/[^\s]+)/g);
-                            if(urlMatch) {
-                                linkContent = it.note.replace(urlMatch[0], `<a href="${urlMatch[0]}" target="_blank" class="link-tag">🔗 開啟連結</a>`);
-                            }
-                        }
-                        noteDisplay = `<div class="item-note">${linkContent}</div>`;
-                    }
-
+                    let noteHtml = it.note ? `<div class="item-note">${it.note}</div>` : '';
                     dayHtml += `
                     <div class="item">
                         <div class="item-top">
                             <span>${it.cat} ${it.n} (${it.p.toLocaleString()}${it.t=='f'?'円':'元'})</span>
-                            <button class="del-btn" onclick="remove(${idx})">刪除</button>
+                            <div>
+                                <a class="map-link" href="https://www.google.com/maps/search/${encodeURIComponent(it.n)}" target="_blank">🗺️地圖</a>
+                                <button class="del-btn" onclick="remove(${idx})" style="margin-left:10px;">刪除</button>
+                            </div>
                         </div>
-                        ${noteDisplay}
+                        ${noteHtml}
                     </div>`;
                 }
             });
@@ -224,45 +191,24 @@
     }
 
     function update() {
-        const r = parseFloat(document.getElementById('exRate').value)||1;
-        const f = parseFloat(document.getElementById('flight').value)||0;
-        const hTotal = parseFloat(document.getElementById('hotelTotal').value)||0;
-        const pCount = parseFloat(document.getElementById('peopleCount').value)||1;
-        const hPer = Math.round(hTotal / pCount);
-        
-        localStorage.setItem('h_f_v4', f);
-        localStorage.setItem('h_h_v4', hTotal);
-        localStorage.setItem('h_it_v4', JSON.stringify(items));
-
+        const r = parseFloat(document.getElementById('exRate').value)||1, f = parseFloat(document.getElementById('flight').value)||0, hT = parseFloat(document.getElementById('hotelTotal').value)||0, pC = parseFloat(document.getElementById('peopleCount').value)||1;
+        const hPer = Math.round(hT / pC);
+        localStorage.setItem('h_f_v5', f); localStorage.setItem('h_h_v5', hT); localStorage.setItem('h_it_v5', JSON.stringify(items));
         let dTotal = items.reduce((s, i) => s + (i.t=='f' ? i.p*r : i.p), 0);
-        const grandTotal = Math.round(f + hPer + dTotal);
-        document.getElementById('gTotal').innerText = grandTotal.toLocaleString();
-
-        let report = `✈️ 北海道8天7夜預算表\n`;
-        report += `機票合計：${f.toLocaleString()} TWD\n`;
-        report += `住宿分攤：${hPer.toLocaleString()} TWD\n`;
-        report += `======================\n`;
-        
-        const days = [...new Set(items.map(i => i.day))].sort((a,b)=>a-b);
+        const gTotal = Math.round(f + hPer + dTotal);
+        document.getElementById('gTotal').innerText = gTotal.toLocaleString();
+        let report = `✈️ 北海道8天7夜預算\n機票：${f.toLocaleString()} TWD\n住宿：${hPer.toLocaleString()} TWD\n======================\n`;
+        days = [...new Set(items.map(i => i.day))].sort((a,b)=>a-b);
         days.forEach(day => {
             report += `【Day ${day}】\n`;
-            items.forEach(it => { 
-                if(it.day === day) {
-                    report += ` ${it.cat} ${it.n}：${it.p.toLocaleString()}${it.t=='f'?'円':'元'}`;
-                    if(it.note) report += `\n    └ 註：${it.note}`;
-                    report += `\n`;
-                }
-            });
+            items.forEach(it => { if(it.day === day) report += ` ${it.cat} ${it.n}：${it.p.toLocaleString()}${it.t=='f'?'円':'元'}${it.note ? '\n    └ 註：'+it.note : ''}\n`; });
         });
-        report += `======================\n`;
-        report += `💰 預估總花費：${grandTotal.toLocaleString()} TWD`;
-        
+        report += `======================\n💰 預計總花費：${gTotal.toLocaleString()} TWD`;
         document.getElementById('textReport').innerText = report;
     }
 
     function copy() {
-        const content = document.getElementById('textReport').innerText;
-        navigator.clipboard.writeText(content).then(() => alert("行程與預算已複製！包含連結喔！"));
+        navigator.clipboard.writeText(document.getElementById('textReport').innerText).then(() => alert("報表已複製！"));
     }
 </script>
 </body>
