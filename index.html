@@ -3,55 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V44.4</title>
+    <title>去北海道被雪玩 V44.5</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
-        :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
+        :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; }
         
-        /* 徹底防止選取與彈出選單 */
-        * { 
-            -webkit-tap-highlight-color: transparent; 
-            -webkit-touch-callout: none; 
-            -webkit-user-select: none; 
-            user-select: none; 
-        }
-        input, select { -webkit-user-select: auto; user-select: auto; } /* 讓輸入框維持正常 */
+        /* 徹底關閉選取 */
+        * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+        input, select, textarea { -webkit-user-select: auto; user-select: auto; }
 
-        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); overflow-x: hidden; }
-        
-        /* 背景下雪 */
-        body::before {
-            content: "❄"; position: fixed; top: -10%; left: 10%; font-size: 20px; color: white; opacity: 0.5;
-            animation: snow 12s linear infinite; z-index: -1;
-            text-shadow: 40vw 15vh white, 70vw 35vh white, 25vw 55vh white, 85vw 75vh white;
-        }
-        @keyframes snow { 0% { transform: translateY(0); } 100% { transform: translateY(110vh); } }
-
-        .nav-tabs { display: flex; background: rgba(255,255,255,0.9); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); backdrop-filter: blur(10px); }
-        .tab { flex: 1; text-align: center; padding: 15px 0; font-weight: bold; color: #546e7a; cursor: pointer; }
-        .tab.active { color: var(--accent-blue); border-bottom: 3px solid var(--accent-blue); background: rgba(248,251,255,0.5); }
+        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; overflow-x: hidden; }
         
         .container { padding: 15px; }
         .page { display: none; }
         .page.active { display: block; }
         
-        .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
+        /* 行程卡片：加入把手樣式 */
+        .it-card { background: white; border-radius: 15px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); touch-action: auto; }
         
-        /* 行程卡片：強制 touch-action 讓 Sortable 完全接管 */
-        .it-card { background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); touch-action: none; cursor: grab; position: relative; }
-        .it-time { min-width: 45px; color: var(--accent-blue); font-weight: bold; font-size: 0.95rem; border-right: 1px solid #eee; padding-right: 5px; }
-        .it-info { flex: 1; display: flex; flex-direction: column; }
+        /* 拖拉把手限定區 */
+        .drag-handle { 
+            width: 30px; height: 40px; color: #ccc; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 20px; cursor: grab; touch-action: none; 
+        }
+        
+        .it-time { min-width: 45px; color: var(--accent-blue); font-weight: bold; border-right: 1px solid #eee; }
+        .it-info { flex: 1; }
         .it-name { font-weight: bold; color: #1a237e; font-size: 1.05rem; }
-        .it-trans-sub { font-size: 0.75rem; color: var(--gray); margin-top: 3px; }
+        .it-trans-sub { font-size: 0.75rem; color: var(--gray); margin-top: 2px; }
         
-        .pack-cate { font-weight: bold; color: var(--accent-blue); margin: 18px 0 8px 0; font-size: 0.9rem; border-left: 3px solid var(--accent-blue); padding-left: 8px; }
-        .pack-item { background: white; padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; touch-action: none; cursor: grab; }
-        
-        .card { background: rgba(255,255,255,0.85); padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); backdrop-filter: blur(5px); }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; font-size: 15px; box-sizing: border-box; }
-        .btn-main { background: var(--accent-blue); color: white; width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: bold; font-size: 1rem; }
-        .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 12px 20px; border-top: 1px solid #eee; display: flex; justify-content: space-around; z-index: 1000; }
-        .fab { position: fixed; bottom: 100px; right: 20px; width: 55px; height: 55px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 25px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 1100; }
+        /* 行李清單把手 */
+        .pack-item { background: white; padding: 10px 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; }
+        .pack-handle { width: 30px; color: #ccc; cursor: grab; touch-action: none; margin-right: 5px; }
+        .pack-content { flex: 1; display: flex; justify-content: space-between; align-items: center; }
+
+        /* 其他原有樣式保持... */
+        .nav-tabs { display: flex; background: rgba(255,255,255,0.9); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); backdrop-filter: blur(10px); }
+        .tab { flex: 1; text-align: center; padding: 15px 0; font-weight: bold; color: #546e7a; }
+        .tab.active { color: var(--accent-blue); border-bottom: 3px solid var(--accent-blue); }
+        .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
+        .card { background: rgba(255,255,255,0.85); padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; }
+        .btn-main { background: var(--accent-blue); color: white; width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: bold; }
+        .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 12px 20px; border-top: 1px solid #eee; display: flex; justify-content: space-around; z-index: 1000; }
+        .fab { position: fixed; bottom: 100px; right: 20px; width: 55px; height: 55px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 25px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
@@ -75,8 +71,8 @@
     <div id="private" class="page">
         <div class="card">
             <h3>⚙️ 旅遊參數</h3>
+            <small>台幣匯率 (預設 0.2)</small><input type="number" id="exRate" step="0.001" value="0.2" oninput="saveAll()">
             <small>成員</small><input type="text" id="memberNames" value="我,翌,丞,馨,子,嚕" onchange="updateMembers()">
-            <small>台幣匯率 (1日圓 = ? 台幣)</small><input type="number" id="exRate" step="0.001" value="0.2" oninput="saveAll()">
             <small>機票 NT</small><input type="number" id="flight" value="21255" oninput="saveAll()">
             <small>住宿 JPY</small><input type="text" id="hotelTotal" value="374259" oninput="saveAll()">
             <div id="hotelPreview" style="font-size:0.8rem; color:var(--accent-blue); margin-top:5px; font-weight:bold;"></div>
@@ -84,11 +80,7 @@
         <div class="card">
             <h3>🧳 行李清單</h3>
             <div id="packingList"></div>
-            <div style="display:flex; gap:8px; margin-top:15px;">
-                <input type="text" id="newPack" placeholder="手動增加..." style="margin:0;">
-                <button onclick="addItem('packing','newPack')" style="background:var(--orange); color:white; border:none; border-radius:12px; width:60px;">+</button>
-            </div>
-            <button onclick="resetPacking()" style="width:100%; margin-top:15px; border:none; background:none; color:var(--gray); font-size:0.75rem;">🔄 重置建議清單</button>
+            <div style="display:flex; gap:8px; margin-top:15px;"><input type="text" id="newPack" placeholder="手動增加..."><button onclick="addItem('packing','newPack')" style="background:var(--orange); color:white; border:none; border-radius:12px; width:60px;">+</button></div>
         </div>
     </div>
 </div>
@@ -106,12 +98,10 @@
             <select id="mDay"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option></select>
         </div>
         <div id="splitFields" style="display:none">
-            <small>支出名稱</small><input type="text" id="mSplitName">
-            <small>付款人</small><select id="mPayer"></select>
-            <div id="targetList" style="margin-top:10px;"></div>
+            <small>支出名稱</small><input type="text" id="mSplitName"><small>付款人</small><select id="mPayer"></select><div id="targetList" style="margin-top:10px;"></div>
         </div>
         <hr>
-        <div style="display:flex; gap:5px;"><input type="number" id="mPrice" oninput="autoSplit()" placeholder="金額"><select id="mCur" style="width:70px;"><option value="f">円</option><option value="t">元</option></select></div>
+        <div style="display:flex; gap:5px;"><input type="number" id="mPrice" oninput="autoSplit()"><select id="mCur" style="width:70px;"><option value="f">円</option><option value="t">元</option></select></div>
         <div style="display:flex; gap:10px; margin-top:20px;">
             <button onclick="closeModal()" style="flex:1; padding:10px; border-radius:10px; border:none; background:#eee;">取消</button>
             <button onclick="handleSave()" class="btn-main" style="flex:1;">儲存</button>
@@ -128,17 +118,8 @@
 </div>
 
 <script>
-    const defaultPacking = [
-        {c: "證件財物", t: "護照/身分證/VJW QR", d: false},
-        {c: "證件財物", t: "日幣現金/信用卡/Suica", d: false},
-        {c: "穿搭裝備", t: "極地發熱衣物/防風外套", d: false},
-        {c: "穿搭裝備", t: "防滑雪靴/冰爪/厚襪子", d: false},
-        {c: "電器產品", t: "行動電源/充電線/多孔頭", d: false},
-        {c: "藥品護理", t: "保濕乳液/護唇膏/常備藥", d: false}
-    ];
-
-    let data = JSON.parse(localStorage.getItem('hokkaido_v44')) || { 
-        itinerary: [], split: [], packing: defaultPacking, members: "我,翌,丞,馨,子,嚕", exRate: 0.2 
+    let data = JSON.parse(localStorage.getItem('hokkaido_v445')) || { 
+        itinerary: [], split: [], packing: [], members: "我,翌,丞,馨,子,嚕", exRate: 0.2 
     };
 
     window.onload = () => renderAll();
@@ -149,36 +130,45 @@
         const rate = data.exRate || 0.2;
         document.getElementById('exRate').value = rate;
 
+        // 行程渲染
         [1,2,3,4,5].forEach(d => {
-            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" class="sort-group" style="min-height:30px;"></div>`;
+            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" style="min-height:20px;"></div>`;
             const group = document.getElementById(`day-group-${d}`);
             data.itinerary.filter(i => i.day == d).forEach(it => {
                 const idx = data.itinerary.indexOf(it);
                 group.innerHTML += `
-                <div class="it-card" data-idx="${idx}" onclick="openModal('ITINERARY', ${idx})">
-                    <div class="it-time">${it.time||'--'}</div>
-                    <div class="it-info">
-                        <div class="it-name">${it.n}</div>
+                <div class="it-card" data-idx="${idx}">
+                    <div class="drag-handle">☰</div>
+                    <div class="it-info" onclick="openModal('ITINERARY', ${idx})">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="it-time">${it.time||'--'}</span>
+                            <span class="it-name">${it.n}</span>
+                        </div>
                         ${it.trans ? `<div class="it-trans-sub">└─ ${it.trans}</div>` : ''}
                     </div>
-                    ${it.map ? `<span style="font-size:1.2rem; padding:10px;" onclick="event.stopPropagation(); window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.map)}','_blank')">🚗</span>` : ''}
+                    ${it.map ? `<span style="font-size:1.2rem; padding:10px;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.map)}','_blank')">🚗</span>` : ''}
                 </div>`;
             });
-            // 手機端最強配置
-            new Sortable(group, { group: 'days', animation: 150, forceFallback: true, fallbackTolerance: 3, onEnd: updateOrderFromDOM });
+            // 關鍵：使用把手拖拉 (handle: ".drag-handle")
+            new Sortable(group, { 
+                group: 'days', handle: '.drag-handle', animation: 150, 
+                forceFallback: true, onEnd: updateOrderFromDOM 
+            });
         });
 
+        // 行李渲染
         const packDiv = document.getElementById('packingList'); packDiv.innerHTML = '';
-        let lastCate = '';
         data.packing.forEach((p, i) => {
-            if(p.c !== lastCate) { packDiv.innerHTML += `<div class="pack-cate">${p.c}</div>`; lastCate = p.c; }
-            packDiv.innerHTML += `<div class="pack-item" data-idx="${i}"><span onclick="togglePack(${i})" style="${p.d?'text-decoration:line-through;opacity:0.4':''}">${p.d?'✅ ':''} ${p.t}</span><span style="color:var(--red); padding:5px 10px;" onclick="removeItem('packing',${i})">✕</span></div>`;
+            packDiv.innerHTML += `
+            <div class="pack-item" data-idx="${i}">
+                <div class="pack-handle">☰</div>
+                <div class="pack-content">
+                    <span onclick="togglePack(${i})" style="${p.d?'text-decoration:line-through;opacity:0.4':''}">${p.t}</span>
+                    <span style="color:var(--red);" onclick="removeItem('packing',${i})">✕</span>
+                </div>
+            </div>`;
         });
-        new Sortable(packDiv, { animation: 150, forceFallback: true, fallbackTolerance: 3, onEnd: () => {
-            let newList = [];
-            packDiv.querySelectorAll('.pack-item').forEach(el => newList.push(data.packing[el.dataset.idx]));
-            data.packing = newList; saveAll();
-        }});
+        new Sortable(packDiv, { handle: '.pack-handle', animation: 150, forceFallback: true, onEnd: updateOrderFromPackDOM });
 
         updateStats(members, rate);
     }
@@ -193,11 +183,17 @@
         });
         data.itinerary = newList; saveAll();
     }
+    
+    function updateOrderFromPackDOM() {
+        let newList = [];
+        document.querySelectorAll(`.pack-item`).forEach(el => newList.push(data.packing[el.dataset.idx]));
+        data.packing = newList; saveAll();
+    }
 
     function syncMapField() { if(editIdx === -1) document.getElementById('mMap').value = document.getElementById('mName').value; }
     function saveAll() { 
         data.exRate = parseFloat(document.getElementById('exRate').value) || 0.2;
-        localStorage.setItem('hokkaido_v44', JSON.stringify(data)); 
+        localStorage.setItem('hokkaido_v445', JSON.stringify(data)); 
         renderAll(); 
     }
     function showPage(pId, el) {
@@ -205,10 +201,8 @@
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.getElementById(pId).classList.add('active'); el.classList.add('active');
         document.getElementById('mainFab').style.display = (pId === 'itinerary') ? 'flex' : 'none';
-        renderAll();
     }
 
-    /* 剩下的統計與視窗邏輯保持不變 */
     function updateStats(members, rate) {
         let myPure = 0, myLend = 0, summary = {};
         members.slice(1).forEach(n => summary[n] = 0);
@@ -251,18 +245,17 @@
         }
     }
     function togglePack(idx) { data.packing[idx].d = !data.packing[idx].d; saveAll(); }
-    function addItem(type, id) { const v = document.getElementById(id).value; if(v){ data[type].push({t:v, d:false, c:"手動增加"}); document.getElementById(id).value=''; saveAll(); } }
+    function addItem(type, id) { const v = document.getElementById(id).value; if(v){ data[type].push({t:v, d:false}); document.getElementById(id).value=''; saveAll(); } }
     function removeItem(type, idx) { data[type].splice(idx, 1); saveAll(); }
-    function resetPacking() { if(confirm("確定重置行李清單？")) { data.packing = [...defaultPacking]; saveAll(); } }
     function buildTargetList(st = null) {
         const list = document.getElementById('targetList');
         const members = data.members.split(',');
         list.innerHTML = members.map(n => {
             let isC = st ? st.some(x => x.u === n) : (n === members[0]);
             let amt = st ? (st.find(x => x.u === n)?.a || 0) : 0;
-            return `<div class="target-item ${isC?'active':''}" onclick="toggleT('${n}')" id="titem_${n}">
-                <div style="display:flex; align-items:center;"><input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="margin-right:8px; pointer-events:none;"><b>${n}</b></div>
-                <input type="number" id="amt_${n}" value="${amt}" onclick="event.stopPropagation()" oninput="autoSplit()" style="width:80px; text-align:right; border:1px solid #ddd; border-radius:8px;">
+            return `<div class="target-item ${isC?'active':''}" onclick="toggleT('${n}')">
+                <input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="pointer-events:none;"><b>${n}</b>
+                <input type="number" id="amt_${n}" value="${amt}" onclick="event.stopPropagation()" oninput="autoSplit()" style="width:70px; text-align:right;">
             </div>`;
         }).join('');
     }
@@ -272,7 +265,7 @@
         const checked = members.filter(n => document.getElementById(`cb_${n}`).checked);
         if (checked.length > 0) checked.forEach(n => document.getElementById(`amt_${n}`).value = Math.round(total / checked.length));
     }
-    function toggleT(n) { document.getElementById(`cb_${n}`).checked = !document.getElementById(`cb_${n}`).checked; document.getElementById(`titem_${n}`).classList.toggle('active'); autoSplit(); }
+    function toggleT(n) { document.getElementById(`cb_${n}`).checked = !document.getElementById(`cb_${n}`).checked; autoSplit(); }
     function handleSave() {
         if(currentMode === 'ITINERARY') {
             const it = { n: document.getElementById('mName').value, map: document.getElementById('mMap').value, time: document.getElementById('mTime').value, day: document.getElementById('mDay').value, trans: document.getElementById('mTrans').value };
