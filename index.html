@@ -3,78 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V43.7</title>
+    <title>去北海道被雪玩 V43.8</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
-        :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --light-blue: #f0f7ff; --gray: #b0bec5; }
-        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f6f9fc; margin: 0; padding-bottom: 120px; color: var(--text); user-select: none; overflow-x: hidden; }
+        :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --light-gray: #f8f9fa; --gray: #78909c; }
+        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); user-select: none; overflow-x: hidden; }
         
-        /* 經典下雪背景 */
+        /* 經典下雪 */
         body::before {
-            content: "❄"; position: fixed; top: -10%; left: 10%; font-size: 20px; color: white; opacity: 0.4;
+            content: "❄"; position: fixed; top: -10%; left: 10%; font-size: 20px; color: white; opacity: 0.5;
             animation: snow 12s linear infinite; z-index: -1;
             text-shadow: 40vw 15vh white, 70vw 35vh white, 25vw 55vh white, 85vw 75vh white;
         }
         @keyframes snow { 0% { transform: translateY(0); } 100% { transform: translateY(110vh); } }
 
-        /* 導覽列置頂 */
-        .nav-tabs { display: flex; background: rgba(255,255,255,0.95); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); backdrop-filter: blur(10px); }
-        .tab { flex: 1; text-align: center; padding: 18px 0; font-weight: bold; color: #78909c; cursor: pointer; transition: 0.3s; font-size: 0.95rem; }
-        .tab.active { color: var(--accent-blue); border-bottom: 3px solid var(--accent-blue); }
+        .nav-tabs { display: flex; background: rgba(255,255,255,0.9); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); backdrop-filter: blur(10px); }
+        .tab { flex: 1; text-align: center; padding: 15px 0; font-weight: bold; color: #546e7a; cursor: pointer; }
+        .tab.active { color: var(--accent-blue); border-bottom: 3px solid var(--accent-blue); background: rgba(248,251,255,0.5); }
         
-        .container { padding: 15px; max-width: 500px; margin: 0 auto; }
-        .page { display: none; animation: fadeIn 0.3s ease; }
+        .container { padding: 15px; }
+        .page { display: none; }
         .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* 日期標籤 - 置中顯示 */
-        .day-header { background: var(--accent-blue); color: white; padding: 6px 20px; border-radius: 20px; margin: 25px auto 15px auto; font-size: 0.85rem; display: table; box-shadow: 0 4px 10px rgba(21,101,192,0.2); }
+        /* 回歸靠右佈局 */
+        .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
+        .it-card { background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .it-time { min-width: 45px; color: var(--accent-blue); font-weight: bold; font-size: 0.95rem; border-right: 1px solid #eee; padding-right: 5px; }
+        .it-info { flex: 1; display: flex; flex-direction: column; }
+        .it-name { font-weight: bold; color: #1a237e; font-size: 1.05rem; }
         
-        /* 行程卡片優化 - 置中全寬 */
-        .it-wrapper { display: flex; flex-direction: column; align-items: center; width: 100%; }
-        .it-card { 
-            background: white; border-radius: 20px; padding: 16px; 
-            display: flex; align-items: center; gap: 15px; 
-            width: 95%; box-sizing: border-box;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.04); position: relative; z-index: 2;
-        }
-        .it-time { min-width: 55px; font-weight: bold; color: var(--accent-blue); font-size: 1.1rem; text-align: center; border-right: 2px solid #f0f0f0; }
-        .it-info { flex: 1; font-weight: bold; color: #1a237e; font-size: 1.1rem; }
+        /* 方案 C：交通方式內嵌樣式 */
+        .it-trans-sub { font-size: 0.75rem; color: var(--gray); margin-top: 3px; font-weight: normal; }
         
-        /* 交通連接線優化 */
-        .trans-line { 
-            width: 2px; height: 35px; background: repeating-linear-gradient(to bottom, #cfd8dc, #cfd8dc 4px, transparent 4px, transparent 8px);
-            margin: -2px 0; position: relative; display: flex; align-items: center; justify-content: center;
-        }
-        .trans-badge { 
-            position: absolute; left: 15px; background: #eceff1; color: #546e7a; 
-            padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;
-            white-space: nowrap; border: 1px solid #cfd8dc;
-        }
-
-        /* 統計列優化 */
-        .summary-bar { 
-            position: fixed; bottom: 0; left: 0; right: 0; 
-            background: rgba(255,255,255,0.98); padding: 16px 20px; 
-            border-top: 1px solid #eceff1; display: flex; 
-            justify-content: space-around; backdrop-filter: blur(15px); z-index: 1000;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
-        }
-        .stat-item { text-align: center; flex: 1; }
-        .stat-item b { font-size: 1.3rem; display: block; margin-top: 4px; }
-        .divider { width: 1px; background: #eee; margin: 5px 0; }
-
-        .fab { position: fixed; bottom: 100px; right: 25px; width: 62px; height: 62px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; border: none; z-index: 1100; box-shadow: 0 8px 20px rgba(21,101,192,0.3); transition: 0.2s; }
-        .fab:active { transform: scale(0.9); }
-
-        /* 行李清單 & 拆帳調整 */
-        .card { background: white; padding: 20px; border-radius: 24px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        .target-item { border: 1.5px solid #f1f3f4; border-radius: 16px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; }
+        /* 拆帳介面精緻化 */
+        .card { background: rgba(255,255,255,0.85); padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); backdrop-filter: blur(5px); }
+        .target-item { border: 1.5px solid #eceff1; border-radius: 15px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; background: white; transition: 0.2s; }
         .target-item.active { border-color: var(--accent-blue); background: var(--light-blue); }
-        .amt-input { width: 100px; text-align: right; border: 1px solid #cfd8dc; border-radius: 10px; padding: 10px; font-size: 1rem; font-weight: bold; background: #fbfbfb; }
+        .amt-input { width: 90px; text-align: right; border: 1px solid #cfd8dc; border-radius: 8px; padding: 7px; font-size: 1rem; color: var(--accent-blue); font-weight: bold; }
 
-        input, select { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #e0e0e0; border-radius: 14px; font-size: 16px; box-sizing: border-box; background: #fcfcfc; }
-        .btn-main { background: var(--accent-blue); color: white; width: 100%; padding: 14px; border-radius: 14px; border: none; font-weight: bold; font-size: 1rem; }
+        .btn-main { background: var(--accent-blue); color: white; width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: bold; font-size: 1rem; cursor: pointer; }
+        .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 12px 20px; border-top: 1px solid #eee; display: flex; justify-content: space-around; backdrop-filter: blur(10px); z-index: 1000; }
+        .fab { position: fixed; bottom: 100px; right: 20px; width: 55px; height: 55px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 25px; border: none; z-index: 1100; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
@@ -90,7 +59,7 @@
     
     <div id="split" class="page">
         <div class="card">
-            <h3 style="margin-top:0;">💸 支出明細</h3>
+            <h3>💸 支出明細</h3>
             <div id="splitList"></div>
             <button class="btn-main" onclick="openModal('SPLIT')" style="margin-top:10px;">+ 新增紀錄</button>
         </div>
@@ -99,34 +68,26 @@
     
     <div id="private" class="page">
         <div class="card">
-            <h3 style="margin-top:0;">⚙️ 旅遊參數</h3>
-            <small>成員 (用逗號隔開)</small><input type="text" id="memberNames" value="我,翌,丞,馨,子,嚕" onchange="updateMembers()">
-            <small>匯率 (已固定)</small><input type="number" id="exRate" value="0.2" readonly style="background:#f5f5f5;">
-            <small>機票總額 NT</small><input type="number" id="flight" value="21255" oninput="saveAll()">
-            <small>住宿費總額 JPY</small><input type="text" id="hotelTotal" value="374259" oninput="saveAll()">
-            <div id="hotelPreview" style="font-size:0.85rem; color:var(--accent-blue); margin-top:8px; font-weight:bold;"></div>
-        </div>
-        <div class="card">
-            <h3>🧳 行李清單</h3>
-            <div id="packingList"></div>
-            <div style="display:flex; gap:8px; margin-top:15px;">
-                <input type="text" id="newPack" placeholder="增加項目..." style="margin:0;">
-                <button onclick="addItem('packing','newPack')" style="background:var(--orange); color:white; border:none; border-radius:12px; width:60px;">+</button>
-            </div>
+            <h3>⚙️ 旅遊參數</h3>
+            <small>成員</small><input type="text" id="memberNames" value="我,翌,丞,馨,子,嚕" onchange="updateMembers()">
+            <small>匯率 (固定)</small><input type="number" id="exRate" value="0.2" readonly style="background:#eee;">
+            <small>機票 NT</small><input type="number" id="flight" value="21255" oninput="saveAll()">
+            <small>住宿 JPY</small><input type="text" id="hotelTotal" value="374259" oninput="saveAll()">
+            <div id="hotelPreview" style="font-size:0.8rem; color:var(--accent-blue); margin-top:5px; font-weight:bold;"></div>
         </div>
     </div>
 </div>
 
-<div id="editModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
-    <div class="modal-content" style="background:white; width:90%; max-width:400px; padding:25px; border-radius:30px; max-height:85vh; overflow-y:auto;">
-        <h3 id="modalTitle" style="margin-top:0;">編輯內容</h3>
+<div id="editModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+    <div class="modal-content" style="background:white; width:90%; max-width:380px; padding:20px; border-radius:25px; max-height:85vh; overflow-y:auto;">
+        <h3 id="modalTitle">編輯內容</h3>
         <div id="itFields">
             <small>項目名稱</small><input type="text" id="mName">
-            <small>地點/網址</small><input type="text" id="mMap" placeholder="預設使用名稱導航">
-            <small>時間</small><input type="text" id="mTime" placeholder="14:00">
-            <small>交通方式</small>
+            <small>地點導航</small><input type="text" id="mMap" placeholder="預設搜尋行程名稱">
+            <small>時間</small><input type="text" id="mTime" placeholder="12:00">
+            <small>交通方式 (內嵌顯示)</small>
             <select id="mTrans">
-                <option value="">(無)</option>
+                <option value="">無</option>
                 <option value="✈️ 飛機">✈️ 飛機</option>
                 <option value="🚗 自駕">🚗 自駕</option>
                 <option value="🚆 JR/火車">🚆 JR/火車</option>
@@ -139,72 +100,79 @@
         <div id="splitFields" style="display:none">
             <small>支出名稱</small><input type="text" id="mSplitName">
             <small>付款人</small><select id="mPayer"></select>
-            <div id="targetList" style="margin-top:15px;"></div>
+            <div id="targetList" style="margin-top:10px;"></div>
         </div>
-        <hr style="margin:20px 0; border:none; border-top:1px solid #eee;">
+        <hr>
         <small>金額</small>
-        <div style="display:flex; gap:10px;">
-            <input type="number" id="mPrice" oninput="autoSplit()" style="flex:2;">
-            <select id="mCur" style="flex:1;"><option value="f">円</option><option value="t">元</option></select>
+        <div style="display:flex; gap:5px;">
+            <input type="number" id="mPrice" oninput="autoSplit()" placeholder="總額">
+            <select id="mCur" style="width:70px;"><option value="f">円</option><option value="t">元</option></select>
         </div>
-        <div style="display:flex; gap:15px; margin-top:25px;">
-            <button onclick="closeModal()" style="flex:1; padding:14px; border-radius:14px; border:none; background:#f5f5f5; font-weight:bold;">取消</button>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button onclick="closeModal()" style="flex:1; padding:10px; border-radius:10px; border:none; background:#eee;">取消</button>
             <button onclick="handleSave()" class="btn-main" style="flex:1;">儲存</button>
         </div>
-        <button id="btnDel" onclick="handleDelete()" style="color:var(--red); background:none; border:none; width:100%; margin-top:20px; font-weight:bold;">🗑️ 刪除項目</button>
     </div>
 </div>
 
-<button class="fab" id="mainFab" onclick="openModal('ITINERARY')">+</button>
+<button class="fab" onclick="openModal('ITINERARY')">+</button>
 
 <div class="summary-bar">
-    <div class="stat-item">
-        <small style="color:#78909c;">❄️ 個人實花 (NT)</small>
-        <b id="statMyTotal" style="color:var(--accent-blue);">$0</b>
-    </div>
-    <div class="divider"></div>
-    <div class="stat-item">
-        <small style="color:#78909c;">🧧 代墊待收 (NT)</small>
-        <b id="statMyLend" style="color:var(--red);">$0</b>
-    </div>
+    <div style="text-align:center;"><small>❄️ 個人實花 (NT)</small><br><b id="statMyTotal" style="color:var(--accent-blue); font-size:1.1rem;">$0</b></div>
+    <div style="text-align:center; border-left:1px solid #ddd; padding-left:15px;"><small>🧧 代墊待收 (NT)</small><br><b id="statMyLend" style="color:var(--red); font-size:1.1rem;">$0</b></div>
 </div>
 
 <script>
-    let data = JSON.parse(localStorage.getItem('hokkaido_v43_fix')) || { 
-        itinerary: [], split: [], packing: [], members: "我,翌,丞,馨,子,嚕", exRate: 0.2 
-    };
-    let currentMode = '', editIdx = -1;
-    let manuallyEdited = new Set();
+    let data = JSON.parse(localStorage.getItem('hokkaido_v43_fix')) || { itinerary: [], split: [], members: "我,翌,丞,馨,子,嚕", exRate: 0.2 };
+    data.exRate = 0.2; // 強制固定
 
-    window.onload = () => { renderAll(); };
-
-    function initSortable() {
-        [1,2,3,4,5].forEach(d => {
-            const group = document.getElementById(`day-group-${d}`);
-            if (group) new Sortable(group, { animation: 150, handle: '.it-card', onEnd: () => updateOrderFromDOM() });
-        });
-    }
-
-    function updateOrderFromDOM() {
-        let newList = [];
-        [1,2,3,4,5].forEach(d => {
-            const group = document.getElementById(`day-group-${d}`);
-            if (group) {
-                group.querySelectorAll('.it-card').forEach(el => {
-                    let item = {...data.itinerary[el.dataset.idx]};
-                    item.day = d; newList.push(item);
-                });
-            }
-        });
-        data.itinerary = newList; saveAll();
-    }
+    window.onload = () => renderAll();
 
     function showPage(pId, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.getElementById(pId).classList.add('active'); el.classList.add('active');
-        document.getElementById('mainFab').style.display = (pId === 'itinerary') ? 'flex' : 'none';
-        if(pId === 'itinerary') renderAll();
+    }
+
+    function renderAll() {
+        const itDiv = document.getElementById('itList'); itDiv.innerHTML = '';
+        const members = data.members.split(',');
+        const rate = 0.2;
+
+        [1,2,3,4,5].forEach(d => {
+            const dayItems = data.itinerary.filter(i => i.day == d);
+            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}"></div>`;
+            const group = document.getElementById(`day-group-${d}`);
+            dayItems.forEach(it => {
+                group.innerHTML += `
+                <div class="it-card" data-idx="${data.itinerary.indexOf(it)}">
+                    <div class="it-time">${it.time||'--'}</div>
+                    <div class="it-info" onclick="openModal('ITINERARY', ${data.itinerary.indexOf(it)})">
+                        <div class="it-name">${it.n}</div>
+                        ${it.trans ? `<div class="it-trans-sub">└─ ${it.trans}</div>` : ''}
+                    </div>
+                    <span style="font-size:1.2rem; cursor:pointer;" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(it.map||it.n)}','_blank')">🚗</span>
+                </div>`;
+            });
+            new Sortable(group, { animation: 150, handle: '.it-card', onEnd: () => updateOrderFromDOM() });
+        });
+
+        // 統計邏輯
+        let myPure = 0, myLend = 0, summary = {};
+        members.slice(1).forEach(n => summary[n] = 0);
+        data.split.forEach(s => {
+            s.targets.forEach(tg => {
+                let valNT = (s.t==='f' ? tg.a * rate : tg.a);
+                if(s.payer === members[0]) {
+                    if(tg.u === members[0]) myPure += valNT; else { myLend += valNT; summary[tg.u] += tg.a; }
+                } else if(tg.u === members[0]) { myPure += valNT; summary[s.payer] -= tg.a; }
+            });
+        });
+        let hotel = 0; try { hotel = eval(data.hotelTotal.toString().replace(/[^\d+*/.-]/g, '')) || 0; } catch(e) {}
+        document.getElementById('statMyTotal').innerText = `$${Math.round(myPure + (hotel/members.length*rate) + (parseFloat(data.flight)||0)).toLocaleString()}`;
+        document.getElementById('statMyLend').innerText = `$${Math.round(myLend).toLocaleString()}`;
+        document.getElementById('splitList').innerHTML = data.split.map((s, i) => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><b>${s.p}${s.t==='f'?'円':'元'}</b></div>`).join('');
+        document.getElementById('splitSummary').innerHTML = Object.entries(summary).map(([n,v]) => v !== 0 ? `● ${n}: ${Math.round(v)}円<br>` : '').join('');
     }
 
     function openModal(mode, idx = -1) {
@@ -228,7 +196,6 @@
             document.getElementById('mPrice').value = d.p; document.getElementById('mCur').value = d.t || 'f';
         } else {
             ['mName','mSplitName','mPrice','mTime','mMap'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('mTrans').value = '';
             if(mode === 'SPLIT') buildTargetList();
         }
     }
@@ -240,8 +207,8 @@
             let isC = st ? st.some(x => x.u === n) : (n === members[0]);
             let amt = st ? (st.find(x => x.u === n)?.a || 0) : 0;
             return `<div class="target-item ${isC?'active':''}" onclick="toggleT('${n}')" id="titem_${n}">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="width:20px; height:20px; pointer-events:none;">
+                <div style="display:flex; align-items:center;">
+                    <input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="margin-right:8px; pointer-events:none;">
                     <b>${n}</b>
                 </div>
                 <input type="number" id="amt_${n}" class="amt-input" value="${amt}" onclick="event.stopPropagation()" oninput="autoSplit()">
@@ -252,71 +219,13 @@
     function autoSplit() {
         const total = parseFloat(document.getElementById('mPrice').value) || 0;
         const members = data.members.split(',');
-        const checkedOnes = members.filter(n => document.getElementById(`cb_${n}`).checked);
-        if (checkedOnes.length > 0) {
-            const avg = Math.round(total / checkedOnes.length);
-            checkedOnes.forEach(n => document.getElementById(`amt_${n}`).value = avg);
-        }
+        const checked = members.filter(n => document.getElementById(`cb_${n}`).checked);
+        if (checked.length > 0) checked.forEach(n => document.getElementById(`amt_${n}`).value = Math.round(total / checked.length));
     }
 
-    function toggleT(n) {
-        const cb = document.getElementById(`cb_${n}`);
-        cb.checked = !cb.checked;
-        document.getElementById(`titem_${n}`).classList.toggle('active', cb.checked);
-        autoSplit();
-    }
-
-    function renderAll() {
-        const itDiv = document.getElementById('itList'); itDiv.innerHTML = '';
-        const members = data.members.split(',');
-        const rate = 0.2;
-
-        [1,2,3,4,5].forEach(d => {
-            const dayItems = data.itinerary.filter(i => i.day == d);
-            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" class="it-wrapper"></div>`;
-            const group = document.getElementById(`day-group-${d}`);
-            dayItems.forEach((it, idx) => {
-                let html = '';
-                if (it.trans) {
-                    html += `<div class="trans-line"><span class="trans-badge">${it.trans}</span></div>`;
-                }
-                html += `<div class="it-card" data-idx="${data.itinerary.indexOf(it)}">
-                    <div class="it-time">${it.time||'--:--'}</div>
-                    <div class="it-info" onclick="openModal('ITINERARY', ${data.itinerary.indexOf(it)})">${it.n}</div>
-                    <span style="font-size:1.6rem;" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(it.map||it.n)}','_blank')">🚗</span>
-                </div>`;
-                group.innerHTML += html;
-            });
-        });
-        initSortable();
-
-        // 統計邏輯
-        let myPure = 0, myLend = 0, summary = {};
-        members.slice(1).forEach(n => summary[n] = 0);
-        data.split.forEach(s => {
-            s.targets.forEach(tg => {
-                let valNT = (s.t==='f' ? tg.a * rate : tg.a);
-                if(s.payer === members[0]) {
-                    if(tg.u === members[0]) myPure += valNT; else { myLend += valNT; summary[tg.u] += tg.a; }
-                } else if(tg.u === members[0]) { myPure += valNT; summary[s.payer] -= tg.a; }
-            });
-        });
-        let hotel = 0; try { hotel = eval(data.hotelTotal.toString().replace(/[^\d+*/.-]/g, '')) || 0; } catch(e) {}
-        document.getElementById('statMyTotal').innerText = `$${Math.round(myPure + (hotel/members.length*rate) + (parseFloat(data.flight)||0)).toLocaleString()}`;
-        document.getElementById('statMyLend').innerText = `$${Math.round(myLend).toLocaleString()}`;
-        
-        // 拆帳列表
-        document.getElementById('splitList').innerHTML = data.split.map((s, i) => `<div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><b>${s.p}${s.t==='f'?'円':'元'}</b></div>`).join('');
-        document.getElementById('splitSummary').innerHTML = Object.entries(summary).map(([n,v]) => v !== 0 ? `● ${n}: ${Math.round(v)}円<br>` : '').join('');
-        
-        // 行李清單
-        document.getElementById('packingList').innerHTML = (data.packing || []).map((p, i) => `<div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;"><span onclick="togglePack(${i})" style="${p.d?'text-decoration:line-through;opacity:0.4':''}">${p.d?'✅ ':''} ${p.t}</span><span style="color:var(--red);" onclick="removeItem('packing',${i})">✕</span></div>`).join('');
-    }
-
-    function saveAll() { 
-        localStorage.setItem('hokkaido_v43_fix', JSON.stringify(data)); renderAll(); 
-    }
+    function toggleT(n) { document.getElementById(`cb_${n}`).checked = !document.getElementById(`cb_${n}`).checked; document.getElementById(`titem_${n}`).classList.toggle('active'); autoSplit(); }
     function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+    function saveAll() { localStorage.setItem('hokkaido_v43_fix', JSON.stringify(data)); renderAll(); }
     function handleSave() {
         if(currentMode === 'ITINERARY') {
             const it = { n: document.getElementById('mName').value, map: document.getElementById('mMap').value, time: document.getElementById('mTime').value, day: document.getElementById('mDay').value, trans: document.getElementById('mTrans').value };
@@ -329,10 +238,17 @@
         }
         saveAll(); closeModal();
     }
-    function togglePack(idx) { data.packing[idx].d = !data.packing[idx].d; saveAll(); }
-    function addItem(type, id) { const v = document.getElementById(id).value; if(v){ data[type].push({t:v, d:false}); document.getElementById(id).value=''; saveAll(); } }
-    function removeItem(type, idx) { data[type].splice(idx, 1); saveAll(); }
-    function handleDelete() { if(confirm("確定刪                              除？")) { (currentMode==='ITINERARY'?data.itinerary:data.split).splice(editIdx,1); saveAll(); closeModal(); } }
+    function updateOrderFromDOM() {
+        let newList = [];
+        [1,2,3,4,5].forEach(d => {
+            const group = document.getElementById(`day-group-${d}`);
+            group.querySelectorAll('.it-card').forEach(el => {
+                let item = {...data.itinerary[el.dataset.idx]};
+                item.day = d; newList.push(item);
+            });
+        });
+        data.itinerary = newList; saveAll();
+    }
 </script>
 </body>
 </html>
