@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V44.2</title>
+    <title>去北海道被雪玩 V44.3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
         body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); user-select: none; overflow-x: hidden; }
         
-        /* 下雪背景 */
+        /* 經典下雪 */
         body::before {
             content: "❄"; position: fixed; top: -10%; left: 10%; font-size: 20px; color: white; opacity: 0.5;
             animation: snow 12s linear infinite; z-index: -1;
@@ -25,22 +25,24 @@
         .page { display: none; }
         .page.active { display: block; }
         
+        /* 行程卡片：加入觸控優化 */
         .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
-        .it-card { background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); touch-action: pan-y; }
-        .it-time { min-width: 45px; color: var(--accent-blue); font-weight: bold; font-size: 0.95rem; border-right: 1px solid #eee; padding-right: 5px; }
-        .it-info { flex: 1; display: flex; flex-direction: column; }
+        .it-card { background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); touch-action: none; cursor: grab; }
+        .it-time { min-width: 45px; color: var(--accent-blue); font-weight: bold; font-size: 0.95rem; border-right: 1px solid #eee; padding-right: 5px; pointer-events: none; }
+        .it-info { flex: 1; display: flex; flex-direction: column; pointer-events: none; }
         .it-name { font-weight: bold; color: #1a237e; font-size: 1.05rem; }
         .it-trans-sub { font-size: 0.75rem; color: var(--gray); margin-top: 3px; font-weight: normal; }
+        .map-btn { font-size: 1.2rem; cursor: pointer; padding: 5px; pointer-events: auto; }
         
+        /* 行李清單：加入觸控優化 */
         .pack-cate { font-weight: bold; color: var(--accent-blue); margin: 18px 0 8px 0; font-size: 0.9rem; border-left: 3px solid var(--accent-blue); padding-left: 8px; }
-        .pack-item { background: white; padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: grab; }
+        .pack-item { background: white; padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; touch-action: none; cursor: grab; }
         .pack-item:last-child { border-bottom: none; border-radius: 0 0 15px 15px; }
         .pack-item:first-child { border-radius: 15px 15px 0 0; }
-        
+        .pack-text { flex: 1; pointer-events: auto; }
+        .pack-del { color: var(--red); padding-left: 10px; pointer-events: auto; }
+
         .card { background: rgba(255,255,255,0.85); padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); backdrop-filter: blur(5px); }
-        .target-item { border: 1.5px solid #eceff1; border-radius: 15px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; background: white; }
-        .target-item.active { border-color: var(--accent-blue); background: var(--light-blue); }
-        
         input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; font-size: 15px; box-sizing: border-box; }
         .btn-main { background: var(--accent-blue); color: white; width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: bold; font-size: 1rem; }
         .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 12px 20px; border-top: 1px solid #eee; display: flex; justify-content: space-around; z-index: 1000; }
@@ -105,10 +107,7 @@
         </div>
         <hr>
         <small>金額</small>
-        <div style="display:flex; gap:5px;">
-            <input type="number" id="mPrice" oninput="autoSplit()" placeholder="總額">
-            <select id="mCur" style="width:70px;"><option value="f">円</option><option value="t">元</option></select>
-        </div>
+        <div style="display:flex; gap:5px;"><input type="number" id="mPrice" oninput="autoSplit()" placeholder="總額"><select id="mCur" style="width:70px;"><option value="f">円</option><option value="t">元</option></select></div>
         <div style="display:flex; gap:10px; margin-top:20px;">
             <button onclick="closeModal()" style="flex:1; padding:10px; border-radius:10px; border:none; background:#eee;">取消</button>
             <button onclick="handleSave()" class="btn-main" style="flex:1;">儲存</button>
@@ -148,40 +147,64 @@
         const members = data.members.split(',');
         const rate = parseFloat(document.getElementById('exRate').value) || 0.2;
         
-        // 渲染行程
+        // 1. 渲染行程
         [1,2,3,4,5].forEach(d => {
-            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" class="sort-group"></div>`;
+            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" class="sort-group" style="min-height:20px;"></div>`;
             const group = document.getElementById(`day-group-${d}`);
             data.itinerary.filter(i => i.day == d).forEach(it => {
                 const idx = data.itinerary.indexOf(it);
                 group.innerHTML += `
-                <div class="it-card" data-idx="${idx}">
+                <div class="it-card" data-idx="${idx}" onclick="openModal('ITINERARY', ${idx})">
                     <div class="it-time">${it.time||'--'}</div>
-                    <div class="it-info" onclick="openModal('ITINERARY', ${idx})">
+                    <div class="it-info">
                         <div class="it-name">${it.n}</div>
                         ${it.trans ? `<div class="it-trans-sub">└─ ${it.trans}</div>` : ''}
                     </div>
-                    ${it.map ? `<span style="font-size:1.2rem; cursor:pointer;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.map)}','_blank')">🚗</span>` : ''}
+                    ${it.map ? `<span class="map-btn" onclick="event.stopPropagation(); window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.map)}','_blank')">🚗</span>` : ''}
                 </div>`;
             });
-            // 初始化拖拉
-            new Sortable(group, { group: 'days', animation: 150, onEnd: updateOrderFromDOM });
+            // 強化版 Sortable 初始化
+            new Sortable(group, { group: 'days', animation: 150, delay: 0, swapThreshold: 0.65, onEnd: updateOrderFromDOM });
         });
 
-        // 渲染行李
+        // 2. 渲染行李
         const packDiv = document.getElementById('packingList'); packDiv.innerHTML = '';
         let lastCate = '';
         data.packing.forEach((p, i) => {
             if(p.c !== lastCate) { packDiv.innerHTML += `<div class="pack-cate">${p.c}</div>`; lastCate = p.c; }
-            packDiv.innerHTML += `<div class="pack-item" data-idx="${i}"><span onclick="togglePack(${i})" style="${p.d?'text-decoration:line-through;opacity:0.4':''}">${p.d?'✅ ':''} ${p.t}</span><span style="color:var(--red);" onclick="removeItem('packing',${i})">✕</span></div>`;
+            packDiv.innerHTML += `
+            <div class="pack-item" data-idx="${i}">
+                <span class="pack-text" onclick="togglePack(${i})" style="${p.d?'text-decoration:line-through;opacity:0.4':''}">${p.d?'✅ ':''} ${p.t}</span>
+                <span class="pack-del" onclick="removeItem('packing',${i})">✕</span>
+            </div>`;
         });
-        new Sortable(packDiv, { animation: 150, onEnd: () => {
+        new Sortable(packDiv, { animation: 150, delay: 0, onEnd: () => {
             let newList = [];
             packDiv.querySelectorAll('.pack-item').forEach(el => newList.push(data.packing[el.dataset.idx]));
             data.packing = newList; saveAll();
         }});
 
-        // 統計計算
+        // 3. 統計與其它渲染 (略同前版)
+        updateStats(members, rate);
+    }
+
+    function updateOrderFromDOM() {
+        let newList = [];
+        [1,2,3,4,5].forEach(d => {
+            const group = document.getElementById(`day-group-${d}`);
+            if(group) {
+                group.querySelectorAll('.it-card').forEach(el => {
+                    let item = {...data.itinerary[el.dataset.idx]};
+                    item.day = d; newList.push(item);
+                });
+            }
+        });
+        data.itinerary = newList; saveAll();
+    }
+
+    function syncMapField() { if(editIdx === -1) document.getElementById('mMap').value = document.getElementById('mName').value; }
+
+    function updateStats(members, rate) {
         let myPure = 0, myLend = 0, summary = {};
         members.slice(1).forEach(n => summary[n] = 0);
         data.split.forEach(s => {
@@ -200,43 +223,20 @@
         document.getElementById('hotelPreview').innerHTML = `💡 每人住宿 ≈ NT ${Math.round(hotel/members.length*rate).toLocaleString()}`;
     }
 
-    // 自動代入地點邏輯
-    function syncMapField() {
-        if(editIdx === -1) { // 僅在新增項目時自動代入
-            document.getElementById('mMap').value = document.getElementById('mName').value;
-        }
-    }
-
-    function updateOrderFromDOM() {
-        let newList = [];
-        [1,2,3,4,5].forEach(d => {
-            const group = document.getElementById(`day-group-${d}`);
-            if(group) {
-                group.querySelectorAll('.it-card').forEach(el => {
-                    let item = {...data.itinerary[el.dataset.idx]};
-                    item.day = d; newList.push(item);
-                });
-            }
-        });
-        data.itinerary = newList; saveAll();
-    }
-
     function saveAll() { 
         data.exRate = parseFloat(document.getElementById('exRate').value) || 0.2;
         localStorage.setItem('hokkaido_v43_fix', JSON.stringify(data)); 
         renderAll(); 
     }
     
-    function togglePack(idx) { data.packing[idx].d = !data.packing[idx].d; saveAll(); }
-    function addItem(type, id) { const v = document.getElementById(id).value; if(v){ data[type].push({t:v, d:false, c:"手動增加"}); document.getElementById(id).value=''; saveAll(); } }
-    function removeItem(type, idx) { data[type].splice(idx, 1); saveAll(); }
-    function resetPacking() { if(confirm("確定重置行程清單？")) { data.packing = [...defaultPacking]; saveAll(); } }
     function showPage(pId, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.getElementById(pId).classList.add('active'); el.classList.add('active');
         document.getElementById('mainFab').style.display = (pId === 'itinerary') ? 'flex' : 'none';
+        renderAll(); // 切換分頁時重新啟動拖拉
     }
+
     function openModal(mode, idx = -1) {
         currentMode = mode; editIdx = idx;
         const members = data.members.split(',');
@@ -247,14 +247,11 @@
         if(idx > -1) {
             const d = (mode === 'ITINERARY' ? data.itinerary : data.split)[idx];
             if(mode === 'ITINERARY') {
-                document.getElementById('mName').value = d.n; 
-                document.getElementById('mMap').value = d.map || '';
-                document.getElementById('mTime').value = d.time; 
-                document.getElementById('mDay').value = d.day;
+                document.getElementById('mName').value = d.n; document.getElementById('mMap').value = d.map || '';
+                document.getElementById('mTime').value = d.time; document.getElementById('mDay').value = d.day;
                 document.getElementById('mTrans').value = d.trans || '';
             } else {
-                document.getElementById('mSplitName').value = d.n; document.getElementById('mPayer').value = d.payer;
-                buildTargetList(d.targets);
+                document.getElementById('mSplitName').value = d.n; document.getElementById('mPayer').value = d.payer; buildTargetList(d.targets);
             }
             document.getElementById('mPrice').value = d.p; document.getElementById('mCur').value = d.t || 'f';
         } else {
@@ -262,6 +259,10 @@
             if(mode === 'SPLIT') buildTargetList();
         }
     }
+    function togglePack(idx) { data.packing[idx].d = !data.packing[idx].d; saveAll(); }
+    function addItem(type, id) { const v = document.getElementById(id).value; if(v){ data[type].push({t:v, d:false, c:"手動增加"}); document.getElementById(id).value=''; saveAll(); } }
+    function removeItem(type, idx) { data[type].splice(idx, 1); saveAll(); }
+    function resetPacking() { if(confirm("確定重置行程清單？")) { data.packing = [...defaultPacking]; saveAll(); } }
     function buildTargetList(st = null) {
         const list = document.getElementById('targetList');
         const members = data.members.split(',');
@@ -270,7 +271,7 @@
             let amt = st ? (st.find(x => x.u === n)?.a || 0) : 0;
             return `<div class="target-item ${isC?'active':''}" onclick="toggleT('${n}')" id="titem_${n}">
                 <div style="display:flex; align-items:center;"><input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="margin-right:8px; pointer-events:none;"><b>${n}</b></div>
-                <input type="number" id="amt_${n}" class="amt-input" value="${amt}" onclick="event.stopPropagation()" oninput="autoSplit()" style="width:80px; text-align:right; border:1px solid #ddd; border-radius:8px; padding:5px;">
+                <input type="number" id="amt_${n}" value="${amt}" onclick="event.stopPropagation()" oninput="autoSplit()" style="width:80px; text-align:right; border:1px solid #ddd; border-radius:8px;">
             </div>`;
         }).join('');
     }
