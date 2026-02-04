@@ -3,65 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V43.6</title>
+    <title>去北海道被雪玩 V43.7</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
-        :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --light-blue: #f0f7ff; --gray: #90a4ae; }
-        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); user-select: none; overflow-x: hidden; }
+        :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --light-blue: #f0f7ff; --gray: #b0bec5; }
+        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f6f9fc; margin: 0; padding-bottom: 120px; color: var(--text); user-select: none; overflow-x: hidden; }
         
-        /* 經典下雪 */
+        /* 經典下雪背景 */
         body::before {
-            content: "❄"; position: fixed; top: -10%; left: 10%; font-size: 20px; color: white; opacity: 0.5;
+            content: "❄"; position: fixed; top: -10%; left: 10%; font-size: 20px; color: white; opacity: 0.4;
             animation: snow 12s linear infinite; z-index: -1;
             text-shadow: 40vw 15vh white, 70vw 35vh white, 25vw 55vh white, 85vw 75vh white;
         }
         @keyframes snow { 0% { transform: translateY(0); } 100% { transform: translateY(110vh); } }
 
-        .nav-tabs { display: flex; background: rgba(255,255,255,0.9); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); backdrop-filter: blur(10px); }
-        .tab { flex: 1; text-align: center; padding: 15px 0; font-weight: bold; color: #546e7a; cursor: pointer; }
-        .tab.active { color: var(--accent-blue); border-bottom: 3px solid var(--accent-blue); background: rgba(248,251,255,0.5); }
+        /* 導覽列置頂 */
+        .nav-tabs { display: flex; background: rgba(255,255,255,0.95); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); backdrop-filter: blur(10px); }
+        .tab { flex: 1; text-align: center; padding: 18px 0; font-weight: bold; color: #78909c; cursor: pointer; transition: 0.3s; font-size: 0.95rem; }
+        .tab.active { color: var(--accent-blue); border-bottom: 3px solid var(--accent-blue); }
         
-        .container { padding: 15px; }
-        .page { display: none; }
+        .container { padding: 15px; max-width: 500px; margin: 0 auto; }
+        .page { display: none; animation: fadeIn 0.3s ease; }
         .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        .card { background: rgba(255,255,255,0.85); padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); backdrop-filter: blur(5px); }
-        .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
+        /* 日期標籤 - 置中顯示 */
+        .day-header { background: var(--accent-blue); color: white; padding: 6px 20px; border-radius: 20px; margin: 25px auto 15px auto; font-size: 0.85rem; display: table; box-shadow: 0 4px 10px rgba(21,101,192,0.2); }
         
-        /* --- 交通方式新視覺：連接線模式 --- */
-        .it-wrapper { position: relative; }
-        .trans-line { 
-            margin-left: 28px; 
-            border-left: 2px dashed #cfd8dc; 
-            padding: 8px 0 8px 20px; 
-            font-size: 0.75rem; 
-            color: var(--gray); 
-            display: flex; 
-            align-items: center; 
-            gap: 5px;
+        /* 行程卡片優化 - 置中全寬 */
+        .it-wrapper { display: flex; flex-direction: column; align-items: center; width: 100%; }
+        .it-card { 
+            background: white; border-radius: 20px; padding: 16px; 
+            display: flex; align-items: center; gap: 15px; 
+            width: 95%; box-sizing: border-box;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.04); position: relative; z-index: 2;
         }
-        .it-card { background: white; border-radius: 18px; padding: 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); touch-action: none; position: relative; z-index: 2; }
-        /* ------------------------------ */
-
-        .it-info { flex: 1; font-weight: bold; color: #1a237e; font-size: 1.05rem; }
-        .it-time { min-width: 50px; font-weight: bold; color: var(--accent-blue); border-right: 1.5px solid #eee; }
-
-        .target-item { border: 1.5px solid #eceff1; border-radius: 14px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; background: white; transition: all 0.2s; }
-        .target-item.active { border-color: var(--accent-blue); background: var(--light-blue); box-shadow: 0 2px 8px rgba(21,101,192,0.1); }
-        .amt-input { width: 95px; text-align: right; border: 1px solid #cfd8dc; border-radius: 8px; padding: 8px; font-size: 1rem; color: var(--accent-blue); font-weight: bold; background: #fafafa; }
-
-        input, select { width: 100%; padding: 12px; margin: 6px 0; border: 1px solid #ddd; border-radius: 12px; font-size: 15px; box-sizing: border-box; }
-        .btn { padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-main { background: var(--accent-blue); color: white; width: 100%; }
+        .it-time { min-width: 55px; font-weight: bold; color: var(--accent-blue); font-size: 1.1rem; text-align: center; border-right: 2px solid #f0f0f0; }
+        .it-info { flex: 1; font-weight: bold; color: #1a237e; font-size: 1.1rem; }
         
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background: white; width: 92%; max-width: 400px; padding: 22px; border-radius: 28px; max-height: 85vh; overflow-y: auto; }
-        
-        .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 14px; border-top: 1px solid #eee; display: flex; justify-content: space-around; backdrop-filter: blur(10px); z-index: 1000; }
-        .fab { position: fixed; bottom: 105px; right: 20px; width: 58px; height: 58px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; border: none; z-index: 1100; box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
-        
-        .pack-cate { font-weight: bold; color: var(--accent-blue); margin: 18px 0 8px 0; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
-        .pack-cate::before { content: ""; display: inline-block; width: 4px; height: 16px; background: var(--accent-blue); border-radius: 2px; }
+        /* 交通連接線優化 */
+        .trans-line { 
+            width: 2px; height: 35px; background: repeating-linear-gradient(to bottom, #cfd8dc, #cfd8dc 4px, transparent 4px, transparent 8px);
+            margin: -2px 0; position: relative; display: flex; align-items: center; justify-content: center;
+        }
+        .trans-badge { 
+            position: absolute; left: 15px; background: #eceff1; color: #546e7a; 
+            padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;
+            white-space: nowrap; border: 1px solid #cfd8dc;
+        }
+
+        /* 統計列優化 */
+        .summary-bar { 
+            position: fixed; bottom: 0; left: 0; right: 0; 
+            background: rgba(255,255,255,0.98); padding: 16px 20px; 
+            border-top: 1px solid #eceff1; display: flex; 
+            justify-content: space-around; backdrop-filter: blur(15px); z-index: 1000;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+        .stat-item { text-align: center; flex: 1; }
+        .stat-item b { font-size: 1.3rem; display: block; margin-top: 4px; }
+        .divider { width: 1px; background: #eee; margin: 5px 0; }
+
+        .fab { position: fixed; bottom: 100px; right: 25px; width: 62px; height: 62px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; border: none; z-index: 1100; box-shadow: 0 8px 20px rgba(21,101,192,0.3); transition: 0.2s; }
+        .fab:active { transform: scale(0.9); }
+
+        /* 行李清單 & 拆帳調整 */
+        .card { background: white; padding: 20px; border-radius: 24px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .target-item { border: 1.5px solid #f1f3f4; border-radius: 16px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; }
+        .target-item.active { border-color: var(--accent-blue); background: var(--light-blue); }
+        .amt-input { width: 100px; text-align: right; border: 1px solid #cfd8dc; border-radius: 10px; padding: 10px; font-size: 1rem; font-weight: bold; background: #fbfbfb; }
+
+        input, select { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #e0e0e0; border-radius: 14px; font-size: 16px; box-sizing: border-box; background: #fcfcfc; }
+        .btn-main { background: var(--accent-blue); color: white; width: 100%; padding: 14px; border-radius: 14px; border: none; font-weight: bold; font-size: 1rem; }
     </style>
 </head>
 <body>
@@ -77,49 +90,48 @@
     
     <div id="split" class="page">
         <div class="card">
-            <h3>💸 支出明細</h3>
+            <h3 style="margin-top:0;">💸 支出明細</h3>
             <div id="splitList"></div>
-            <button class="btn btn-main" onclick="openModal('SPLIT')">+ 新增紀錄</button>
+            <button class="btn-main" onclick="openModal('SPLIT')" style="margin-top:10px;">+ 新增紀錄</button>
         </div>
         <div class="card" style="background: #f1f8e9;"><h3>📊 結算 (誰該給誰)</h3><div id="splitSummary"></div></div>
     </div>
     
     <div id="private" class="page">
         <div class="card">
-            <h3>⚙️ 旅遊參數</h3>
+            <h3 style="margin-top:0;">⚙️ 旅遊參數</h3>
             <small>成員 (用逗號隔開)</small><input type="text" id="memberNames" value="我,翌,丞,馨,子,嚕" onchange="updateMembers()">
-            <small>匯率 (已固定為 0.2)</small><input type="number" id="exRate" value="0.2" readonly style="background:#f5f5f5; color:#999;">
+            <small>匯率 (已固定)</small><input type="number" id="exRate" value="0.2" readonly style="background:#f5f5f5;">
             <small>機票總額 NT</small><input type="number" id="flight" value="21255" oninput="saveAll()">
             <small>住宿費總額 JPY</small><input type="text" id="hotelTotal" value="374259" oninput="saveAll()">
-            <div id="hotelPreview" style="font-size:0.8rem; color:var(--accent-blue); margin-top:5px; font-weight:bold;"></div>
+            <div id="hotelPreview" style="font-size:0.85rem; color:var(--accent-blue); margin-top:8px; font-weight:bold;"></div>
         </div>
         <div class="card">
             <h3>🧳 行李清單</h3>
             <div id="packingList"></div>
             <div style="display:flex; gap:8px; margin-top:15px;">
                 <input type="text" id="newPack" placeholder="增加項目..." style="margin:0;">
-                <button class="btn" style="background:var(--orange); color:white; width:55px;" onclick="addItem('packing','newPack')">+</button>
+                <button onclick="addItem('packing','newPack')" style="background:var(--orange); color:white; border:none; border-radius:12px; width:60px;">+</button>
             </div>
-            <button class="btn" style="width:100%; margin-top:12px; background:#eee; font-size:0.8rem;" onclick="loadDetailedPacking()">🔄 重置建議清單</button>
         </div>
     </div>
 </div>
 
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <h3 id="modalTitle">編輯內容</h3>
+<div id="editModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+    <div class="modal-content" style="background:white; width:90%; max-width:400px; padding:25px; border-radius:30px; max-height:85vh; overflow-y:auto;">
+        <h3 id="modalTitle" style="margin-top:0;">編輯內容</h3>
         <div id="itFields">
-            <small>項目名稱</small><input type="text" id="mName" oninput="updateMapPlaceholder(this.value)">
+            <small>項目名稱</small><input type="text" id="mName">
             <small>地點/網址</small><input type="text" id="mMap" placeholder="預設使用名稱導航">
             <small>時間</small><input type="text" id="mTime" placeholder="14:00">
-            <small>抵達此處的交通方式</small>
+            <small>交通方式</small>
             <select id="mTrans">
                 <option value="">(無)</option>
+                <option value="✈️ 飛機">✈️ 飛機</option>
                 <option value="🚗 自駕">🚗 自駕</option>
                 <option value="🚆 JR/火車">🚆 JR/火車</option>
                 <option value="🚌 巴士/接駁">🚌 巴士/接駁</option>
                 <option value="🚶 步行">🚶 步行</option>
-                <option value="✈️ 飛機">✈️ 飛機</option>
             </select>
             <small>天數</small>
             <select id="mDay"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option></select>
@@ -127,47 +139,40 @@
         <div id="splitFields" style="display:none">
             <small>支出名稱</small><input type="text" id="mSplitName">
             <small>付款人</small><select id="mPayer"></select>
-            <div id="targetList" style="margin-top:12px;"></div>
+            <div id="targetList" style="margin-top:15px;"></div>
         </div>
         <hr style="margin:20px 0; border:none; border-top:1px solid #eee;">
         <small>金額</small>
-        <div style="display:flex; gap:8px;">
-            <input type="number" id="mPrice" oninput="manuallyEdited.clear(); autoSplit();" placeholder="輸入總額" style="flex:2;">
+        <div style="display:flex; gap:10px;">
+            <input type="number" id="mPrice" oninput="autoSplit()" style="flex:2;">
             <select id="mCur" style="flex:1;"><option value="f">円</option><option value="t">元</option></select>
         </div>
-        <div style="display:flex; gap:12px; margin-top:25px;">
-            <button class="btn" style="flex:1; background:#f5f5f5;" onclick="closeModal()">取消</button>
-            <button class="btn btn-main" style="flex:1;" onclick="handleSave()">儲存</button>
+        <div style="display:flex; gap:15px; margin-top:25px;">
+            <button onclick="closeModal()" style="flex:1; padding:14px; border-radius:14px; border:none; background:#f5f5f5; font-weight:bold;">取消</button>
+            <button onclick="handleSave()" class="btn-main" style="flex:1;">儲存</button>
         </div>
-        <button id="btnDel" onclick="handleDelete()" style="color:var(--red); background:none; border:none; width:100%; margin-top:18px; font-weight:bold;">🗑️ 刪除此項目</button>
+        <button id="btnDel" onclick="handleDelete()" style="color:var(--red); background:none; border:none; width:100%; margin-top:20px; font-weight:bold;">🗑️ 刪除項目</button>
     </div>
 </div>
 
 <button class="fab" id="mainFab" onclick="openModal('ITINERARY')">+</button>
 
 <div class="summary-bar">
-    <div><small>❄️ 個人實花 (NT)</small><br><b id="statMyTotal" style="color:var(--accent-blue); font-size:1.15rem;">$0</b></div>
-    <div style="border-left:1px solid #eee; padding-left:20px;"><small>🧧 代墊待收 (NT)</small><br><b id="statMyLend" style="color:var(--red); font-size:1.15rem;">$0</b></div>
+    <div class="stat-item">
+        <small style="color:#78909c;">❄️ 個人實花 (NT)</small>
+        <b id="statMyTotal" style="color:var(--accent-blue);">$0</b>
+    </div>
+    <div class="divider"></div>
+    <div class="stat-item">
+        <small style="color:#78909c;">🧧 代墊待收 (NT)</small>
+        <b id="statMyLend" style="color:var(--red);">$0</b>
+    </div>
 </div>
 
 <script>
-    const detailedPacking = [
-        {c: "證件財物", t: "護照/身分證/VJW QR", d: false},
-        {c: "證件財物", t: "日幣現金/信用卡/Suica", d: false},
-        {c: "穿搭裝備", t: "極地發熱衣物/防風外套", d: false},
-        {c: "穿搭裝備", t: "防滑雪靴/冰爪/厚襪子", d: false},
-        {c: "穿搭裝備", t: "毛帽/圍巾/手套/耳罩", d: false},
-        {c: "電器產品", t: "行動電源/充電線/多孔頭", d: false},
-        {c: "藥品護理", t: "保濕乳液/護唇膏/常備藥", d: false},
-        {c: "雜物", t: "保溫瓶/暖暖包/雨具", d: false}
-    ];
-
     let data = JSON.parse(localStorage.getItem('hokkaido_v43_fix')) || { 
-        itinerary: [], split: [], packing: detailedPacking, members: "我,翌,丞,馨,子,嚕", exRate: 0.2 
+        itinerary: [], split: [], packing: [], members: "我,翌,丞,馨,子,嚕", exRate: 0.2 
     };
-    // 強制重設匯率為 0.2
-    data.exRate = 0.2;
-    
     let currentMode = '', editIdx = -1;
     let manuallyEdited = new Set();
 
@@ -176,12 +181,7 @@
     function initSortable() {
         [1,2,3,4,5].forEach(d => {
             const group = document.getElementById(`day-group-${d}`);
-            if (group) {
-                new Sortable(group, {
-                    animation: 150, handle: '.it-card', ghostClass: 'sortable-ghost',
-                    onEnd: () => { updateOrderFromDOM(); }
-                });
-            }
+            if (group) new Sortable(group, { animation: 150, handle: '.it-card', onEnd: () => updateOrderFromDOM() });
         });
     }
 
@@ -189,10 +189,12 @@
         let newList = [];
         [1,2,3,4,5].forEach(d => {
             const group = document.getElementById(`day-group-${d}`);
-            group.querySelectorAll('.it-card').forEach(el => {
-                let item = {...data.itinerary[el.dataset.idx]};
-                item.day = d; newList.push(item);
-            });
+            if (group) {
+                group.querySelectorAll('.it-card').forEach(el => {
+                    let item = {...data.itinerary[el.dataset.idx]};
+                    item.day = d; newList.push(item);
+                });
+            }
         });
         data.itinerary = newList; saveAll();
     }
@@ -205,14 +207,9 @@
         if(pId === 'itinerary') renderAll();
     }
 
-    function updateMapPlaceholder(val) {
-        if(!document.getElementById('mMap').value) document.getElementById('mMap').placeholder = "預設導航至: " + val;
-    }
-
     function openModal(mode, idx = -1) {
         currentMode = mode; editIdx = idx;
         const members = data.members.split(',');
-        manuallyEdited.clear(); 
         document.getElementById('editModal').style.display = 'flex';
         document.getElementById('itFields').style.display = (mode === 'ITINERARY' ? 'block' : 'none');
         document.getElementById('splitFields').style.display = (mode === 'SPLIT' ? 'block' : 'none');
@@ -242,13 +239,12 @@
         list.innerHTML = members.map(n => {
             let isC = st ? st.some(x => x.u === n) : (n === members[0]);
             let amt = st ? (st.find(x => x.u === n)?.a || 0) : 0;
-            if (st && amt > 0) manuallyEdited.add(n); 
             return `<div class="target-item ${isC?'active':''}" onclick="toggleT('${n}')" id="titem_${n}">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="pointer-events:none; width:18px; height:18px;">
-                    <b style="font-size:1.1rem;">${n}</b>
+                    <input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="width:20px; height:20px; pointer-events:none;">
+                    <b>${n}</b>
                 </div>
-                <input type="number" id="amt_${n}" class="amt-input" value="${amt}" onclick="event.stopPropagation()" oninput="manuallyEdited.add('${n}'); autoSplit();">
+                <input type="number" id="amt_${n}" class="amt-input" value="${amt}" onclick="event.stopPropagation()" oninput="autoSplit()">
             </div>`;
         }).join('');
     }
@@ -257,15 +253,9 @@
         const total = parseFloat(document.getElementById('mPrice').value) || 0;
         const members = data.members.split(',');
         const checkedOnes = members.filter(n => document.getElementById(`cb_${n}`).checked);
-        if (checkedOnes.length === 0) return;
-        let allocatedTotal = 0;
-        const editedArray = Array.from(manuallyEdited).filter(n => document.getElementById(`cb_${n}`).checked);
-        editedArray.forEach(n => { allocatedTotal += parseFloat(document.getElementById(`amt_${n}`).value) || 0; });
-        const others = checkedOnes.filter(n => !manuallyEdited.has(n));
-        if (others.length > 0) {
-            const remainder = total - allocatedTotal;
-            const avg = Math.max(0, Math.round(remainder / others.length));
-            others.forEach(n => { document.getElementById(`amt_${n}`).value = avg; });
+        if (checkedOnes.length > 0) {
+            const avg = Math.round(total / checkedOnes.length);
+            checkedOnes.forEach(n => document.getElementById(`amt_${n}`).value = avg);
         }
     }
 
@@ -273,13 +263,7 @@
         const cb = document.getElementById(`cb_${n}`);
         cb.checked = !cb.checked;
         document.getElementById(`titem_${n}`).classList.toggle('active', cb.checked);
-        manuallyEdited.clear(); autoSplit();
-    }
-
-    function goNav(dest, alt) {
-        let target = dest || alt;
-        if (!target) return;
-        window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(target)}`, '_blank');
+        autoSplit();
     }
 
     function renderAll() {
@@ -289,25 +273,24 @@
 
         [1,2,3,4,5].forEach(d => {
             const dayItems = data.itinerary.filter(i => i.day == d);
-            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" style="min-height:30px;"></div>`;
+            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" class="it-wrapper"></div>`;
             const group = document.getElementById(`day-group-${d}`);
             dayItems.forEach((it, idx) => {
-                let html = '<div class="it-wrapper">';
-                // 如果有交通方式，顯示在兩個卡片之間
+                let html = '';
                 if (it.trans) {
-                    html += `<div class="trans-line"><span>${it.trans}</span></div>`;
+                    html += `<div class="trans-line"><span class="trans-badge">${it.trans}</span></div>`;
                 }
                 html += `<div class="it-card" data-idx="${data.itinerary.indexOf(it)}">
                     <div class="it-time">${it.time||'--:--'}</div>
                     <div class="it-info" onclick="openModal('ITINERARY', ${data.itinerary.indexOf(it)})">${it.n}</div>
-                    <span style="font-size:1.4rem;" onclick="goNav('${it.map}','${it.n}')">🚗</span>
-                </div></div>`;
+                    <span style="font-size:1.6rem;" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(it.map||it.n)}','_blank')">🚗</span>
+                </div>`;
                 group.innerHTML += html;
             });
         });
         initSortable();
 
-        document.getElementById('splitList').innerHTML = data.split.map((s, i) => `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><b>${s.p}${s.t==='f'?'円':'元'}</b></div>`).join('');
+        // 統計邏輯
         let myPure = 0, myLend = 0, summary = {};
         members.slice(1).forEach(n => summary[n] = 0);
         data.split.forEach(s => {
@@ -319,47 +302,37 @@
             });
         });
         let hotel = 0; try { hotel = eval(data.hotelTotal.toString().replace(/[^\d+*/.-]/g, '')) || 0; } catch(e) {}
-        document.getElementById('hotelPreview').innerHTML = `💡 每人住宿 ≈ NT ${Math.round(hotel / members.length * rate).toLocaleString()}`;
         document.getElementById('statMyTotal').innerText = `$${Math.round(myPure + (hotel/members.length*rate) + (parseFloat(data.flight)||0)).toLocaleString()}`;
         document.getElementById('statMyLend').innerText = `$${Math.round(myLend).toLocaleString()}`;
+        
+        // 拆帳列表
+        document.getElementById('splitList').innerHTML = data.split.map((s, i) => `<div style="display:flex; justify-content:space-between; padding:15px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><b>${s.p}${s.t==='f'?'円':'元'}</b></div>`).join('');
         document.getElementById('splitSummary').innerHTML = Object.entries(summary).map(([n,v]) => v !== 0 ? `● ${n}: ${Math.round(v)}円<br>` : '').join('');
-
-        const packDiv = document.getElementById('packingList'); packDiv.innerHTML = '';
-        let lastCate = '';
-        data.packing.forEach((p, i) => {
-            if(p.c && p.c !== lastCate) { packDiv.innerHTML += `<div class="pack-cate">${p.c}</div>`; lastCate = p.c; }
-            packDiv.innerHTML += `<div style="padding:12px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                <span onclick="togglePack(${i})" style="${p.d?'text-decoration:line-through;opacity:0.4':''}">${p.d?'✅ ':''} ${p.t}</span>
-                <span style="color:var(--red); font-weight:bold; padding:0 10px;" onclick="removeItem('packing',${i})">✕</span>
-            </div>`;
-        });
+        
+        // 行李清單
+        document.getElementById('packingList').innerHTML = (data.packing || []).map((p, i) => `<div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;"><span onclick="togglePack(${i})" style="${p.d?'text-decoration:line-through;opacity:0.4':''}">${p.d?'✅ ':''} ${p.t}</span><span style="color:var(--red);" onclick="removeItem('packing',${i})">✕</span></div>`).join('');
     }
 
-    function loadDetailedPacking() {
-        if(confirm("確定要重置行李清單嗎？")) { data.packing = [...detailedPacking]; saveAll(); }
+    function saveAll() { 
+        localStorage.setItem('hokkaido_v43_fix', JSON.stringify(data)); renderAll(); 
     }
-    function updateMembers() { data.members = document.getElementById('memberNames').value; saveAll(); }
-    function togglePack(idx) { data.packing[idx].d = !data.packing[idx].d; saveAll(); }
-    function addItem(type, id) { const v = document.getElementById(id).value; if(v){ data[type].push({t:v, d:false, c:"自訂"}); document.getElementById(id).value=''; saveAll(); } }
-    function removeItem(type, idx) { data[type].splice(idx, 1); saveAll(); }
+    function closeModal() { document.getElementById('editModal').style.display = 'none'; }
     function handleSave() {
-        const members = data.members.split(',');
         if(currentMode === 'ITINERARY') {
-            const it = { n: document.getElementById('mName').value, map: document.getElementById('mMap').value || document.getElementById('mName').value, time: document.getElementById('mTime').value, day: document.getElementById('mDay').value, trans: document.getElementById('mTrans').value };
+            const it = { n: document.getElementById('mName').value, map: document.getElementById('mMap').value, time: document.getElementById('mTime').value, day: document.getElementById('mDay').value, trans: document.getElementById('mTrans').value };
             if(editIdx > -1) data.itinerary[editIdx] = it; else data.itinerary.push(it);
         } else {
+            const members = data.members.split(',');
             const targets = members.filter(n => document.getElementById(`cb_${n}`).checked).map(n => ({ u: n, a: parseFloat(document.getElementById(`amt_${n}`).value) || 0 }));
             const s = { n: document.getElementById('mSplitName').value, payer: document.getElementById('mPayer').value, p: document.getElementById('mPrice').value, t: document.getElementById('mCur').value, targets };
             if(editIdx > -1) data.split[editIdx] = s; else data.split.push(s);
         }
         saveAll(); closeModal();
     }
-    function saveAll() { 
-        data.exRate = 0.2; data.flight = document.getElementById('flight').value; data.hotelTotal = document.getElementById('hotelTotal').value;
-        localStorage.setItem('hokkaido_v43_fix', JSON.stringify(data)); renderAll(); 
-    }
-    function closeModal() { document.getElementById('editModal').style.display = 'none'; }
-    function handleDelete() { if(confirm("確定刪除？")) { (currentMode==='ITINERARY'?data.itinerary:data.split).splice(editIdx,1); saveAll(); closeModal(); } }
+    function togglePack(idx) { data.packing[idx].d = !data.packing[idx].d; saveAll(); }
+    function addItem(type, id) { const v = document.getElementById(id).value; if(v){ data[type].push({t:v, d:false}); document.getElementById(id).value=''; saveAll(); } }
+    function removeItem(type, idx) { data[type].splice(idx, 1); saveAll(); }
+    function handleDelete() { if(confirm("確定刪                              除？")) { (currentMode==='ITINERARY'?data.itinerary:data.split).splice(editIdx,1); saveAll(); closeModal(); } }
 </script>
 </body>
 </html>
