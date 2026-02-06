@@ -178,7 +178,7 @@
                         ${it.p ? `<div class="it-price-tag">${it.cate||''} ${it.p}${it.t==='f'?'円':'元'}</div>` : ''}
                         ${it.trans ? `<div style="font-size:0.75rem; color:var(--gray); margin-top:2px;">└─ ${it.trans}</div>` : ''}
                     </div>
-                    ${it.map ? `<span style="font-size:1.2rem; cursor:pointer;" onclick="window.open('http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(it.map)}','_blank')">🚗</span>` : ''}
+                    ${it.map ? `<span style="font-size:1.2rem; cursor:pointer;" onclick="window.open('http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(it.map)}','_blank')">📌</span>` : ''}
                 </div>`;
             });
         });
