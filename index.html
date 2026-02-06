@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V44.5</title>
+    <title>去北海道被雪玩 V44.6</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
@@ -188,7 +188,7 @@
             new Sortable(group, { group: 'days', animation: 150, onEnd: updateOrderFromDOM });
         });
 
-        // 行李清單渲染
+        // 行李清單
         const packDiv = document.getElementById('packingList'); packDiv.innerHTML = '';
         let lastCate = '';
         data.packing.forEach((p, i) => {
@@ -196,47 +196,53 @@
             packDiv.innerHTML += `<div class="pack-item"><span onclick="togglePack(${i})" style="${p.d?'text-decoration:line-through;opacity:0.4':''}">${p.d?'✅ ':''} ${p.t}</span><span style="color:var(--red); padding:5px;" onclick="removeItem('packing',${i})">✕</span></div>`;
         });
 
-        // 統計邏輯 (實花完全依照分帳系統記錄)
-        let myPure = 0, summary = {};
+        // 統計邏輯
+        let myPure = 0, myLend = 0, summary = {};
         members.slice(1).forEach(n => summary[n] = 0);
         data.split.forEach(s => {
             s.targets.forEach(tg => {
                 let valNT = (s.t==='f' ? tg.a * rate : tg.a);
-                if(tg.u === members[0]) { 
-                    myPure += valNT; // 只要這筆分帳有包含我，我就計入實花
-                }
-                if(s.payer === members[0] && tg.u !== members[0]) {
-                    summary[tg.u] += tg.a; // 代墊紀錄僅顯示在結算卡片中
-                } else if(s.payer !== members[0] && tg.u === members[0]) {
-                    summary[s.payer] -= tg.a;
-                }
+                if(tg.u === members[0]) myPure += valNT;
+                if(s.payer === members[0] && tg.u !== members[0]) { myLend += valNT; summary[tg.u] += tg.a; }
+                else if(s.payer !== members[0] && tg.u === members[0]) { summary[s.payer] -= tg.a; }
             });
         });
+
         let hotelJPY = 0; try { hotelJPY = eval(data.hotelTotal.toString().replace(/[^\d+*/.-]/g, '')) || 0; } catch(e) {}
-        
-        // 📈 預計總花費 = (行程預算 + 住宿) * 匯率 + 機票
         const totalBudgetNT = (totalItBudgetJPY + hotelJPY/members.length) * rate + (parseFloat(data.flight)||0);
         document.getElementById('statBudgetTotal').innerText = `$${Math.round(totalBudgetNT).toLocaleString()}`;
-        
-        // ❄️ 個人實花 = 只計分帳系統中你應付的部分
         document.getElementById('statMyTotal').innerText = `$${Math.round(myPure).toLocaleString()}`;
         
         document.getElementById('splitList').innerHTML = data.split.map((s, i) => `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><b>${s.p}${s.t==='f'?'円':'元'}</b></div>`).join('');
-        document.getElementById('splitSummary').innerHTML = Object.entries(summary).map(([n,v]) => v !== 0 ? `● ${n}: ${Math.round(v)}円<br>` : '').join('');
+        document.getElementById('splitSummary').innerHTML = `
+            <div style="margin-bottom:10px; padding:10px; background:white; border-radius:10px; border:1px dashed var(--accent-blue);">
+                <small style="color:var(--accent-blue);">🧧 我的代墊總計 (NT): </small><b>$${Math.round(myLend).toLocaleString()}</b>
+            </div>` + Object.entries(summary).map(([n,v]) => v !== 0 ? `● ${n}: ${Math.round(v)}円<br>` : '').join('');
+        
         document.getElementById('hotelPreview').innerHTML = `💡 每人住宿 ≈ NT ${Math.round(hotelJPY/members.length*rate).toLocaleString()}`;
     }
 
+    // 修復上下鍵邏輯
     function moveItem(idx, step) {
         const item = data.itinerary[idx];
         const currentDay = parseInt(item.day);
         const dayItems = data.itinerary.filter(i => i.day == currentDay);
         const inDayIdx = dayItems.indexOf(item);
-        if (step === -1) {
+
+        if (step === -1) { // 向上
             if (inDayIdx === 0) { if (currentDay > 1) item.day = (currentDay - 1).toString(); }
-            else { const prevIdx = data.itinerary.indexOf(dayItems[inDayIdx - 1]); [data.itinerary[idx], data.itinerary[prevIdx]] = [data.itinerary[prevIdx], data.itinerary[idx]]; }
-        } else {
+            else { 
+                const prevItem = dayItems[inDayIdx - 1];
+                const prevIdx = data.itinerary.indexOf(prevItem);
+                [data.itinerary[idx], data.itinerary[prevIdx]] = [data.itinerary[prevIdx], data.itinerary[idx]];
+            }
+        } else { // 向下
             if (inDayIdx === dayItems.length - 1) { if (currentDay < 8) item.day = (currentDay + 1).toString(); }
-            else { const nextIdx = data.itinerary.indexOf(dayItems[inDayIdx + 1]); [data.itinerary[idx], data.itinerary[nextIdx]] = [data.itinerary[nextIdx], data.itinerary[idx]]; }
+            else { 
+                const nextItem = dayItems[inDayIdx + 1];
+                const nextIdx = data.itinerary.indexOf(nextItem);
+                [data.itinerary[idx], data.itinerary[nextIdx]] = [data.itinerary[nextIdx], data.itinerary[idx]];
+            }
         }
         saveAll();
     }
