@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V45.0</title>
+    <title>去北海道被雪玩 V45.2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
@@ -178,12 +178,12 @@
                         ${it.p ? `<div class="it-price-tag">${it.cate||''} ${it.p}${it.t==='f'?'円':'元'}</div>` : ''}
                         ${it.trans ? `<div style="font-size:0.75rem; color:var(--gray); margin-top:2px;">└─ ${it.trans}</div>` : ''}
                     </div>
-                    ${it.map ? `<span style="font-size:1.2rem; cursor:pointer;" onclick="window.open('http://googleusercontent.com/maps.google.com/maps?dir/?api=1&destination=${encodeURIComponent(it.map)}&travelmode=driving','_blank')">📌</span>` : ''}
+                    ${it.map ? `<span style="font-size:1.2rem; cursor:pointer;" onclick="window.open('http://googleusercontent.com/maps.google.com/maps?daddr=${encodeURIComponent(it.map)}&travelmode=driving','_blank')">📌</span>` : ''}
                 </div>`;
             });
         });
 
-        // 核心統計與修正邏輯
+        // 核心統計邏輯
         let myPureSplit = 0, myLend = 0, summary = {};
         members.slice(1).forEach(n => summary[n] = 0);
         
@@ -191,10 +191,9 @@
             const isPrepayment = s.n.includes("預繳") || s.n.includes("還款");
             s.targets.forEach(tg => {
                 let valNT = (s.t==='f' ? tg.a * rate : tg.a);
-                // 個人實花修正：扣除「預繳/還款」類型的轉帳紀錄，避免重複計入
+                // 修改：個人實花只對應拆帳紀錄，刪除後即歸零
                 if(tg.u === members[0] && !isPrepayment) myPureSplit += valNT;
                 
-                // 債務關係結算
                 if(s.payer === members[0] && tg.u !== members[0]) { 
                     myLend += valNT; 
                     summary[tg.u] += tg.a; 
@@ -207,13 +206,12 @@
         let hotelJPY = 0; try { hotelJPY = eval(data.hotelTotal.toString().replace(/[^\d+*/.-]/g, '')) || 0; } catch(e) {}
         const totalBudgetNT = (totalItBudgetJPY + hotelJPY/members.length) * rate + (parseFloat(data.flight)||0);
         
-        // 個人實花 = 行程預計花費(1/N) + 拆帳實花 (排除預繳)
-        const myTotalNT = (totalItBudgetJPY / members.length * rate) + myPureSplit;
+        // 個人實花修正：刪除拆帳明細後，myPureSplit 會變 0，此處就會歸零
+        const myTotalNT = myPureSplit;
 
         document.getElementById('statBudgetTotal').innerText = `$${Math.round(totalBudgetNT).toLocaleString()}`;
         document.getElementById('statMyTotal').innerText = `$${Math.round(myTotalNT).toLocaleString()}`;
         
-        // 結算區塊修正顯示單位
         document.getElementById('splitSummary').innerHTML = `<div style="margin-bottom:10px; padding:10px; background:white; border-radius:10px; border:1px dashed var(--accent-blue);"><small style="color:var(--accent-blue);">🧧 我的代墊總計 (NT): </small><b>$${Math.round(myLend).toLocaleString()}</b></div>` + 
         Object.entries(summary).map(([n,v]) => {
             if(v === 0) return '';
