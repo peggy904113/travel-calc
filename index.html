@@ -7,9 +7,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
-        /* 修正點 1: 移除 user-select: none 避免干擾觸控判定 */
-        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); overflow-x: hidden; }
+        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); user-select: none; overflow-x: hidden; }
         
+        /* 下雪背景 */
         body::before {
             content: "❄"; position: fixed; top: -10%; left: 10%; font-size: 20px; color: white; opacity: 0.5;
             animation: snow 12s linear infinite; z-index: -1;
@@ -26,8 +26,9 @@
         .page.active { display: block; }
         
         .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
-        /* 修正點 2: touch-action 改為 none，確保拖拉優先於捲動 */
-        .it-card { background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); touch-action: none; -webkit-user-select: none; user-select: none; }
+        
+        /* ⚠️ 修正 1：touch-action 改為 none，確保拖拉信號不被網頁捲動攔截 */
+        .it-card { background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); touch-action: none; }
         
         .it-time { min-width: 45px; color: var(--accent-blue); font-weight: bold; font-size: 0.95rem; border-right: 1px solid #eee; padding-right: 5px; }
         .it-info { flex: 1; display: flex; flex-direction: column; }
@@ -165,7 +166,8 @@
                     ${it.map ? `<span style="font-size:1.2rem; cursor:pointer;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.map)}','_blank')">🚗</span>` : ''}
                 </div>`;
             });
-            // 修正點 3: 加入 forceFallback 和延遲 tolerance，確保手機拖拉順暢
+
+            // ⚠️ 修正 2 & 3：加入 forceFallback 與 fallbackTolerance 解決手機無法拖拉問題
             new Sortable(group, { 
                 group: 'days', 
                 animation: 150, 
