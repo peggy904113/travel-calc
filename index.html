@@ -7,9 +7,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
-        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); user-select: none; overflow-x: hidden; }
+        /* 修正點 1: 移除 user-select: none 避免干擾觸控判定 */
+        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); overflow-x: hidden; }
         
-        /* 下雪背景 */
         body::before {
             content: "❄"; position: fixed; top: -10%; left: 10%; font-size: 20px; color: white; opacity: 0.5;
             animation: snow 12s linear infinite; z-index: -1;
@@ -26,7 +26,9 @@
         .page.active { display: block; }
         
         .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
-        .it-card { background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); touch-action: pan-y; }
+        /* 修正點 2: touch-action 改為 none，確保拖拉優先於捲動 */
+        .it-card { background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); touch-action: none; -webkit-user-select: none; user-select: none; }
+        
         .it-time { min-width: 45px; color: var(--accent-blue); font-weight: bold; font-size: 0.95rem; border-right: 1px solid #eee; padding-right: 5px; }
         .it-info { flex: 1; display: flex; flex-direction: column; }
         .it-name { font-weight: bold; color: #1a237e; font-size: 1.05rem; }
@@ -148,9 +150,8 @@
         const members = data.members.split(',');
         const rate = parseFloat(document.getElementById('exRate').value) || 0.2;
         
-        // 渲染行程
         [1,2,3,4,5].forEach(d => {
-            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" class="sort-group"></div>`;
+            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" class="sort-group" style="min-height:30px;"></div>`;
             const group = document.getElementById(`day-group-${d}`);
             data.itinerary.filter(i => i.day == d).forEach(it => {
                 const idx = data.itinerary.indexOf(it);
@@ -164,24 +165,28 @@
                     ${it.map ? `<span style="font-size:1.2rem; cursor:pointer;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.map)}','_blank')">🚗</span>` : ''}
                 </div>`;
             });
-            // 初始化拖拉
-            new Sortable(group, { group: 'days', animation: 150, onEnd: updateOrderFromDOM });
+            // 修正點 3: 加入 forceFallback 和延遲 tolerance，確保手機拖拉順暢
+            new Sortable(group, { 
+                group: 'days', 
+                animation: 150, 
+                forceFallback: true, 
+                fallbackTolerance: 3, 
+                onEnd: updateOrderFromDOM 
+            });
         });
 
-        // 渲染行李
         const packDiv = document.getElementById('packingList'); packDiv.innerHTML = '';
         let lastCate = '';
         data.packing.forEach((p, i) => {
             if(p.c !== lastCate) { packDiv.innerHTML += `<div class="pack-cate">${p.c}</div>`; lastCate = p.c; }
             packDiv.innerHTML += `<div class="pack-item" data-idx="${i}"><span onclick="togglePack(${i})" style="${p.d?'text-decoration:line-through;opacity:0.4':''}">${p.d?'✅ ':''} ${p.t}</span><span style="color:var(--red);" onclick="removeItem('packing',${i})">✕</span></div>`;
         });
-        new Sortable(packDiv, { animation: 150, onEnd: () => {
+        new Sortable(packDiv, { animation: 150, forceFallback: true, onEnd: () => {
             let newList = [];
             packDiv.querySelectorAll('.pack-item').forEach(el => newList.push(data.packing[el.dataset.idx]));
             data.packing = newList; saveAll();
         }});
 
-        // 統計計算
         let myPure = 0, myLend = 0, summary = {};
         members.slice(1).forEach(n => summary[n] = 0);
         data.split.forEach(s => {
@@ -200,12 +205,7 @@
         document.getElementById('hotelPreview').innerHTML = `💡 每人住宿 ≈ NT ${Math.round(hotel/members.length*rate).toLocaleString()}`;
     }
 
-    // 自動代入地點邏輯
-    function syncMapField() {
-        if(editIdx === -1) { // 僅在新增項目時自動代入
-            document.getElementById('mMap').value = document.getElementById('mName').value;
-        }
-    }
+    function syncMapField() { if(editIdx === -1) { document.getElementById('mMap').value = document.getElementById('mName').value; } }
 
     function updateOrderFromDOM() {
         let newList = [];
