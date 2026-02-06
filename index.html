@@ -32,7 +32,6 @@
         .it-name { font-weight: bold; color: #1a237e; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .it-trans-sub { font-size: 0.75rem; color: var(--gray); margin-top: 3px; font-weight: normal; }
         
-        /* 排序按鈕 */
         .order-controls { display: flex; flex-direction: column; gap: 4px; border-left: 1px solid #eee; padding-left: 8px; }
         .order-btn { border: none; background: #f5f7f9; color: #b0bec5; border-radius: 6px; width: 32px; height: 28px; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .order-btn:active { background: #e3f2fd; color: var(--accent-blue); }
@@ -96,7 +95,7 @@
         <h3 id="modalTitle">編輯內容</h3>
         <div id="itFields">
             <small>項目名稱</small><input type="text" id="mName" oninput="syncMapField()">
-            <small>地點導航 (清空此欄位即不顯示導航鈕)</small><input type="text" id="mMap" placeholder="搜尋地點或輸入網址">
+            <small>地點導航</small><input type="text" id="mMap" placeholder="搜尋地點或輸入網址">
             <small>時間</small><input type="text" id="mTime" placeholder="12:00">
             <small>交通方式</small>
             <select id="mTrans"><option value="">無</option><option value="✈️ 飛機">✈️ 飛機</option><option value="🚗 自駕">🚗 自駕</option><option value="🚆 JR/火車">🚆 JR/火車</option><option value="🚌 巴士/接駁">🚌 巴士/接駁</option><option value="🚶 步行">🚶 步行</option></select>
@@ -134,20 +133,11 @@
 </div>
 
 <script>
-    const defaultPacking = [
-        {c: "證件財物", t: "護照/身分證/VJW QR", d: false},
-        {c: "證件財物", t: "日幣現金/信用卡/Suica", d: false},
-        {c: "穿搭裝備", t: "極地發熱衣物/防風外套", d: false},
-        {c: "穿搭裝備", t: "防滑雪靴/冰爪/厚襪子", d: false},
-        {c: "電器產品", t: "行動電源/充電線/多孔頭", d: false},
-        {c: "藥品護理", t: "保濕乳液/護唇膏/常備藥", d: false}
-    ];
-
     let data = JSON.parse(localStorage.getItem('hokkaido_v43_fix')) || { 
-        itinerary: [], split: [], packing: defaultPacking, members: "我,翌,丞,馨,子,嚕", exRate: 0.2 
+        itinerary: [], split: [], packing: [], members: "我,翌,丞,馨,子,嚕", exRate: 0.2 
     };
-
-    let manualLocks = {}; // 分帳鎖定紀錄
+    let manualLocks = {};
+    let currentMode = 'ITINERARY', editIdx = -1;
 
     window.onload = () => {
         document.getElementById('exRate').value = data.exRate || 0.2;
@@ -181,18 +171,7 @@
             new Sortable(group, { group: 'days', animation: 150, onEnd: updateOrderFromDOM });
         });
 
-        const packDiv = document.getElementById('packingList'); packDiv.innerHTML = '';
-        let lastCate = '';
-        data.packing.forEach((p, i) => {
-            if(p.c !== lastCate) { packDiv.innerHTML += `<div class="pack-cate">${p.c}</div>`; lastCate = p.c; }
-            packDiv.innerHTML += `<div class="pack-item" data-idx="${i}"><span onclick="togglePack(${i})" style="${p.d?'text-decoration:line-through;opacity:0.4':''}">${p.d?'✅ ':''} ${p.t}</span><span style="color:var(--red);" onclick="removeItem('packing',${i})">✕</span></div>`;
-        });
-        new Sortable(packDiv, { animation: 150, onEnd: () => {
-            let newList = [];
-            packDiv.querySelectorAll('.pack-item').forEach(el => newList.push(data.packing[el.dataset.idx]));
-            data.packing = newList; saveAll();
-        }});
-
+        // 結算邏輯
         let myPure = 0, myLend = 0, summary = {};
         members.slice(1).forEach(n => summary[n] = 0);
         data.split.forEach(s => {
@@ -211,55 +190,45 @@
         document.getElementById('hotelPreview').innerHTML = `💡 每人住宿 ≈ NT ${Math.round(hotel/members.length*rate).toLocaleString()}`;
     }
 
-    function moveItem(idx, step) {
-        const item = data.itinerary[idx];
-        const currentDay = parseInt(item.day);
-        const sameDayItems = data.itinerary.filter(i => parseInt(i.day) === currentDay);
-        const inDayIdx = sameDayItems.indexOf(item);
-        if (step === -1) {
-            if (inDayIdx === 0 && currentDay > 1) item.day = (currentDay - 1).toString();
-            else if (inDayIdx > 0) {
-                const prevItem = sameDayItems[inDayIdx - 1];
-                const targetIdx = data.itinerary.indexOf(prevItem);
-                [data.itinerary[idx], data.itinerary[targetIdx]] = [data.itinerary[targetIdx], data.itinerary[idx]];
-            }
-        } else {
-            if (inDayIdx === sameDayItems.length - 1 && currentDay < 8) item.day = (currentDay + 1).toString();
-            else if (inDayIdx < sameDayItems.length - 1) {
-                const nextItem = sameDayItems[inDayIdx + 1];
-                const targetIdx = data.itinerary.indexOf(nextItem);
-                [data.itinerary[idx], data.itinerary[targetIdx]] = [data.itinerary[targetIdx], data.itinerary[idx]];
-            }
-        }
-        saveAll();
-    }
-
-    // --- 修改的分帳系統邏輯 ---
+    // 分帳專用修正：防止跳動的點擊處理
     function buildTargetList(st = null) {
         const list = document.getElementById('targetList');
         const members = data.members.split(',');
-        manualLocks = {}; 
-        list.innerHTML = members.map(n => {
+        manualLocks = {};
+        let html = '';
+        members.forEach(n => {
             let isC = st ? st.some(x => x.u === n) : (n === members[0]);
             let amt = st ? (st.find(x => x.u === n)?.a || 0) : 0;
             if(st && isC) manualLocks[n] = true;
-            return `<div class="target-item ${isC?'active':''}" onclick="toggleT('${n}')" id="titem_${n}">
-                <div style="display:flex; align-items:center;"><input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="margin-right:8px; pointer-events:none;"><b>${n}</b></div>
-                <input type="number" id="amt_${n}" class="amt-input" value="${amt}" onclick="event.stopPropagation()" oninput="handleManualInput('${n}')" style="width:80px; text-align:right; border:1px solid #ddd; border-radius:8px; padding:5px;">
+            html += `
+            <div class="target-item ${isC?'active':''}" id="titem_${n}" onclick="toggleT(event, '${n}')">
+                <div style="display:flex; align-items:center; pointer-events:none;">
+                    <input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="margin-right:8px;">
+                    <b>${n}</b>
+                </div>
+                <input type="number" id="amt_${n}" class="amt-input" value="${amt}" 
+                    onclick="event.stopPropagation()" oninput="handleManualInput('${n}')" 
+                    style="width:80px; text-align:right; border:1px solid #ddd; border-radius:8px; padding:5px;">
             </div>`;
-        }).join('');
+        });
+        list.innerHTML = html;
         if(!st) autoSplit();
     }
 
-    function handleManualInput(name) {
-        manualLocks[name] = true;
-        document.getElementById(`cb_${name}`).checked = true;
-        document.getElementById(`titem_${name}`).classList.add('active');
+    function toggleT(e, n) {
+        if(e) { e.preventDefault(); e.stopPropagation(); }
+        const cb = document.getElementById(`cb_${n}`);
+        const item = document.getElementById(`titem_${n}`);
+        cb.checked = !cb.checked;
+        item.classList.toggle('active', cb.checked);
+        if(!cb.checked) delete manualLocks[n];
         autoSplit();
     }
 
-    function resetManualAndSplit() {
-        manualLocks = {};
+    function handleManualInput(n) {
+        manualLocks[n] = true;
+        document.getElementById(`cb_${n}`).checked = true;
+        document.getElementById(`titem_${n}`).classList.add('active');
         autoSplit();
     }
 
@@ -267,62 +236,69 @@
         const total = parseFloat(document.getElementById('mPrice').value) || 0;
         const members = data.members.split(',');
         const checked = members.filter(n => document.getElementById(`cb_${n}`).checked);
-        if (checked.length === 0) return;
-
-        let lockedSum = 0;
-        let autoMembers = [];
+        if (!checked.length) return;
+        let lockedSum = 0, autoMembers = [];
         checked.forEach(n => {
             if (manualLocks[n]) lockedSum += parseFloat(document.getElementById(`amt_${n}`).value) || 0;
             else autoMembers.push(n);
         });
-
         const remaining = total - lockedSum;
         if (autoMembers.length > 0) {
             const avg = Math.round(remaining / autoMembers.length);
             autoMembers.forEach((n, idx) => {
-                if (idx === autoMembers.length - 1) document.getElementById(`amt_${n}`).value = remaining - (avg * (autoMembers.length - 1));
-                else document.getElementById(`amt_${n}`).value = avg;
+                document.getElementById(`amt_${n}`).value = (idx === autoMembers.length - 1) ? (remaining - avg * (autoMembers.length - 1)) : avg;
             });
         }
     }
 
-    function toggleT(n) {
-        const cb = document.getElementById(`cb_${n}`);
-        cb.checked = !cb.checked;
-        document.getElementById(`titem_${n}`).classList.toggle('active', cb.checked);
-        delete manualLocks[n]; // 切換狀態時解除鎖定，重新平分
-        autoSplit();
+    function resetManualAndSplit() { manualLocks = {}; autoSplit(); }
+
+    function moveItem(idx, step) {
+        const item = data.itinerary[idx];
+        const currentDay = parseInt(item.day);
+        const sameDayItems = data.itinerary.filter(i => parseInt(i.day) === currentDay);
+        const inDayIdx = sameDayItems.indexOf(item);
+        if (step === -1) {
+            if (inDayIdx === 0 && currentDay > 1) item.day = (currentDay - 1).toString();
+            else if (inDayIdx > 0) [data.itinerary[idx], data.itinerary[data.itinerary.indexOf(sameDayItems[inDayIdx-1])]] = [data.itinerary[data.itinerary.indexOf(sameDayItems[inDayIdx-1])], data.itinerary[idx]];
+        } else {
+            if (inDayIdx === sameDayItems.length - 1 && currentDay < 8) item.day = (currentDay + 1).toString();
+            else if (inDayIdx < sameDayItems.length - 1) [data.itinerary[idx], data.itinerary[data.itinerary.indexOf(sameDayItems[inDayIdx+1])]] = [data.itinerary[data.itinerary.indexOf(sameDayItems[inDayIdx+1])], data.itinerary[idx]];
+        }
+        saveAll();
     }
 
-    function syncMapField() {
-        if(editIdx === -1) document.getElementById('mMap').value = document.getElementById('mName').value;
+    function handleSave() {
+        if(currentMode === 'ITINERARY') {
+            const it = { n: document.getElementById('mName').value, map: document.getElementById('mMap').value, time: document.getElementById('mTime').value, day: document.getElementById('mDay').value, trans: document.getElementById('mTrans').value };
+            if(editIdx > -1) data.itinerary[editIdx] = it; else data.itinerary.push(it);
+        } else {
+            const members = data.members.split(',');
+            const targets = members.filter(n => document.getElementById(`cb_${n}`).checked).map(n => ({ u: n, a: parseFloat(document.getElementById(`amt_${n}`).value) || 0 }));
+            const s = { n: document.getElementById('mSplitName').value, payer: document.getElementById('mPayer').value, p: document.getElementById('mPrice').value, t: document.getElementById('mCur').value, targets };
+            if(editIdx > -1) data.split[editIdx] = s; else data.split.push(s);
+        }
+        saveAll(); closeModal();
     }
 
     function updateOrderFromDOM() {
         let newList = [];
         [1,2,3,4,5,6,7,8].forEach(d => {
             const group = document.getElementById(`day-group-${d}`);
-            if(group) {
-                group.querySelectorAll('.it-card').forEach(el => {
-                    let item = {...data.itinerary[el.dataset.idx]};
-                    item.day = d; newList.push(item);
-                });
-            }
+            if(group) group.querySelectorAll('.it-card').forEach(el => {
+                let item = {...data.itinerary[el.dataset.idx]}; item.day = d; newList.push(item);
+            });
         });
         data.itinerary = newList; saveAll();
     }
 
     function saveAll() { 
-        data.itinerary.sort((a, b) => parseInt(a.day) - parseInt(b.day));
+        data.itinerary.sort((a,b) => parseInt(a.day) - parseInt(b.day));
         data.exRate = parseFloat(document.getElementById('exRate').value) || 0.2;
         localStorage.setItem('hokkaido_v43_fix', JSON.stringify(data)); 
         renderAll(); 
     }
     
-    function togglePack(idx) { data.packing[idx].d = !data.packing[idx].d; saveAll(); }
-    function addItem(type, id) { const v = document.getElementById(id).value; if(v){ data[type].push({t:v, d:false, c:"手動增加"}); document.getElementById(id).value=''; saveAll(); } }
-    function removeItem(type, idx) { data[type].splice(idx, 1); saveAll(); }
-    function resetPacking() { if(confirm("確定重置行程清單？")) { data.packing = [...defaultPacking]; saveAll(); } }
     function showPage(pId, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -339,10 +315,8 @@
         if(idx > -1) {
             const d = (mode === 'ITINERARY' ? data.itinerary : data.split)[idx];
             if(mode === 'ITINERARY') {
-                document.getElementById('mName').value = d.n; 
-                document.getElementById('mMap').value = d.map || '';
-                document.getElementById('mTime').value = d.time; 
-                document.getElementById('mDay').value = d.day;
+                document.getElementById('mName').value = d.n; document.getElementById('mMap').value = d.map || '';
+                document.getElementById('mTime').value = d.time; document.getElementById('mDay').value = d.day;
                 document.getElementById('mTrans').value = d.trans || '';
             } else {
                 document.getElementById('mSplitName').value = d.n; document.getElementById('mPayer').value = d.payer;
@@ -354,18 +328,7 @@
             if(mode === 'SPLIT') buildTargetList();
         }
     }
-    function handleSave() {
-        if(currentMode === 'ITINERARY') {
-            const it = { n: document.getElementById('mName').value, map: document.getElementById('mMap').value, time: document.getElementById('mTime').value, day: document.getElementById('mDay').value, trans: document.getElementById('mTrans').value };
-            if(editIdx > -1) data.itinerary[editIdx] = it; else data.itinerary.push(it);
-        } else {
-            const members = data.members.split(',');
-            const targets = members.filter(n => document.getElementById(`cb_${n}`).checked).map(n => ({ u: n, a: parseFloat(document.getElementById(`amt_${n}`).value) || 0 }));
-            const s = { n: document.getElementById('mSplitName').value, payer: document.getElementById('mPayer').value, p: document.getElementById('mPrice').value, t: document.getElementById('mCur').value, targets };
-            if(editIdx > -1) data.split[editIdx] = s; else data.split.push(s);
-        }
-        saveAll(); closeModal();
-    }
+    function syncMapField() { if(editIdx === -1) document.getElementById('mMap').value = document.getElementById('mName').value; }
     function closeModal() { document.getElementById('editModal').style.display = 'none'; }
     function handleDelete() { if(confirm("確定刪除？")) { (currentMode==='ITINERARY'?data.itinerary:data.split).splice(editIdx,1); saveAll(); closeModal(); } }
     function updateMembers() { data.members = document.getElementById('memberNames').value; saveAll(); }
