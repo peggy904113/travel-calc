@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V45.0</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <title>去北海道被雪玩 V46.0</title>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
         body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); user-select: none; overflow-x: hidden; }
         
-        /* 雪花動畫 */
         body::before {
             content: "❄"; position: fixed; top: -10%; left: 10%; font-size: 20px; color: white; opacity: 0.5;
             animation: snow 12s linear infinite; z-index: -1;
@@ -30,32 +28,24 @@
         .it-card { 
             background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; 
             display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-            touch-action: auto;
         }
 
-        /* 🛠️ 美化後的手把：六點圖示 ⠿ */
-        .drag-handle {
-            color: #b0bec5; font-size: 1.5rem; cursor: grab; padding-left: 10px;
-            display: flex; align-items: center; justify-content: center;
-            min-width: 40px; height: 45px;
-            touch-action: none !important; /* 確保不觸發頁面捲動 */
-            -webkit-user-select: none; user-select: none;
+        /* 🛠️ 美化後的上下鈕控制區 */
+        .order-controls { display: flex; flex-direction: column; gap: 4px; border-left: 1px solid #f0f0f0; padding-left: 10px; }
+        .order-btn { 
+            border: none; background: #f5f7f9; color: #b0bec5; border-radius: 6px; 
+            width: 32px; height: 26px; font-size: 10px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s;
         }
-
-        .sortable-ghost { opacity: 0.2; background: var(--accent-blue) !important; border-radius: 15px; border: 2px dashed var(--accent-blue); }
-        .sortable-drag { opacity: 0.9; box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important; }
+        .order-btn:active { background: var(--accent-blue); color: white; }
 
         .it-time { min-width: 45px; color: var(--accent-blue); font-weight: bold; font-size: 0.95rem; border-right: 1px solid #eee; padding-right: 5px; }
         .it-info { flex: 1; display: flex; flex-direction: column; }
         .it-name { font-weight: bold; color: #1a237e; font-size: 1.05rem; }
         .it-trans-sub { font-size: 0.75rem; color: var(--gray); margin-top: 3px; font-weight: normal; }
         
-        /* 恢復所有輔助樣式 */
         .pack-cate { font-weight: bold; color: var(--accent-blue); margin: 18px 0 8px 0; font-size: 0.9rem; border-left: 3px solid var(--accent-blue); padding-left: 8px; }
         .pack-item { background: white; padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .pack-item:last-child { border-bottom: none; border-radius: 0 0 15px 15px; }
-        .pack-item:first-child { border-radius: 15px 15px 0 0; }
-        
         .card { background: rgba(255,255,255,0.85); padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); backdrop-filter: blur(5px); }
         .target-item { border: 1.5px solid #eceff1; border-radius: 15px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; background: white; }
         .target-item.active { border-color: var(--accent-blue); background: var(--light-blue); }
@@ -116,7 +106,10 @@
             <small>交通方式</small>
             <select id="mTrans"><option value="">無</option><option value="✈️ 飛機">✈️ 飛機</option><option value="🚗 自駕">🚗 自駕</option><option value="🚆 JR/火車">🚆 JR/火車</option><option value="🚌 巴士/接駁">🚌 巴士/接駁</option><option value="🚶 步行">🚶 步行</option></select>
             <small>天數</small>
-            <select id="mDay"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option></select>
+            <select id="mDay">
+                <option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option>
+                <option value="5">Day 5</option><option value="6">Day 6</option><option value="7">Day 7</option><option value="8">Day 8</option>
+            </select>
         </div>
         <div id="splitFields" style="display:none">
             <small>支出名稱</small><input type="text" id="mSplitName">
@@ -125,14 +118,8 @@
         </div>
         <hr>
         <small>金額</small>
-        <div style="display:flex; gap:5px;">
-            <input type="number" id="mPrice" oninput="autoSplit()" placeholder="總額">
-            <select id="mCur" style="width:70px;"><option value="f">円</option><option value="t">元</option></select>
-        </div>
-        <div style="display:flex; gap:10px; margin-top:20px;">
-            <button onclick="closeModal()" style="flex:1; padding:10px; border-radius:10px; border:none; background:#eee;">取消</button>
-            <button onclick="handleSave()" class="btn-main" style="flex:1;">儲存</button>
-        </div>
+        <div style="display:flex; gap:5px;"><input type="number" id="mPrice" oninput="autoSplit()" placeholder="總額"><select id="mCur" style="width:70px;"><option value="f">円</option><option value="t">元</option></select></div>
+        <div style="display:flex; gap:10px; margin-top:20px;"><button onclick="closeModal()" style="flex:1; padding:10px; border-radius:10px; border:none; background:#eee;">取消</button><button onclick="handleSave()" class="btn-main" style="flex:1;">儲存</button></div>
         <button id="btnDel" onclick="handleDelete()" style="color:var(--red); background:none; border:none; width:100%; margin-top:15px; font-weight:bold;">🗑️ 刪除項目</button>
     </div>
 </div>
@@ -148,42 +135,37 @@
     const defaultPacking = [{c: "證件財物", t: "護照/身分證/VJW QR", d: false},{c: "證件財物", t: "日幣現金/信用卡/Suica", d: false},{c: "穿搭裝備", t: "極地發熱衣物/防風外套", d: false},{c: "穿搭裝備", t: "防滑雪靴/冰爪/厚襪子", d: false},{c: "電器產品", t: "行動電源/充電線/多孔頭", d: false},{c: "藥品護理", t: "保濕乳液/護唇膏/常備藥", d: false}];
     let data = JSON.parse(localStorage.getItem('hokkaido_v43_fix')) || { itinerary: [], split: [], packing: defaultPacking, members: "我,翌,丞,馨,子,嚕", exRate: 0.2, hotelTotal: 374259, flight: 21255 };
     
-    window.onload = () => { 
-        document.getElementById('exRate').value = data.exRate || 0.2;
-        document.getElementById('hotelTotal').value = data.hotelTotal || 374259;
-        document.getElementById('flight').value = data.flight || 21255;
-        renderAll(); 
-    };
+    window.onload = () => { renderAll(); };
 
     function renderAll() {
         const itDiv = document.getElementById('itList'); itDiv.innerHTML = '';
         const members = data.members.split(',');
         const rate = parseFloat(data.exRate) || 0.2;
         
-        [1,2,3,4,5].forEach(d => {
-            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" style="min-height:50px; padding-bottom:10px;"></div>`;
+        // 擴展到 8 天
+        for(let d=1; d<=8; d++) {
+            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}"></div>`;
             const group = document.getElementById(`day-group-${d}`);
-            data.itinerary.filter(i => i.day == d).forEach(it => {
-                const idx = data.itinerary.indexOf(it);
+            const dayItems = data.itinerary.filter(i => i.day == d);
+            
+            dayItems.forEach((it, dayIdx) => {
+                const globalIdx = data.itinerary.indexOf(it);
                 group.innerHTML += `
-                <div class="it-card" data-idx="${idx}">
+                <div class="it-card">
                     <div class="it-time">${it.time||'--'}</div>
-                    <div class="it-info" onclick="openModal('ITINERARY', ${idx})">
+                    <div class="it-info" onclick="openModal('ITINERARY', ${globalIdx})">
                         <div class="it-name">${it.n}</div>
                         ${it.trans ? `<div class="it-trans-sub">└─ ${it.trans}</div>` : ''}
                     </div>
-                    <div class="drag-handle">⠿</div>
+                    <div class="order-controls">
+                        <button class="order-btn" onclick="moveItem(${globalIdx}, -1)">▲</button>
+                        <button class="order-btn" onclick="moveItem(${globalIdx}, 1)">▼</button>
+                    </div>
                 </div>`;
             });
+        }
 
-            new Sortable(group, { 
-                group: 'days', animation: 150, handle: '.drag-handle', forceFallback: true,
-                ghostClass: 'sortable-ghost', fallbackClass: 'sortable-drag',
-                onEnd: updateOrderFromDOM 
-            });
-        });
-
-        // 恢復：行李清單
+        // 行李清單
         const packDiv = document.getElementById('packingList'); packDiv.innerHTML = '';
         let lastCate = '';
         data.packing.forEach((p, i) => {
@@ -194,7 +176,7 @@
             </div>`;
         });
 
-        // 恢復：結算與計算邏輯
+        // 結算邏輯
         let myPure = 0, myLend = 0, summary = {};
         members.slice(1).forEach(n => summary[n] = 0);
         data.split.forEach(s => {
@@ -213,17 +195,23 @@
         document.getElementById('hotelPreview').innerHTML = `💡 每人住宿 ≈ NT ${Math.round(hotel/members.length*rate).toLocaleString()}`;
     }
 
-    function updateOrderFromDOM() {
-        let newList = [];
-        [1,2,3,4,5].forEach(d => {
-            document.querySelectorAll(`#day-group-${d} .it-card`).forEach(el => {
-                let item = {...data.itinerary[el.dataset.idx]};
-                item.day = d; newList.push(item);
-            });
-        });
-        data.itinerary = newList; saveAll();
+    // 🛠️ 穩定排序：利用陣列 index 移動，且限制在同一天內移動
+    function moveItem(idx, step) {
+        const item = data.itinerary[idx];
+        const dayItems = data.itinerary.filter(i => i.day == item.day);
+        const currentInDayIdx = dayItems.indexOf(item);
+        const targetInDayIdx = currentInDayIdx + step;
+
+        if (targetInDayIdx >= 0 && targetInDayIdx < dayItems.length) {
+            const targetItem = dayItems[targetInDayIdx];
+            const globalTargetIdx = data.itinerary.indexOf(targetItem);
+            // 交換位置
+            data.itinerary[idx] = targetItem;
+            data.itinerary[globalTargetIdx] = item;
+            saveAll();
+        }
     }
-    
+
     function saveAll() { 
         data.exRate = parseFloat(document.getElementById('exRate').value);
         data.hotelTotal = document.getElementById('hotelTotal').value;
@@ -238,7 +226,6 @@
     function removeItem(type, idx) { data[type].splice(idx, 1); saveAll(); }
     function resetPacking() { if(confirm("確定重置行程清單？")) { data.packing = [...defaultPacking]; saveAll(); } }
     function updateMembers() { data.members = document.getElementById('memberNames').value; saveAll(); }
-    
     function showPage(pId, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -286,9 +273,7 @@
         const checked = data.members.split(',').filter(n => document.getElementById(`cb_${n}`).checked);
         if (checked.length > 0) checked.forEach(n => document.getElementById(`amt_${n}`).value = Math.round(total / checked.length));
     }
-
     function toggleT(n) { document.getElementById(`cb_${n}`).checked = !document.getElementById(`cb_${n}`).checked; document.getElementById(`titem_${n}`).classList.toggle('active'); autoSplit(); }
-
     function handleSave() {
         if(currentMode === 'ITINERARY') {
             const it = { n: document.getElementById('mName').value, map: document.getElementById('mMap').value, time: document.getElementById('mTime').value, day: document.getElementById('mDay').value, trans: document.getElementById('mTrans').value };
