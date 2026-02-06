@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V44.2</title>
+    <title>去北海道被雪玩 V44.3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
@@ -28,29 +28,26 @@
         
         .it-card { 
             background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; 
-            display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-            /* 🛠️ 修改：不要強制 none，讓瀏覽器感知觸碰 */
-            touch-action: auto;              
-            -webkit-touch-callout: none;     
-            -webkit-user-select: none;       
-            user-select: none;               
-            cursor: grab;
-            position: relative;
+            display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            touch-action: auto; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
         }
 
-        .sortable-ghost { opacity: 0.2; background: var(--accent-blue) !important; }
-        .sortable-drag { opacity: 0.8; }
-        
-        .it-time { min-width: 45px; color: var(--accent-blue); font-weight: bold; font-size: 0.95rem; border-right: 1px solid #eee; padding-right: 5px; pointer-events: none; }
-        .it-info { flex: 1; display: flex; flex-direction: column; pointer-events: none; }
+        /* 🛠️ 手把樣式：固定在右側 */
+        .drag-handle {
+            color: #ddd; font-size: 1.2rem; cursor: grab; padding-left: 10px;
+            display: flex; align-items: center; justify-content: center;
+            min-width: 30px; height: 40px;
+        }
+        .sortable-ghost { opacity: 0.2; background: var(--accent-blue) !important; border-radius: 15px; }
+
+        .it-time { min-width: 45px; color: var(--accent-blue); font-weight: bold; font-size: 0.95rem; border-right: 1px solid #eee; padding-right: 5px; }
+        .it-info { flex: 1; display: flex; flex-direction: column; }
         .it-name { font-weight: bold; color: #1a237e; font-size: 1.05rem; }
         .it-trans-sub { font-size: 0.75rem; color: var(--gray); margin-top: 3px; font-weight: normal; }
         
-        /* ... 中間 CSS 保持原樣 ... */
+        /* 保持其餘樣式不變 */
         .pack-cate { font-weight: bold; color: var(--accent-blue); margin: 18px 0 8px 0; font-size: 0.9rem; border-left: 3px solid var(--accent-blue); padding-left: 8px; }
-        .pack-item { background: white; padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: grab; }
-        .pack-item:last-child { border-bottom: none; border-radius: 0 0 15px 15px; }
-        .pack-item:first-child { border-radius: 15px 15px 0 0; }
+        .pack-item { background: white; padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .card { background: rgba(255,255,255,0.85); padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); backdrop-filter: blur(5px); }
         .target-item { border: 1.5px solid #eceff1; border-radius: 15px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; background: white; }
         .target-item.active { border-color: var(--accent-blue); background: var(--light-blue); }
@@ -148,47 +145,38 @@
         const rate = parseFloat(document.getElementById('exRate').value) || 0.2;
         
         [1,2,3,4,5].forEach(d => {
-            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" class="sort-group" style="min-height:50px; padding-bottom:10px;"></div>`;
+            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" class="sort-group" style="min-height:50px;"></div>`;
             const group = document.getElementById(`day-group-${d}`);
             data.itinerary.filter(i => i.day == d).forEach(it => {
                 const idx = data.itinerary.indexOf(it);
                 group.innerHTML += `
-                <div class="it-card" data-idx="${idx}" onclick="if(!this.classList.contains('dragging')) openModal('ITINERARY', ${idx})">
+                <div class="it-card" data-idx="${idx}">
                     <div class="it-time">${it.time||'--'}</div>
-                    <div class="it-info">
+                    <div class="it-info" onclick="openModal('ITINERARY', ${idx})">
                         <div class="it-name">${it.n}</div>
                         ${it.trans ? `<div class="it-trans-sub">└─ ${it.trans}</div>` : ''}
                     </div>
+                    <div class="drag-handle">☰</div>
                 </div>`;
             });
 
-            // 🛠️ 回歸 V36 的穩定機制，但加上延遲避開選單
             new Sortable(group, { 
                 group: 'days', 
                 animation: 150, 
-                delay: 250,              /* 關鍵：按住 0.25 秒才開始拖拉 */
-                delayOnTouchOnly: true,
-                touchStartThreshold: 5,   /* 允許手指些微晃動 */
+                handle: '.drag-handle',
                 ghostClass: 'sortable-ghost',
-                onStart: function(evt) { evt.item.classList.add('dragging'); },
-                onEnd: function(evt) { 
-                    evt.item.classList.remove('dragging');
-                    updateOrderFromDOM(); 
-                }
+                forceFallback: true,
+                onEnd: updateOrderFromDOM 
             });
         });
 
-        // 剩餘 render 邏輯 100% 保持原樣
+        // 剩餘邏輯保持不變
         const packDiv = document.getElementById('packingList'); packDiv.innerHTML = '';
         let lastCate = '';
         data.packing.forEach((p, i) => {
             if(p.c !== lastCate) { packDiv.innerHTML += `<div class="pack-cate">${p.c}</div>`; lastCate = p.c; }
             packDiv.innerHTML += `<div class="pack-item" data-idx="${i}"><span onclick="togglePack(${i})" style="${p.d?'text-decoration:line-through;opacity:0.4':''}">${p.d?'✅ ':''} ${p.t}</span><span style="color:var(--red);" onclick="removeItem('packing',${i})">✕</span></div>`;
         });
-        new Sortable(packDiv, { animation: 150, delay: 250, delayOnTouchOnly: true, onEnd: () => {
-            let newList = []; packDiv.querySelectorAll('.pack-item').forEach(el => newList.push(data.packing[el.dataset.idx]));
-            data.packing = newList; saveAll();
-        }});
 
         let myPure = 0, myLend = 0, summary = {};
         members.slice(1).forEach(n => summary[n] = 0);
@@ -208,7 +196,6 @@
         document.getElementById('hotelPreview').innerHTML = `💡 每人住宿 ≈ NT ${Math.round(hotel/members.length*rate).toLocaleString()}`;
     }
 
-    // 剩餘功能函數 100% 保持原樣
     function syncMapField() { if(editIdx === -1) { document.getElementById('mMap').value = document.getElementById('mName').value; } }
     function updateOrderFromDOM() {
         let newList = [];
@@ -275,7 +262,7 @@
     function toggleT(n) { document.getElementById(`cb_${n}`).checked = !document.getElementById(`cb_${n}`).checked; document.getElementById(`titem_${n}`).classList.toggle('active'); autoSplit(); }
     function handleSave() {
         if(currentMode === 'ITINERARY') {
-            const it = { n: document.getElementById('mName').value, map: document.getElementById('mName').value, time: document.getElementById('mTime').value, day: document.getElementById('mDay').value, trans: document.getElementById('mTrans').value };
+            const it = { n: document.getElementById('mName').value, map: document.getElementById('mMap').value, time: document.getElementById('mTime').value, day: document.getElementById('mDay').value, trans: document.getElementById('mTrans').value };
             if(editIdx > -1) data.itinerary[editIdx] = it; else data.itinerary.push(it);
         } else {
             const members = data.members.split(',');
