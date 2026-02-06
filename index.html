@@ -26,14 +26,14 @@
         
         .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
         
-        /* 🛠️ A 模式 CSS 修改：徹底鎖定卡片手勢 */
+        /* 🛠️ A 模式 CSS：維持目前的霸道模式設定 */
         .it-card { 
             background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; 
             display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-            touch-action: none;              /* 讓卡片不搶捲動權，專心拖拉 */
-            -webkit-touch-callout: none;     /* 解決問題 B：禁止 iOS 長按選單 */
-            -webkit-user-select: none;       /* 禁止選取文字 */
-            user-select: none;               /* 禁止選取文字 */
+            touch-action: none;              
+            -webkit-touch-callout: none;     
+            -webkit-user-select: none;       
+            user-select: none;               
         }
         
         .it-time { min-width: 45px; color: var(--accent-blue); font-weight: bold; font-size: 0.95rem; border-right: 1px solid #eee; padding-right: 5px; }
@@ -173,13 +173,13 @@
                 </div>`;
             });
 
-            // 🛠️ A 模式 JS 修改：移除延遲，秒速握手
+            // 🛠️ 核心微調點：修正啟動間隙
             new Sortable(group, { 
                 group: 'days', 
                 animation: 150, 
                 forceFallback: true, 
-                fallbackTolerance: 0,  /* 手指一動就開始拖 */
-                delay: 0,              /* 解決問題 A：不等待，快速按住也要動 */
+                fallbackTolerance: 3,  /* 手指移動 3 像素即觸發拖拉，解決「沒黏住」*/
+                delay: 50,             /* 給予 50ms 緩衝，避開瀏覽器誤判 */
                 onEnd: updateOrderFromDOM 
             });
         });
