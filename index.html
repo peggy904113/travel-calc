@@ -115,7 +115,7 @@
         <hr>
         <small>金額</small>
         <div style="display:flex; gap:5px;">
-            <input type="number" id="mPrice" oninput="autoSplit()" placeholder="總額">
+            <input type="number" id="mPrice" oninput="resetManualAndSplit()" placeholder="總額">
             <select id="mCur" style="width:70px;"><option value="f">円</option><option value="t">元</option></select>
         </div>
         <div style="display:flex; gap:10px; margin-top:20px;">
@@ -147,6 +147,8 @@
         itinerary: [], split: [], packing: defaultPacking, members: "我,翌,丞,馨,子,嚕", exRate: 0.2 
     };
 
+    let manualLocks = {}; // 分帳鎖定紀錄
+
     window.onload = () => {
         document.getElementById('exRate').value = data.exRate || 0.2;
         renderAll();
@@ -157,7 +159,6 @@
         const members = data.members.split(',');
         const rate = parseFloat(document.getElementById('exRate').value) || 0.2;
         
-        // 渲染行程 (改為 1-8 天)
         [1,2,3,4,5,6,7,8].forEach(d => {
             itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" class="sort-group"></div>`;
             const group = document.getElementById(`day-group-${d}`);
@@ -210,35 +211,87 @@
         document.getElementById('hotelPreview').innerHTML = `💡 每人住宿 ≈ NT ${Math.round(hotel/members.length*rate).toLocaleString()}`;
     }
 
-    // --- 增加的上下按鈕邏輯 ---
     function moveItem(idx, step) {
         const item = data.itinerary[idx];
         const currentDay = parseInt(item.day);
         const sameDayItems = data.itinerary.filter(i => parseInt(i.day) === currentDay);
         const inDayIdx = sameDayItems.indexOf(item);
-
-        if (step === -1) { // 向上
-            if (inDayIdx === 0) { // 當天第一個
-                if (currentDay > 1) {
-                    item.day = (currentDay - 1).toString(); // 跨到前一天
-                }
-            } else { // 同天交換
+        if (step === -1) {
+            if (inDayIdx === 0 && currentDay > 1) item.day = (currentDay - 1).toString();
+            else if (inDayIdx > 0) {
                 const prevItem = sameDayItems[inDayIdx - 1];
                 const targetIdx = data.itinerary.indexOf(prevItem);
                 [data.itinerary[idx], data.itinerary[targetIdx]] = [data.itinerary[targetIdx], data.itinerary[idx]];
             }
-        } else { // 向下
-            if (inDayIdx === sameDayItems.length - 1) { // 當天最後一個
-                if (currentDay < 8) {
-                    item.day = (currentDay + 1).toString(); // 跨到後一天
-                }
-            } else { // 同天交換
+        } else {
+            if (inDayIdx === sameDayItems.length - 1 && currentDay < 8) item.day = (currentDay + 1).toString();
+            else if (inDayIdx < sameDayItems.length - 1) {
                 const nextItem = sameDayItems[inDayIdx + 1];
                 const targetIdx = data.itinerary.indexOf(nextItem);
                 [data.itinerary[idx], data.itinerary[targetIdx]] = [data.itinerary[targetIdx], data.itinerary[idx]];
             }
         }
         saveAll();
+    }
+
+    // --- 修改的分帳系統邏輯 ---
+    function buildTargetList(st = null) {
+        const list = document.getElementById('targetList');
+        const members = data.members.split(',');
+        manualLocks = {}; 
+        list.innerHTML = members.map(n => {
+            let isC = st ? st.some(x => x.u === n) : (n === members[0]);
+            let amt = st ? (st.find(x => x.u === n)?.a || 0) : 0;
+            if(st && isC) manualLocks[n] = true;
+            return `<div class="target-item ${isC?'active':''}" onclick="toggleT('${n}')" id="titem_${n}">
+                <div style="display:flex; align-items:center;"><input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="margin-right:8px; pointer-events:none;"><b>${n}</b></div>
+                <input type="number" id="amt_${n}" class="amt-input" value="${amt}" onclick="event.stopPropagation()" oninput="handleManualInput('${n}')" style="width:80px; text-align:right; border:1px solid #ddd; border-radius:8px; padding:5px;">
+            </div>`;
+        }).join('');
+        if(!st) autoSplit();
+    }
+
+    function handleManualInput(name) {
+        manualLocks[name] = true;
+        document.getElementById(`cb_${name}`).checked = true;
+        document.getElementById(`titem_${name}`).classList.add('active');
+        autoSplit();
+    }
+
+    function resetManualAndSplit() {
+        manualLocks = {};
+        autoSplit();
+    }
+
+    function autoSplit() {
+        const total = parseFloat(document.getElementById('mPrice').value) || 0;
+        const members = data.members.split(',');
+        const checked = members.filter(n => document.getElementById(`cb_${n}`).checked);
+        if (checked.length === 0) return;
+
+        let lockedSum = 0;
+        let autoMembers = [];
+        checked.forEach(n => {
+            if (manualLocks[n]) lockedSum += parseFloat(document.getElementById(`amt_${n}`).value) || 0;
+            else autoMembers.push(n);
+        });
+
+        const remaining = total - lockedSum;
+        if (autoMembers.length > 0) {
+            const avg = Math.round(remaining / autoMembers.length);
+            autoMembers.forEach((n, idx) => {
+                if (idx === autoMembers.length - 1) document.getElementById(`amt_${n}`).value = remaining - (avg * (autoMembers.length - 1));
+                else document.getElementById(`amt_${n}`).value = avg;
+            });
+        }
+    }
+
+    function toggleT(n) {
+        const cb = document.getElementById(`cb_${n}`);
+        cb.checked = !cb.checked;
+        document.getElementById(`titem_${n}`).classList.toggle('active', cb.checked);
+        delete manualLocks[n]; // 切換狀態時解除鎖定，重新平分
+        autoSplit();
     }
 
     function syncMapField() {
@@ -301,25 +354,6 @@
             if(mode === 'SPLIT') buildTargetList();
         }
     }
-    function buildTargetList(st = null) {
-        const list = document.getElementById('targetList');
-        const members = data.members.split(',');
-        list.innerHTML = members.map(n => {
-            let isC = st ? st.some(x => x.u === n) : (n === members[0]);
-            let amt = st ? (st.find(x => x.u === n)?.a || 0) : 0;
-            return `<div class="target-item ${isC?'active':''}" onclick="toggleT('${n}')" id="titem_${n}">
-                <div style="display:flex; align-items:center;"><input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="margin-right:8px; pointer-events:none;"><b>${n}</b></div>
-                <input type="number" id="amt_${n}" class="amt-input" value="${amt}" onclick="event.stopPropagation()" oninput="autoSplit()" style="width:80px; text-align:right; border:1px solid #ddd; border-radius:8px; padding:5px;">
-            </div>`;
-        }).join('');
-    }
-    function autoSplit() {
-        const total = parseFloat(document.getElementById('mPrice').value) || 0;
-        const members = data.members.split(',');
-        const checked = members.filter(n => document.getElementById(`cb_${n}`).checked);
-        if (checked.length > 0) checked.forEach(n => document.getElementById(`amt_${n}`).value = Math.round(total / checked.length));
-    }
-    function toggleT(n) { document.getElementById(`cb_${n}`).checked = !document.getElementById(`cb_${n}`).checked; document.getElementById(`titem_${n}`).classList.toggle('active'); autoSplit(); }
     function handleSave() {
         if(currentMode === 'ITINERARY') {
             const it = { n: document.getElementById('mName').value, map: document.getElementById('mMap').value, time: document.getElementById('mTime').value, day: document.getElementById('mDay').value, trans: document.getElementById('mTrans').value };
