@@ -9,7 +9,6 @@
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
         body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f0f4f8; margin: 0; padding-bottom: 110px; color: var(--text); user-select: none; overflow-x: hidden; }
         
-        /* 下雪背景 */
         body::before {
             content: "❄"; position: fixed; top: -10%; left: 10%; font-size: 20px; color: white; opacity: 0.5;
             animation: snow 12s linear infinite; z-index: -1;
@@ -27,8 +26,15 @@
         
         .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
         
-        /* ⚠️ 修正 1：touch-action 改為 none，確保拖拉信號不被網頁捲動攔截 */
-        .it-card { background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); touch-action: none; }
+        /* 🛠️ A 模式 CSS 修改：徹底鎖定卡片手勢 */
+        .it-card { 
+            background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; 
+            display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            touch-action: none;              /* 讓卡片不搶捲動權，專心拖拉 */
+            -webkit-touch-callout: none;     /* 解決問題 B：禁止 iOS 長按選單 */
+            -webkit-user-select: none;       /* 禁止選取文字 */
+            user-select: none;               /* 禁止選取文字 */
+        }
         
         .it-time { min-width: 45px; color: var(--accent-blue); font-weight: bold; font-size: 0.95rem; border-right: 1px solid #eee; padding-right: 5px; }
         .it-info { flex: 1; display: flex; flex-direction: column; }
@@ -167,12 +173,13 @@
                 </div>`;
             });
 
-            // ⚠️ 修正 2 & 3：加入 forceFallback 與 fallbackTolerance 解決手機無法拖拉問題
+            // 🛠️ A 模式 JS 修改：移除延遲，秒速握手
             new Sortable(group, { 
                 group: 'days', 
                 animation: 150, 
                 forceFallback: true, 
-                fallbackTolerance: 3, 
+                fallbackTolerance: 0,  /* 手指一動就開始拖 */
+                delay: 0,              /* 解決問題 A：不等待，快速按住也要動 */
                 onEnd: updateOrderFromDOM 
             });
         });
