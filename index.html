@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V45.2</title>
+    <title>去北海道被雪玩 V45.3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
@@ -96,7 +96,7 @@
                 <div style="flex:1;"><small>天數</small>
                 <select id="mDay"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option><option value="6">Day 6</option><option value="7">Day 7</option><option value="8">Day 8</option></select></div>
             </div>
-            <small>預算分類</small>
+            <small>預預分類</small>
             <select id="mCate"><option value="">無</option><option value="🎟️ 門票">🎟️ 門票/活動</option><option value="🚗 交通">🚗 交通/過路費</option></select>
             <small>交通方式</small>
             <select id="mTrans"><option value="">無</option><option value="✈️ 飛機">✈️ 飛機</option><option value="🚗 自駕">🚗 自駕</option><option value="🚆 JR/火車">🚆 JR/火車</option><option value="🚌 巴士/接駁">🚌 巴士/接駁</option><option value="🚶 步行">🚶 步行</option></select>
@@ -184,39 +184,50 @@
         });
 
         // 核心統計邏輯
-        let myPureSplit = 0, myLend = 0, summary = {};
-        members.slice(1).forEach(n => summary[n] = 0);
+        let myPureSplit = 0, myLend = 0, summaryNT = {}, summaryJPY = {};
+        members.slice(1).forEach(n => { summaryNT[n] = 0; summaryJPY[n] = 0; });
         
         data.split.forEach(s => {
+            // 自動偵測「預繳」與「還款」關鍵字
             const isPrepayment = s.n.includes("預繳") || s.n.includes("還款");
+            
             s.targets.forEach(tg => {
                 let valNT = (s.t==='f' ? tg.a * rate : tg.a);
-                // 修改：個人實花只對應拆帳紀錄，刪除後即歸零
+                
+                // 個人實花邏輯：排除預繳/還款
                 if(tg.u === members[0] && !isPrepayment) myPureSplit += valNT;
                 
+                // 債務結算邏輯
                 if(s.payer === members[0] && tg.u !== members[0]) { 
                     myLend += valNT; 
-                    summary[tg.u] += tg.a; 
+                    if(s.t==='f') summaryJPY[tg.u] += tg.a; else summaryNT[tg.u] += tg.a;
                 } else if(s.payer !== members[0] && tg.u === members[0]) { 
-                    summary[s.payer] -= tg.a; 
+                    if(s.t==='f') summaryJPY[s.payer] -= tg.a; else summaryNT[s.payer] -= tg.a;
                 }
             });
         });
 
         let hotelJPY = 0; try { hotelJPY = eval(data.hotelTotal.toString().replace(/[^\d+*/.-]/g, '')) || 0; } catch(e) {}
         const totalBudgetNT = (totalItBudgetJPY + hotelJPY/members.length) * rate + (parseFloat(data.flight)||0);
-        
-        // 個人實花修正：刪除拆帳明細後，myPureSplit 會變 0，此處就會歸零
         const myTotalNT = myPureSplit;
 
         document.getElementById('statBudgetTotal').innerText = `$${Math.round(totalBudgetNT).toLocaleString()}`;
         document.getElementById('statMyTotal').innerText = `$${Math.round(myTotalNT).toLocaleString()}`;
         
-        document.getElementById('splitSummary').innerHTML = `<div style="margin-bottom:10px; padding:10px; background:white; border-radius:10px; border:1px dashed var(--accent-blue);"><small style="color:var(--accent-blue);">🧧 我的代墊總計 (NT): </small><b>$${Math.round(myLend).toLocaleString()}</b></div>` + 
-        Object.entries(summary).map(([n,v]) => {
-            if(v === 0) return '';
-            return `● ${n}: ${v > 0 ? '應收' : '應付'} ${Math.abs(Math.round(v)).toLocaleString()} (原幣別)<br>`;
-        }).join('');
+        // 結算區塊修正：標示 円 或 元
+        let summaryHTML = `<div style="margin-bottom:10px; padding:10px; background:white; border-radius:10px; border:1px dashed var(--accent-blue);"><small style="color:var(--accent-blue);">🧧 我的代墊總計 (NT): </small><b>$${Math.round(myLend).toLocaleString()}</b></div>`;
+        
+        members.slice(1).forEach(name => {
+            let jpy = summaryJPY[name] || 0;
+            let nt = summaryNT[name] || 0;
+            if(jpy !== 0 || nt !== 0) {
+                summaryHTML += `● ${name}: `;
+                if(jpy !== 0) summaryHTML += `${jpy > 0 ? '應收' : '應付'} ${Math.abs(Math.round(jpy)).toLocaleString()} 円 `;
+                if(nt !== 0) summaryHTML += `${nt > 0 ? '應收' : '應付'} ${Math.abs(Math.round(nt)).toLocaleString()} 元 `;
+                summaryHTML += `<br>`;
+            }
+        });
+        document.getElementById('splitSummary').innerHTML = summaryHTML;
         
         document.getElementById('splitList').innerHTML = data.split.map((s, i) => `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><b>${s.p}${s.t==='f'?'円':'元'}</b></div>`).join('');
         
