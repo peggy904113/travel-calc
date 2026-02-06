@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V44.2</title>
+    <title>去北海道被雪玩 V44.3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
@@ -26,20 +26,16 @@
         .page.active { display: block; }
         
         .day-header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 6px 15px; border-radius: 20px; margin: 15px 0 10px 0; font-size: 0.8rem; display: inline-block; }
+        .day-budget { font-size: 0.7rem; opacity: 0.9; margin-left: 8px; font-weight: normal; }
+        
         .it-card { background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); touch-action: pan-y; }
         .it-time { min-width: 45px; color: var(--accent-blue); font-weight: bold; font-size: 0.95rem; border-right: 1px solid #eee; padding-right: 5px; }
         .it-info { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .it-name { font-weight: bold; color: #1a237e; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .it-trans-sub { font-size: 0.75rem; color: var(--gray); margin-top: 3px; font-weight: normal; }
+        .it-price-tag { font-size: 0.75rem; color: #f57c00; font-weight: bold; margin-top: 2px; }
         
         .order-controls { display: flex; flex-direction: column; gap: 4px; border-left: 1px solid #eee; padding-left: 8px; }
         .order-btn { border: none; background: #f5f7f9; color: #b0bec5; border-radius: 6px; width: 32px; height: 28px; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .order-btn:active { background: #e3f2fd; color: var(--accent-blue); }
-
-        .pack-cate { font-weight: bold; color: var(--accent-blue); margin: 18px 0 8px 0; font-size: 0.9rem; border-left: 3px solid var(--accent-blue); padding-left: 8px; }
-        .pack-item { background: white; padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: grab; }
-        .pack-item:last-child { border-bottom: none; border-radius: 0 0 15px 15px; }
-        .pack-item:first-child { border-radius: 15px 15px 0 0; }
         
         .card { background: rgba(255,255,255,0.85); padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); backdrop-filter: blur(5px); }
         .target-item { border: 1.5px solid #eceff1; border-radius: 15px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; background: white; }
@@ -78,15 +74,6 @@
             <small>住宿 JPY</small><input type="text" id="hotelTotal" value="374259" oninput="saveAll()">
             <div id="hotelPreview" style="font-size:0.8rem; color:var(--accent-blue); margin-top:5px; font-weight:bold;"></div>
         </div>
-        <div class="card">
-            <h3>🧳 行李清單</h3>
-            <div id="packingList"></div>
-            <div style="display:flex; gap:8px; margin-top:15px;">
-                <input type="text" id="newPack" placeholder="手動增加..." style="margin:0;">
-                <button onclick="addItem('packing','newPack')" style="background:var(--orange); color:white; border:none; border-radius:12px; width:60px;">+</button>
-            </div>
-            <button onclick="resetPacking()" style="width:100%; margin-top:15px; border:none; background:none; color:var(--gray); font-size:0.75rem;">🔄 重置建議清單</button>
-        </div>
     </div>
 </div>
 
@@ -96,15 +83,15 @@
         <div id="itFields">
             <small>項目名稱</small><input type="text" id="mName" oninput="syncMapField()">
             <small>地點導航</small><input type="text" id="mMap" placeholder="搜尋地點或輸入網址">
-            <small>時間</small><input type="text" id="mTime" placeholder="12:00">
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1;"><small>時間</small><input type="text" id="mTime" placeholder="12:00"></div>
+                <div style="flex:1;"><small>天數</small>
+                <select id="mDay"><option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option><option value="4">Day 4</option><option value="5">Day 5</option><option value="6">Day 6</option><option value="7">Day 7</option><option value="8">Day 8</option></select></div>
+            </div>
+            <small>預算分類</small>
+            <select id="mCate"><option value="">無</option><option value="🎟️ 門票">🎟️ 門票/活動</option><option value="🚗 交通">🚗 交通/過路費</option></select>
             <small>交通方式</small>
             <select id="mTrans"><option value="">無</option><option value="✈️ 飛機">✈️ 飛機</option><option value="🚗 自駕">🚗 自駕</option><option value="🚆 JR/火車">🚆 JR/火車</option><option value="🚌 巴士/接駁">🚌 巴士/接駁</option><option value="🚶 步行">🚶 步行</option></select>
-            <small>天數</small>
-            <select id="mDay">
-                <option value="1">Day 1</option><option value="2">Day 2</option><option value="3">Day 3</option>
-                <option value="4">Day 4</option><option value="5">Day 5</option><option value="6">Day 6</option>
-                <option value="7">Day 7</option><option value="8">Day 8</option>
-            </select>
         </div>
         <div id="splitFields" style="display:none">
             <small>支出名稱</small><input type="text" id="mSplitName">
@@ -112,9 +99,9 @@
             <div id="targetList" style="margin-top:10px;"></div>
         </div>
         <hr>
-        <small>金額</small>
+        <small>金額 (個人部分)</small>
         <div style="display:flex; gap:5px;">
-            <input type="number" id="mPrice" oninput="resetManualAndSplit()" placeholder="總額">
+            <input type="number" id="mPrice" oninput="resetManualAndSplit()" placeholder="金額">
             <select id="mCur" style="width:70px;"><option value="f">円</option><option value="t">元</option></select>
         </div>
         <div style="display:flex; gap:10px; margin-top:20px;">
@@ -134,7 +121,7 @@
 
 <script>
     let data = JSON.parse(localStorage.getItem('hokkaido_v43_fix')) || { 
-        itinerary: [], split: [], packing: [], members: "我,翌,丞,馨,子,嚕", exRate: 0.2 
+        itinerary: [], split: [], members: "我,翌,丞,馨,子,嚕", exRate: 0.2 
     };
     let manualLocks = {};
     let currentMode = 'ITINERARY', editIdx = -1;
@@ -150,28 +137,30 @@
         const rate = parseFloat(document.getElementById('exRate').value) || 0.2;
         
         [1,2,3,4,5,6,7,8].forEach(d => {
-            itDiv.innerHTML += `<div class="day-header">Day ${d}</div><div id="day-group-${d}" class="sort-group"></div>`;
+            let dayBudget = 0;
+            const dayItems = data.itinerary.filter(i => i.day == d);
+            dayItems.forEach(i => { if(i.p) dayBudget += (i.t === 'f' ? parseFloat(i.p) : parseFloat(i.p) / rate); });
+
+            itDiv.innerHTML += `<div class="day-header">Day ${d} <span class="day-budget">(預算: ¥${Math.round(dayBudget).toLocaleString()})</span></div><div id="day-group-${d}" class="sort-group"></div>`;
             const group = document.getElementById(`day-group-${d}`);
-            data.itinerary.filter(i => i.day == d).forEach(it => {
+            dayItems.forEach(it => {
                 const idx = data.itinerary.indexOf(it);
                 group.innerHTML += `
                 <div class="it-card" data-idx="${idx}">
                     <div class="it-time">${it.time||'--'}</div>
                     <div class="it-info" onclick="openModal('ITINERARY', ${idx})">
                         <div class="it-name">${it.n}</div>
-                        ${it.trans ? `<div class="it-trans-sub">└─ ${it.trans}</div>` : ''}
+                        ${it.p ? `<div class="it-price-tag">${it.cate||''} ${it.p}${it.t==='f'?'円':'元'}</div>` : ''}
+                        ${it.trans ? `<div style="font-size:0.75rem; color:var(--gray); margin-top:2px;">└─ ${it.trans}</div>` : ''}
                     </div>
-                    ${it.map ? `<span style="font-size:1.2rem; cursor:pointer;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.map)}','_blank')">🚗</span>` : ''}
-                    <div class="order-controls">
-                        <button class="order-btn" onclick="moveItem(${idx}, -1)">▲</button>
-                        <button class="order-btn" onclick="moveItem(${idx}, 1)">▼</button>
-                    </div>
+                    ${it.map ? `<span style="font-size:1.2rem; cursor:pointer;" onclick="window.open('http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(it.map)}','_blank')">🚗</span>` : ''}
+                    <div class="order-controls"><button class="order-btn" onclick="moveItem(${idx}, -1)">▲</button><button class="order-btn" onclick="moveItem(${idx}, 1)">▼</button></div>
                 </div>`;
             });
             new Sortable(group, { group: 'days', animation: 150, onEnd: updateOrderFromDOM });
         });
 
-        // 結算邏輯
+        // 結算邏輯 (只算分帳系統)
         let myPure = 0, myLend = 0, summary = {};
         members.slice(1).forEach(n => summary[n] = 0);
         data.split.forEach(s => {
@@ -190,7 +179,6 @@
         document.getElementById('hotelPreview').innerHTML = `💡 每人住宿 ≈ NT ${Math.round(hotel/members.length*rate).toLocaleString()}`;
     }
 
-    // 分帳專用修正：防止跳動的點擊處理
     function buildTargetList(st = null) {
         const list = document.getElementById('targetList');
         const members = data.members.split(',');
@@ -200,15 +188,9 @@
             let isC = st ? st.some(x => x.u === n) : (n === members[0]);
             let amt = st ? (st.find(x => x.u === n)?.a || 0) : 0;
             if(st && isC) manualLocks[n] = true;
-            html += `
-            <div class="target-item ${isC?'active':''}" id="titem_${n}" onclick="toggleT(event, '${n}')">
-                <div style="display:flex; align-items:center; pointer-events:none;">
-                    <input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="margin-right:8px;">
-                    <b>${n}</b>
-                </div>
-                <input type="number" id="amt_${n}" class="amt-input" value="${amt}" 
-                    onclick="event.stopPropagation()" oninput="handleManualInput('${n}')" 
-                    style="width:80px; text-align:right; border:1px solid #ddd; border-radius:8px; padding:5px;">
+            html += `<div class="target-item ${isC?'active':''}" id="titem_${n}" onclick="toggleT(event, '${n}')">
+                <div style="display:flex; align-items:center; pointer-events:none;"><input type="checkbox" id="cb_${n}" ${isC?'checked':''} style="margin-right:8px;"><b>${n}</b></div>
+                <input type="number" id="amt_${n}" class="amt-input" value="${amt}" onclick="event.stopPropagation()" oninput="handleManualInput('${n}')" style="width:80px; text-align:right; border:1px solid #ddd; border-radius:8px; padding:5px;">
             </div>`;
         });
         list.innerHTML = html;
@@ -253,24 +235,18 @@
 
     function resetManualAndSplit() { manualLocks = {}; autoSplit(); }
 
-    function moveItem(idx, step) {
-        const item = data.itinerary[idx];
-        const currentDay = parseInt(item.day);
-        const sameDayItems = data.itinerary.filter(i => parseInt(i.day) === currentDay);
-        const inDayIdx = sameDayItems.indexOf(item);
-        if (step === -1) {
-            if (inDayIdx === 0 && currentDay > 1) item.day = (currentDay - 1).toString();
-            else if (inDayIdx > 0) [data.itinerary[idx], data.itinerary[data.itinerary.indexOf(sameDayItems[inDayIdx-1])]] = [data.itinerary[data.itinerary.indexOf(sameDayItems[inDayIdx-1])], data.itinerary[idx]];
-        } else {
-            if (inDayIdx === sameDayItems.length - 1 && currentDay < 8) item.day = (currentDay + 1).toString();
-            else if (inDayIdx < sameDayItems.length - 1) [data.itinerary[idx], data.itinerary[data.itinerary.indexOf(sameDayItems[inDayIdx+1])]] = [data.itinerary[data.itinerary.indexOf(sameDayItems[inDayIdx+1])], data.itinerary[idx]];
-        }
-        saveAll();
-    }
-
     function handleSave() {
         if(currentMode === 'ITINERARY') {
-            const it = { n: document.getElementById('mName').value, map: document.getElementById('mMap').value, time: document.getElementById('mTime').value, day: document.getElementById('mDay').value, trans: document.getElementById('mTrans').value };
+            const it = { 
+                n: document.getElementById('mName').value, 
+                map: document.getElementById('mMap').value, 
+                time: document.getElementById('mTime').value, 
+                day: document.getElementById('mDay').value, 
+                trans: document.getElementById('mTrans').value,
+                p: document.getElementById('mPrice').value,
+                t: document.getElementById('mCur').value,
+                cate: document.getElementById('mCate').value
+            };
             if(editIdx > -1) data.itinerary[editIdx] = it; else data.itinerary.push(it);
         } else {
             const members = data.members.split(',');
@@ -279,6 +255,41 @@
             if(editIdx > -1) data.split[editIdx] = s; else data.split.push(s);
         }
         saveAll(); closeModal();
+    }
+
+    function openModal(mode, idx = -1) {
+        currentMode = mode; editIdx = idx;
+        const members = data.members.split(',');
+        document.getElementById('editModal').style.display = 'flex';
+        document.getElementById('itFields').style.display = (mode === 'ITINERARY' ? 'block' : 'none');
+        document.getElementById('splitFields').style.display = (mode === 'SPLIT' ? 'block' : 'none');
+        document.getElementById('mPayer').innerHTML = members.map(m => `<option value="${m}">${m}</option>`).join('');
+        if(idx > -1) {
+            const d = (mode === 'ITINERARY' ? data.itinerary : data.split)[idx];
+            if(mode === 'ITINERARY') {
+                document.getElementById('mName').value = d.n; document.getElementById('mMap').value = d.map || '';
+                document.getElementById('mTime').value = d.time; document.getElementById('mDay').value = d.day;
+                document.getElementById('mTrans').value = d.trans || '';
+                document.getElementById('mCate').value = d.cate || '';
+            } else {
+                document.getElementById('mSplitName').value = d.n; document.getElementById('mPayer').value = d.payer;
+                buildTargetList(d.targets);
+            }
+            document.getElementById('mPrice').value = d.p || ''; document.getElementById('mCur').value = d.t || 'f';
+        } else {
+            ['mName','mSplitName','mPrice','mTime','mMap'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('mCate').value = '';
+            if(mode === 'SPLIT') buildTargetList();
+        }
+    }
+
+    function moveItem(idx, step) {
+        const item = data.itinerary[idx];
+        const sameDayItems = data.itinerary.filter(i => i.day == item.day);
+        const inDayIdx = sameDayItems.indexOf(item);
+        if (step === -1 && inDayIdx > 0) [data.itinerary[idx], data.itinerary[data.itinerary.indexOf(sameDayItems[inDayIdx-1])]] = [data.itinerary[data.itinerary.indexOf(sameDayItems[inDayIdx-1])], data.itinerary[idx]];
+        else if (step === 1 && inDayIdx < sameDayItems.length - 1) [data.itinerary[idx], data.itinerary[data.itinerary.indexOf(sameDayItems[inDayIdx+1])]] = [data.itinerary[data.itinerary.indexOf(sameDayItems[inDayIdx+1])], data.itinerary[idx]];
+        saveAll();
     }
 
     function updateOrderFromDOM() {
@@ -304,29 +315,6 @@
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.getElementById(pId).classList.add('active'); el.classList.add('active');
         document.getElementById('mainFab').style.display = (pId === 'itinerary') ? 'flex' : 'none';
-    }
-    function openModal(mode, idx = -1) {
-        currentMode = mode; editIdx = idx;
-        const members = data.members.split(',');
-        document.getElementById('editModal').style.display = 'flex';
-        document.getElementById('itFields').style.display = (mode === 'ITINERARY' ? 'block' : 'none');
-        document.getElementById('splitFields').style.display = (mode === 'SPLIT' ? 'block' : 'none');
-        document.getElementById('mPayer').innerHTML = members.map(m => `<option value="${m}">${m}</option>`).join('');
-        if(idx > -1) {
-            const d = (mode === 'ITINERARY' ? data.itinerary : data.split)[idx];
-            if(mode === 'ITINERARY') {
-                document.getElementById('mName').value = d.n; document.getElementById('mMap').value = d.map || '';
-                document.getElementById('mTime').value = d.time; document.getElementById('mDay').value = d.day;
-                document.getElementById('mTrans').value = d.trans || '';
-            } else {
-                document.getElementById('mSplitName').value = d.n; document.getElementById('mPayer').value = d.payer;
-                buildTargetList(d.targets);
-            }
-            document.getElementById('mPrice').value = d.p; document.getElementById('mCur').value = d.t || 'f';
-        } else {
-            ['mName','mSplitName','mPrice','mTime','mMap'].forEach(id => document.getElementById(id).value = '');
-            if(mode === 'SPLIT') buildTargetList();
-        }
     }
     function syncMapField() { if(editIdx === -1) document.getElementById('mMap').value = document.getElementById('mName').value; }
     function closeModal() { document.getElementById('editModal').style.display = 'none'; }
