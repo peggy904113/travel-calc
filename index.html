@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V44.4</title>
+    <title>去北海道被雪玩 V44.5</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
@@ -128,9 +128,8 @@
 <button class="fab" id="mainFab" onclick="openModal('ITINERARY')">+</button>
 
 <div class="summary-bar">
-    <div style="text-align:center;"><small>📈 預計總花費</small><br><b id="statBudgetTotal" style="color:var(--orange); font-size:1.1rem;">$0</b></div>
-    <div style="text-align:center; border-left:1px solid #ddd; padding-left:10px;"><small>❄️ 個人實花 (NT)</small><br><b id="statMyTotal" style="color:var(--accent-blue); font-size:1.1rem;">$0</b></div>
-    <div style="text-align:center; border-left:1px solid #ddd; padding-left:10px;"><small>🧧 代墊待收</small><br><b id="statMyLend" style="color:var(--red); font-size:1.1rem;">$0</b></div>
+    <div style="text-align:center;"><small>📈 預計總花費 (NT)</small><br><b id="statBudgetTotal" style="color:var(--orange); font-size:1.1rem;">$0</b></div>
+    <div style="text-align:center; border-left:1px solid #ddd; padding-left:30px; padding-right:15px;"><small>❄️ 個人實花 (NT)</small><br><b id="statMyTotal" style="color:var(--accent-blue); font-size:1.1rem;">$0</b></div>
 </div>
 
 <script>
@@ -197,58 +196,51 @@
             packDiv.innerHTML += `<div class="pack-item"><span onclick="togglePack(${i})" style="${p.d?'text-decoration:line-through;opacity:0.4':''}">${p.d?'✅ ':''} ${p.t}</span><span style="color:var(--red); padding:5px;" onclick="removeItem('packing',${i})">✕</span></div>`;
         });
 
-        // 統計邏輯
-        let myPure = 0, myLend = 0, summary = {};
+        // 統計邏輯 (實花完全依照分帳系統記錄)
+        let myPure = 0, summary = {};
         members.slice(1).forEach(n => summary[n] = 0);
         data.split.forEach(s => {
             s.targets.forEach(tg => {
                 let valNT = (s.t==='f' ? tg.a * rate : tg.a);
-                if(s.payer === members[0]) {
-                    if(tg.u === members[0]) myPure += valNT; else { myLend += valNT; summary[tg.u] += tg.a; }
-                } else if(tg.u === members[0]) { myPure += valNT; summary[s.payer] -= tg.a; }
+                if(tg.u === members[0]) { 
+                    myPure += valNT; // 只要這筆分帳有包含我，我就計入實花
+                }
+                if(s.payer === members[0] && tg.u !== members[0]) {
+                    summary[tg.u] += tg.a; // 代墊紀錄僅顯示在結算卡片中
+                } else if(s.payer !== members[0] && tg.u === members[0]) {
+                    summary[s.payer] -= tg.a;
+                }
             });
         });
         let hotelJPY = 0; try { hotelJPY = eval(data.hotelTotal.toString().replace(/[^\d+*/.-]/g, '')) || 0; } catch(e) {}
         
-        // 預計總花費 = (行程預算 + 住宿) * 匯率 + 機票
+        // 📈 預計總花費 = (行程預算 + 住宿) * 匯率 + 機票
         const totalBudgetNT = (totalItBudgetJPY + hotelJPY/members.length) * rate + (parseFloat(data.flight)||0);
         document.getElementById('statBudgetTotal').innerText = `$${Math.round(totalBudgetNT).toLocaleString()}`;
-        document.getElementById('statMyTotal').innerText = `$${Math.round(myPure + (hotelJPY/members.length*rate) + (parseFloat(data.flight)||0)).toLocaleString()}`;
-        document.getElementById('statMyLend').innerText = `$${Math.round(myLend).toLocaleString()}`;
+        
+        // ❄️ 個人實花 = 只計分帳系統中你應付的部分
+        document.getElementById('statMyTotal').innerText = `$${Math.round(myPure).toLocaleString()}`;
         
         document.getElementById('splitList').innerHTML = data.split.map((s, i) => `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><b>${s.p}${s.t==='f'?'円':'元'}</b></div>`).join('');
         document.getElementById('splitSummary').innerHTML = Object.entries(summary).map(([n,v]) => v !== 0 ? `● ${n}: ${Math.round(v)}円<br>` : '').join('');
         document.getElementById('hotelPreview').innerHTML = `💡 每人住宿 ≈ NT ${Math.round(hotelJPY/members.length*rate).toLocaleString()}`;
     }
 
-    // 移動邏輯：修復向下按鈕與跨天移動
     function moveItem(idx, step) {
         const item = data.itinerary[idx];
         const currentDay = parseInt(item.day);
         const dayItems = data.itinerary.filter(i => i.day == currentDay);
         const inDayIdx = dayItems.indexOf(item);
-
-        if (step === -1) { // 向上
-            if (inDayIdx === 0) { // 該天第一項，跨到前一天
-                if (currentDay > 1) item.day = (currentDay - 1).toString();
-            } else { // 同天交換
-                const prevItem = dayItems[inDayIdx - 1];
-                const prevIdx = data.itinerary.indexOf(prevItem);
-                [data.itinerary[idx], data.itinerary[prevIdx]] = [data.itinerary[prevIdx], data.itinerary[idx]];
-            }
-        } else { // 向下
-            if (inDayIdx === dayItems.length - 1) { // 該天最後一項，跨到後一天
-                if (currentDay < 8) item.day = (currentDay + 1).toString();
-            } else { // 同天交換
-                const nextItem = dayItems[inDayIdx + 1];
-                const nextIdx = data.itinerary.indexOf(nextItem);
-                [data.itinerary[idx], data.itinerary[nextIdx]] = [data.itinerary[nextIdx], data.itinerary[idx]];
-            }
+        if (step === -1) {
+            if (inDayIdx === 0) { if (currentDay > 1) item.day = (currentDay - 1).toString(); }
+            else { const prevIdx = data.itinerary.indexOf(dayItems[inDayIdx - 1]); [data.itinerary[idx], data.itinerary[prevIdx]] = [data.itinerary[prevIdx], data.itinerary[idx]]; }
+        } else {
+            if (inDayIdx === dayItems.length - 1) { if (currentDay < 8) item.day = (currentDay + 1).toString(); }
+            else { const nextIdx = data.itinerary.indexOf(dayItems[inDayIdx + 1]); [data.itinerary[idx], data.itinerary[nextIdx]] = [data.itinerary[nextIdx], data.itinerary[idx]]; }
         }
         saveAll();
     }
 
-    // 分帳系統代碼 (保持觸控穩定)
     function buildTargetList(st = null) {
         const list = document.getElementById('targetList');
         const members = data.members.split(',');
@@ -305,12 +297,7 @@
 
     function handleSave() {
         if(currentMode === 'ITINERARY') {
-            const it = { 
-                n: document.getElementById('mName').value, map: document.getElementById('mMap').value, 
-                time: document.getElementById('mTime').value, day: document.getElementById('mDay').value, 
-                trans: document.getElementById('mTrans').value, p: document.getElementById('mPrice').value,
-                t: document.getElementById('mCur').value, cate: document.getElementById('mCate').value
-            };
+            const it = { n: document.getElementById('mName').value, map: document.getElementById('mMap').value, time: document.getElementById('mTime').value, day: document.getElementById('mDay').value, trans: document.getElementById('mTrans').value, p: document.getElementById('mPrice').value, t: document.getElementById('mCur').value, cate: document.getElementById('mCate').value };
             if(editIdx > -1) data.itinerary[editIdx] = it; else data.itinerary.push(it);
         } else {
             const members = data.members.split(',');
@@ -328,7 +315,6 @@
         renderAll(); 
     }
 
-    // 行李清單操作
     function togglePack(idx) { data.packing[idx].d = !data.packing[idx].d; saveAll(); }
     function addItem(type, id) { const v = document.getElementById(id).value; if(v){ data[type].push({t:v, d:false, c:"手動增加"}); document.getElementById(id).value=''; saveAll(); } }
     function removeItem(type, idx) { data[type].splice(idx, 1); saveAll(); }
