@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V45.4</title>
+    <title>去北海道被雪玩 V45.5</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
@@ -44,6 +44,8 @@
         .btn-main { background: var(--accent-blue); color: white; width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: bold; font-size: 1rem; }
         .summary-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 12px 10px; border-top: 1px solid #eee; display: flex; justify-content: space-around; z-index: 1000; }
         .fab { position: fixed; bottom: 110px; right: 20px; width: 55px; height: 55px; background: var(--accent-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 25px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 1100; }
+        
+        .btn-outline { background: white; color: var(--accent-blue); border: 1.5px solid var(--accent-blue); width: 100%; padding: 10px; border-radius: 12px; font-weight: bold; margin-top: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -81,6 +83,12 @@
                 <button onclick="addItem('packing','newPack')" style="background:var(--orange); color:white; border:none; border-radius:12px; width:60px;">+</button>
             </div>
             <button onclick="resetPacking()" style="width:100%; margin-top:15px; border:none; background:none; color:var(--gray); font-size:0.75rem;">🔄 重置建議清單</button>
+        </div>
+        <div class="card" style="border: 2px dashed var(--accent-blue);">
+            <h3>📱 手機/電腦同步</h3>
+            <p style="font-size: 0.8rem; color: var(--gray);">點擊導出後，將代碼傳到電腦貼上即可同步。</p>
+            <button class="btn-outline" onclick="exportData()">📋 備份/導出數據</button>
+            <button class="btn-outline" onclick="importData()" style="border-color: var(--gray); color: var(--gray);">📥 導入/還原數據</button>
         </div>
     </div>
 </div>
@@ -129,6 +137,7 @@
 </div>
 
 <script>
+    const STORAGE_KEY = 'hokkaido_v43_fix';
     const defaultPacking = [
         {c: "證件財物", t: "護照/身分證/VJW QR", d: false},
         {c: "證件財物", t: "日幣現金/信用卡/Suica", d: false},
@@ -138,14 +147,16 @@
         {c: "藥品護理", t: "保濕乳液/護唇膏/常備藥", d: false}
     ];
 
-    let data = JSON.parse(localStorage.getItem('hokkaido_v43_fix')) || { 
-        itinerary: [], split: [], packing: defaultPacking, members: "我,翌,丞,馨,子,嚕", exRate: 0.2 
+    let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { 
+        itinerary: [], split: [], packing: defaultPacking, members: "我,翌,丞,馨,子,嚕", exRate: 0.2, flight: 21255, hotelTotal: 374259 
     };
     let manualLocks = {};
     let currentMode = 'ITINERARY', editIdx = -1;
 
     window.onload = () => {
         document.getElementById('exRate').value = data.exRate || 0.2;
+        document.getElementById('flight').value = data.flight || 0;
+        document.getElementById('hotelTotal').value = data.hotelTotal || 0;
         renderAll();
     };
 
@@ -164,68 +175,43 @@
                     dayBudget += val; totalItBudgetJPY += val;
                 }
             });
-
             itDiv.innerHTML += `<div class="day-header">Day ${d} <span class="day-budget">(預算: ¥${Math.round(dayBudget).toLocaleString()})</span></div><div id="day-group-${d}"></div>`;
             const group = document.getElementById(`day-group-${d}`);
             dayItems.forEach(it => {
                 const idx = data.itinerary.indexOf(it);
-                group.innerHTML += `
-                <div class="it-card">
-                    <div class="it-time">${it.time||'--'}</div>
-                    <div class="it-info" onclick="openModal('ITINERARY', ${idx})">
-                        <div class="it-name">${it.n}</div>
-                        ${it.memo ? `<div style="font-size:0.75rem; color:var(--gray); margin-top:2px; font-style:italic;">📝 ${it.memo}</div>` : ''}
-                        ${it.p ? `<div class="it-price-tag">${it.cate||''} ${it.p}${it.t==='f'?'円':'元'}</div>` : ''}
-                        ${it.trans ? `<div style="font-size:0.75rem; color:var(--gray); margin-top:2px;">└─ ${it.trans}</div>` : ''}
-                    </div>
-                    ${it.map ? `<span style="font-size:1.2rem; cursor:pointer;" onclick="window.open('http://googleusercontent.com/maps.google.com/maps?daddr=${encodeURIComponent(it.map)}&travelmode=driving','_blank')">📌</span>` : ''}
-                </div>`;
+                group.innerHTML += `<div class="it-card"><div class="it-time">${it.time||'--'}</div><div class="it-info" onclick="openModal('ITINERARY', ${idx})"><div class="it-name">${it.n}</div>${it.memo ? `<div style="font-size:0.75rem; color:var(--gray); margin-top:2px; font-style:italic;">📝 ${it.memo}</div>` : ''}${it.p ? `<div class="it-price-tag">${it.cate||''} ${it.p}${it.t==='f'?'円':'元'}</div>` : ''}</div>${it.map ? `<span style="font-size:1.2rem;" onclick="window.open('http://googleusercontent.com/maps.google.com/maps?daddr=${encodeURIComponent(it.map)}&travelmode=driving','_blank')">📌</span>` : ''}</div>`;
             });
         });
 
-        // 核心統計邏輯
         let myPureSplit = 0, myTotalLendNT = 0, summaryNT = {}, summaryJPY = {};
         members.slice(1).forEach(n => { summaryNT[n] = 0; summaryJPY[n] = 0; });
-        
         data.split.forEach(s => {
             const isPrepayment = s.n.includes("預繳") || s.n.includes("還款");
             s.targets.forEach(tg => {
                 let valNT = (s.t==='f' ? tg.a * rate : tg.a);
                 if(tg.u === members[0] && !isPrepayment) myPureSplit += valNT;
-                
                 if(s.payer === members[0] && tg.u !== members[0]) { 
-                    myTotalLendNT += valNT; 
-                    if(s.t==='f') summaryJPY[tg.u] += tg.a; else summaryNT[tg.u] += tg.a;
+                    myTotalLendNT += valNT; if(s.t==='f') summaryJPY[tg.u] += tg.a; else summaryNT[tg.u] += tg.a;
                 } else if(s.payer !== members[0] && tg.u === members[0]) { 
-                    myTotalLendNT -= valNT;
-                    if(s.t==='f') summaryJPY[s.payer] -= tg.a; else summaryNT[s.payer] -= tg.a;
+                    myTotalLendNT -= valNT; if(s.t==='f') summaryJPY[s.payer] -= tg.a; else summaryNT[s.payer] -= tg.a;
                 }
             });
         });
 
         let hotelJPY = 0; try { hotelJPY = eval(data.hotelTotal.toString().replace(/[^\d+*/.-]/g, '')) || 0; } catch(e) {}
         const totalBudgetNT = (totalItBudgetJPY + hotelJPY/members.length) * rate + (parseFloat(data.flight)||0);
-        const myTotalNT = myPureSplit;
-
         document.getElementById('statBudgetTotal').innerText = `$${Math.round(totalBudgetNT).toLocaleString()}`;
-        document.getElementById('statMyTotal').innerText = `$${Math.round(myTotalNT).toLocaleString()}`;
+        document.getElementById('statMyTotal').innerText = `$${Math.round(myPureSplit).toLocaleString()}`;
         
-        // 結算區塊文字設定優化
         const lendLabel = myTotalLendNT >= 0 ? "🧧 我的代墊總計 (NT)" : "💰 預繳/收受總額 (NT)";
         let summaryHTML = `<div style="margin-bottom:10px; padding:10px; background:white; border-radius:10px; border:1px dashed var(--accent-blue);"><small style="color:var(--accent-blue);">${lendLabel}: </small><b>$${Math.round(Math.abs(myTotalLendNT)).toLocaleString()}</b></div>`;
-        
         members.slice(1).forEach(name => {
-            let jpy = summaryJPY[name] || 0;
-            let nt = summaryNT[name] || 0;
+            let jpy = summaryJPY[name] || 0, nt = summaryNT[name] || 0;
             if(jpy !== 0 || nt !== 0) {
-                summaryHTML += `● ${name}: `;
-                if(jpy !== 0) summaryHTML += `${jpy > 0 ? '需歸還我' : '預繳餘額'} ${Math.abs(Math.round(jpy)).toLocaleString()} 円 `;
-                if(nt !== 0) summaryHTML += `${nt > 0 ? '需歸還我' : '預繳餘額'} ${Math.abs(Math.round(nt)).toLocaleString()} 元 `;
-                summaryHTML += `<br>`;
+                summaryHTML += `● ${name}: ${jpy !== 0 ? (jpy > 0 ? '需歸還我' : '預繳餘額') + ' ' + Math.abs(Math.round(jpy)).toLocaleString() + ' 円 ' : ''}${nt !== 0 ? (nt > 0 ? '需歸還我' : '預繳餘額') + ' ' + Math.abs(Math.round(nt)).toLocaleString() + ' 元' : ''}<br>`;
             }
         });
         document.getElementById('splitSummary').innerHTML = summaryHTML;
-        
         document.getElementById('splitList').innerHTML = data.split.map((s, i) => `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee;" onclick="openModal('SPLIT', ${i})"><span>${s.n}</span><b>${s.p}${s.t==='f'?'円':'元'}</b></div>`).join('');
         
         const packDiv = document.getElementById('packingList'); packDiv.innerHTML = '';
@@ -237,13 +223,30 @@
         document.getElementById('hotelPreview').innerHTML = `💡 每人住宿 ≈ NT ${Math.round(hotelJPY/members.length*rate).toLocaleString()}`;
     }
 
+    function exportData() {
+        const str = JSON.stringify(data);
+        navigator.clipboard.writeText(str).then(() => alert("✅ 代碼已複製！請傳到電腦並導入。"));
+    }
+
+    function importData() {
+        const str = prompt("請貼入備份代碼：");
+        if (str) {
+            try {
+                const newData = JSON.parse(str);
+                if (newData.itinerary) { data = newData; saveAll(); alert("✨ 導入成功！"); }
+            } catch (e) { alert("❌ 代碼格式錯誤。"); }
+        }
+    }
+
     function saveAll() { 
         data.itinerary.sort((a, b) => {
             if (parseInt(a.day) !== parseInt(b.day)) return parseInt(a.day) - parseInt(b.day);
             return (a.time || "00:00").localeCompare(b.time || "00:00");
         });
         data.exRate = parseFloat(document.getElementById('exRate').value) || 0.2;
-        localStorage.setItem('hokkaido_v43_fix', JSON.stringify(data)); 
+        data.flight = parseFloat(document.getElementById('flight').value) || 0;
+        data.hotelTotal = document.getElementById('hotelTotal').value;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); 
         renderAll(); 
     }
 
@@ -264,7 +267,7 @@
     function toggleT(e, n) { if(e){e.preventDefault(); e.stopPropagation();} const cb = document.getElementById(`cb_${n}`); const item = document.getElementById(`titem_${n}`); cb.checked = !cb.checked; item.classList.toggle('active', cb.checked); if(!cb.checked) delete manualLocks[n]; autoSplit(); }
     function handleManualInput(n) { manualLocks[n] = true; document.getElementById(`cb_${n}`).checked = true; document.getElementById(`titem_${n}`).classList.add('active'); autoSplit(); }
     function autoSplit() { const total = parseFloat(document.getElementById('mPrice').value) || 0; const members = data.members.split(','); const checked = members.filter(n => document.getElementById(`cb_${n}`).checked); if (!checked.length) return; let lockedSum = 0, autoMembers = []; checked.forEach(n => { if (manualLocks[n]) lockedSum += parseFloat(document.getElementById(`amt_${n}`).value) || 0; else autoMembers.push(n); }); const remaining = total - lockedSum; if (autoMembers.length > 0) { const avg = Math.round(remaining / autoMembers.length); autoMembers.forEach((n, idx) => { document.getElementById(`amt_${n}`).value = (idx === autoMembers.length - 1) ? (remaining - avg * (autoMembers.length - 1)) : avg; }); } }
-
+    
     function handleSave() {
         if(currentMode === 'ITINERARY') {
             const it = { n: document.getElementById('mName').value, map: document.getElementById('mMap').value, time: document.getElementById('mTime').value, day: document.getElementById('mDay').value, trans: document.getElementById('mTrans').value, p: document.getElementById('mPrice').value, t: document.getElementById('mCur').value, cate: document.getElementById('mCate').value, memo: document.getElementById('mMemo').value };
@@ -277,7 +280,6 @@
         }
         saveAll(); closeModal();
     }
-
     function openModal(mode, idx = -1) { 
         currentMode = mode; editIdx = idx; const members = data.members.split(','); 
         document.getElementById('editModal').style.display = 'flex'; 
@@ -296,13 +298,10 @@
             } 
             document.getElementById('mPrice').value = d.p || ''; document.getElementById('mCur').value = d.t || 'f'; 
         } else { 
-            ['mName','mSplitName','mPrice','mTime','mMap','mMemo'].forEach(id => {
-                const el = document.getElementById(id); if(el) el.value = '';
-            }); 
+            ['mName','mSplitName','mPrice','mTime','mMap','mMemo'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).value = ''; }); 
             if(mode === 'SPLIT') buildTargetList(); 
         } 
     }
-
     function togglePack(idx) { data.packing[idx].d = !data.packing[idx].d; saveAll(); }
     function addItem(type, id) { const v = document.getElementById(id).value; if(v){ data[type].push({t:v, d:false, c:"手動增加"}); document.getElementById(id).value=''; saveAll(); } }
     function removeItem(type, idx) { data[type].splice(idx, 1); saveAll(); }
