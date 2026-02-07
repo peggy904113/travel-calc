@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V45.5</title>
+    <title>去北海道被雪玩 V45.6</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
@@ -179,7 +179,10 @@
             const group = document.getElementById(`day-group-${d}`);
             dayItems.forEach(it => {
                 const idx = data.itinerary.indexOf(it);
-                group.innerHTML += `<div class="it-card"><div class="it-time">${it.time||'--'}</div><div class="it-info" onclick="openModal('ITINERARY', ${idx})"><div class="it-name">${it.n}</div>${it.memo ? `<div style="font-size:0.75rem; color:var(--gray); margin-top:2px; font-style:italic;">📝 ${it.memo}</div>` : ''}${it.p ? `<div class="it-price-tag">${it.cate||''} ${it.p}${it.t==='f'?'円':'元'}</div>` : ''}</div>${it.map ? `<span style="font-size:1.2rem;" onclick="window.open('http://googleusercontent.com/maps.google.com/maps?daddr=${encodeURIComponent(it.map)}&travelmode=driving','_blank')">📌</span>` : ''}</div>`;
+                // 修復後的地圖導航邏輯
+                const mapBtn = it.map ? `<span style="font-size:1.2rem; cursor:pointer;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.map)}','_blank')">📌</span>` : '';
+                
+                group.innerHTML += `<div class="it-card"><div class="it-time">${it.time||'--'}</div><div class="it-info" onclick="openModal('ITINERARY', ${idx})"><div class="it-name">${it.n}</div>${it.memo ? `<div style="font-size:0.75rem; color:var(--gray); margin-top:2px; font-style:italic;">📝 ${it.memo}</div>` : ''}${it.p ? `<div class="it-price-tag">${it.cate||''} ${it.p}${it.t==='f'?'円':'元'}</div>` : ''}</div>${mapBtn}</div>`;
             });
         });
 
