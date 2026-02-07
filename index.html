@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V45.7</title>
+    <title>去北海道被雪玩 V45.8</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
@@ -99,6 +99,7 @@
         <div id="itFields">
             <small>項目名稱</small><input type="text" id="mName" oninput="syncMapField()">
             <small>地點導航</small><input type="text" id="mMap" placeholder="店名或地址">
+            <small>參考連結 (URL) 🔗</small><input type="text" id="mLink" placeholder="預約網頁、官網或憑證網址">
             <div style="display:flex; gap:10px;">
                 <div style="flex:1;"><small>時間</small><input type="text" id="mTime" placeholder="例如 12:00"></div>
                 <div style="flex:1;"><small>天數</small>
@@ -180,10 +181,11 @@
             dayItems.forEach(it => {
                 const idx = data.itinerary.indexOf(it);
                 
-                // V45.7 終極導航修復：直接啟動 Google 路線規劃模式
+                // 導航與連結按鈕邏輯
                 const mapBtn = it.map ? `<span style="font-size:1.2rem; cursor:pointer;" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(it.map)}','_blank')">📌</span>` : '';
+                const linkBtn = it.link ? `<span style="font-size:1.2rem; cursor:pointer; margin-left:10px;" onclick="window.open('${it.link}','_blank')">🔗</span>` : '';
                 
-                group.innerHTML += `<div class="it-card"><div class="it-time">${it.time||'--'}</div><div class="it-info" onclick="openModal('ITINERARY', ${idx})"><div class="it-name">${it.n}</div>${it.memo ? `<div style="font-size:0.75rem; color:var(--gray); margin-top:2px; font-style:italic;">📝 ${it.memo}</div>` : ''}${it.p ? `<div class="it-price-tag">${it.cate||''} ${it.p}${it.t==='f'?'円':'元'}</div>` : ''}</div>${mapBtn}</div>`;
+                group.innerHTML += `<div class="it-card"><div class="it-time">${it.time||'--'}</div><div class="it-info" onclick="openModal('ITINERARY', ${idx})"><div class="it-name">${it.n}</div>${it.memo ? `<div style="font-size:0.75rem; color:var(--gray); margin-top:2px; font-style:italic;">📝 ${it.memo}</div>` : ''}${it.p ? `<div class="it-price-tag">${it.cate||''} ${it.p}${it.t==='f'?'円':'元'}</div>` : ''}</div><div style="display:flex; align-items:center;">${mapBtn}${linkBtn}</div></div>`;
             });
         });
 
@@ -274,7 +276,18 @@
     
     function handleSave() {
         if(currentMode === 'ITINERARY') {
-            const it = { n: document.getElementById('mName').value, map: document.getElementById('mMap').value, time: document.getElementById('mTime').value, day: document.getElementById('mDay').value, trans: document.getElementById('mTrans').value, p: document.getElementById('mPrice').value, t: document.getElementById('mCur').value, cate: document.getElementById('mCate').value, memo: document.getElementById('mMemo').value };
+            const it = { 
+                n: document.getElementById('mName').value, 
+                map: document.getElementById('mMap').value, 
+                link: document.getElementById('mLink').value, // 儲存連結
+                time: document.getElementById('mTime').value, 
+                day: document.getElementById('mDay').value, 
+                trans: document.getElementById('mTrans').value, 
+                p: document.getElementById('mPrice').value, 
+                t: document.getElementById('mCur').value, 
+                cate: document.getElementById('mCate').value, 
+                memo: document.getElementById('mMemo').value 
+            };
             if(editIdx > -1) data.itinerary[editIdx] = it; else data.itinerary.push(it);
         } else {
             const members = data.members.split(',');
@@ -293,7 +306,9 @@
         if(idx > -1) { 
             const d = (mode === 'ITINERARY' ? data.itinerary : data.split)[idx]; 
             if(mode === 'ITINERARY') { 
-                document.getElementById('mName').value = d.n; document.getElementById('mMap').value = d.map || ''; 
+                document.getElementById('mName').value = d.n; 
+                document.getElementById('mMap').value = d.map || ''; 
+                document.getElementById('mLink').value = d.link || ''; // 讀取連結
                 document.getElementById('mTime').value = d.time; document.getElementById('mDay').value = d.day; 
                 document.getElementById('mTrans').value = d.trans || ''; document.getElementById('mCate').value = d.cate || ''; 
                 document.getElementById('mMemo').value = d.memo || '';
@@ -302,7 +317,7 @@
             } 
             document.getElementById('mPrice').value = d.p || ''; document.getElementById('mCur').value = d.t || 'f'; 
         } else { 
-            ['mName','mSplitName','mPrice','mTime','mMap','mMemo'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).value = ''; }); 
+            ['mName','mSplitName','mPrice','mTime','mMap','mLink','mMemo'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).value = ''; }); 
             if(mode === 'SPLIT') buildTargetList(); 
         } 
     }
