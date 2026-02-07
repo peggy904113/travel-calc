@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>去北海道被雪玩 V45.8</title>
+    <title>去北海道被雪玩 V45.9</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --red: #e53935; --gray: #78909c; --light-blue: #f0f7ff; }
@@ -180,12 +180,22 @@
             const group = document.getElementById(`day-group-${d}`);
             dayItems.forEach(it => {
                 const idx = data.itinerary.indexOf(it);
-                
-                // 導航與連結按鈕邏輯
                 const mapBtn = it.map ? `<span style="font-size:1.2rem; cursor:pointer;" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(it.map)}','_blank')">📌</span>` : '';
                 const linkBtn = it.link ? `<span style="font-size:1.2rem; cursor:pointer; margin-left:10px;" onclick="window.open('${it.link}','_blank')">🔗</span>` : '';
                 
-                group.innerHTML += `<div class="it-card"><div class="it-time">${it.time||'--'}</div><div class="it-info" onclick="openModal('ITINERARY', ${idx})"><div class="it-name">${it.n}</div>${it.memo ? `<div style="font-size:0.75rem; color:var(--gray); margin-top:2px; font-style:italic;">📝 ${it.memo}</div>` : ''}${it.p ? `<div class="it-price-tag">${it.cate||''} ${it.p}${it.t==='f'?'円':'元'}</div>` : ''}</div><div style="display:flex; align-items:center;">${mapBtn}${linkBtn}</div></div>`;
+                // 補上交通方式顯示邏輯：it.trans
+                group.innerHTML += `<div class="it-card">
+                    <div class="it-time">${it.time||'--'}</div>
+                    <div class="it-info" onclick="openModal('ITINERARY', ${idx})">
+                        <div class="it-name">${it.n}</div>
+                        <div style="font-size:0.75rem; color:var(--gray); margin-top:2px;">
+                            ${it.trans ? `<span style="color:var(--accent-blue); font-weight:bold;">${it.trans}</span> ` : ''}
+                            ${it.memo ? `<span style="font-style:italic;">📝 ${it.memo}</span>` : ''}
+                        </div>
+                        ${it.p ? `<div class="it-price-tag">${it.cate||''} ${it.p}${it.t==='f'?'円':'元'}</div>` : ''}
+                    </div>
+                    <div style="display:flex; align-items:center;">${mapBtn}${linkBtn}</div>
+                </div>`;
             });
         });
 
@@ -279,7 +289,7 @@
             const it = { 
                 n: document.getElementById('mName').value, 
                 map: document.getElementById('mMap').value, 
-                link: document.getElementById('mLink').value, // 儲存連結
+                link: document.getElementById('mLink').value,
                 time: document.getElementById('mTime').value, 
                 day: document.getElementById('mDay').value, 
                 trans: document.getElementById('mTrans').value, 
@@ -308,7 +318,7 @@
             if(mode === 'ITINERARY') { 
                 document.getElementById('mName').value = d.n; 
                 document.getElementById('mMap').value = d.map || ''; 
-                document.getElementById('mLink').value = d.link || ''; // 讀取連結
+                document.getElementById('mLink').value = d.link || '';
                 document.getElementById('mTime').value = d.time; document.getElementById('mDay').value = d.day; 
                 document.getElementById('mTrans').value = d.trans || ''; document.getElementById('mCate').value = d.cate || ''; 
                 document.getElementById('mMemo').value = d.memo || '';
