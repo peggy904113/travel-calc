@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>❄️ 北海道雪玩行程 - 分享版</title>
+    <style>
+        :root { --sky-blue: #e3f2fd; --accent-blue: #1565c0; --orange: #ffa726; --text: #2c3e50; --gray: #78909c; --light-blue: #f0f7ff; }
+        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f4f7f9; margin: 0; color: var(--text); }
+        
+        /* 頂部標題 */
+        .header { background: linear-gradient(135deg, #1565c0, #42a5f5); color: white; padding: 20px 15px; text-align: center; }
+        .header h1 { margin: 0; font-size: 1.4rem; }
+        .header p { margin: 5px 0 0; opacity: 0.9; font-size: 0.8rem; }
+
+        /* 主選單 (行程/行李) */
+        .main-nav { display: flex; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .main-tab { flex: 1; text-align: center; padding: 15px; font-weight: bold; color: var(--gray); cursor: pointer; }
+        .main-tab.active { color: var(--accent-blue); border-bottom: 3px solid var(--accent-blue); }
+
+        /* 天數分頁切換 (細化更新) */
+        .day-nav-wrapper { background: white; padding: 10px 5px; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid #eee; display: flex; gap: 8px; }
+        .day-tab { display: inline-block; padding: 8px 16px; background: var(--light-blue); color: var(--accent-blue); border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
+        .day-tab.active { background: var(--accent-blue); color: white; }
+
+        .container { padding: 15px; }
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* 行程卡片樣式 */
+        .it-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .it-time { min-width: 55px; color: var(--accent-blue); font-weight: bold; font-size: 1rem; border-right: 1px solid #eee; }
+        .it-info { flex: 1; }
+        .it-name { font-weight: bold; color: #1a237e; font-size: 1.1rem; margin-bottom: 4px; }
+        .it-memo { font-size: 0.85rem; color: #546e7a; background: #f9f9f9; padding: 8px; border-radius: 8px; margin-top: 5px; line-height: 1.4; border-left: 3px solid #ddd; }
+        .it-tag { display: inline-block; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; background: #fff3e0; color: #e65100; font-weight: bold; margin-top: 5px; }
+        
+        .map-icon { font-size: 1.5rem; color: #4285F4; text-decoration: none; padding: 5px; }
+
+        /* 行李清單 */
+        .pack-cate { font-weight: bold; color: var(--accent-blue); margin: 20px 0 10px 5px; font-size: 1rem; }
+        .pack-item { background: white; padding: 15px; border-radius: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .pack-item input { width: 20px; height: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>❄️ 北海道雪玩行程表</h1>
+    <p>2026 跨年之旅 | 隊友專屬網頁</p>
+</div>
+
+<div class="main-nav">
+    <div class="main-tab active" onclick="switchMainPage('itinerary', this)">📅 行程</div>
+    <div class="main-tab" onclick="switchMainPage('packing', this)">🧳 行李</div>
+</div>
+
+<div id="itinerary-page" class="page active">
+    <div class="day-nav-wrapper">
+        <div class="day-tab active" onclick="switchDay(1, this)">D1</div>
+        <div class="day-tab" onclick="switchDay(2, this)">D2</div>
+        <div class="day-tab" onclick="switchDay(3, this)">D3</div>
+        <div class="day-tab" onclick="switchDay(4, this)">D4</div>
+        <div class="day-tab" onclick="switchDay(5, this)">D5</div>
+        <div class="day-tab" onclick="switchDay(6, this)">D6</div>
+        <div class="day-tab" onclick="switchDay(7, this)">D7</div>
+        <div class="day-tab" onclick="switchDay(8, this)">D8</div>
+    </div>
+    <div class="container" id="itContent"></div>
+</div>
+
+<div id="packing-page" class="page">
+    <div class="container" id="packContent"></div>
+</div>
+
+<script>
+    // 固定的行程數據 (直接鎖入)
+    const data = {"itinerary":[{"n":"桃園機場","map":"","link":"","time":"06:15","day":"1","trans":"","p":"","t":"f","cate":"","memo":"04:00到機場"},{"n":"新千歲機場","map":"","time":"11:00","day":"1","trans":""},{"n":"JR登別站","map":"JR登別站","link":"","time":"14:05","day":"1","trans":"🚆 JR/火車","p":"3500","t":"f","cate":"🚗 交通","memo":"機場-南千歲(230)-登別(無法使用IC卡，特級3270/普通1590)"},{"n":"Check in","map":"Sola St Inn Noboribetsu","link":"https://travel.willer.co.jp/bus_search/hokkaido/new_chitose_airport/hokkaido/noboribetsu_onsen/?stockNumberMale=0&stockNumberFemale=0&rid=3","time":"14:15","day":"1","trans":"","p":"","t":"f","cate":"🚗 交通","memo":"13:00後可以寄放行李，但16:00才能入住"},{"n":"尼克斯海洋公園(有時間的話)","map":"尼克斯海洋公園","link":"","time":"14:30","day":"1","trans":"","p":"3000","t":"f","cate":"🎟️ 門票","memo":"營業時間：09:00-17:00"},{"n":"天然足湯","map":"天然足湯","link":"","time":"10:00","day":"2","trans":"🚌 巴士/接駁","p":"450","t":"f","cate":"🚗 交通","memo":"巴士購票機"},{"n":"登別地獄谷","map":"登別地獄谷","link":"","time":"11:00","day":"2","trans":"🚶 步行","p":"","t":"f","cate":"","memo":""},{"n":"登別熊牧場","map":"登別熊牧場","time":"13:00","day":"2","trans":"🚶 步行","p":"3200","t":"f","cate":"🎟️ 門票","memo":"營業時間：9:30～16:30"},{"n":"溫泉街","map":"溫泉街","time":"16:00","day":"2","trans":"🚶 步行","p":"","t":"f","cate":""},{"n":"跨年開趴","map":"Sola St Inn Noboribetsu","link":"","time":"17:30","day":"2","trans":"🚌 巴士/接駁","p":"450","t":"f","cate":"🚗 交通","memo":"到附近超商採買"},{"n":"Check out","map":"","time":"11:00","day":"3","trans":"","p":"","t":"f","cate":"","memo":""},{"n":"JR札幌站","map":"JR札幌站 ","link":"","time":"12:00","day":"3","trans":"🚆 JR/火車","p":"6720","t":"f","cate":"🚗 交通","memo":"北斗七星號(提前購買)"},{"n":"Solaria Nishitetsu Hotel","map":"Solaria Nishitetsu Hotel Sapporo ","link":"","time":"12:15","day":"3","trans":"🚶 步行","p":"","t":"f","cate":"","memo":""},{"n":"JR小樽站","map":"JR小樽站","link":"","time":"10:00","day":"4","trans":"🚆 JR/火車","p":"800","t":"f","cate":"🚗 交通","memo":"札幌-小樽"},{"n":"天狗山","map":"天狗山","link":"","time":"14:30","day":"4","trans":"🚌 巴士/接駁","p":"240","t":"t","cate":"🚗 交通","memo":"9天狗山索道線"},{"n":"天狗山纜車","map":"天狗山纜車","link":"https://www.kkday.com/zh-tw/product/125844-otaru-tenguyama-ropeway-ticket?srsltid=AfmBOor_WDfkDNr5oW_HIc7g5VNKPo5dcHnxfmSb4q05TkhMU9SYzFDx","time":"15:30","day":"4","trans":"","p":"449","t":"t","cate":"🎟️ 門票","memo":"KKday 購票"},{"n":"小樽站前","map":"小樽站前","link":"","time":"17:30","day":"4","trans":"🚌 巴士/接駁","p":"240","t":"t","cate":"🚗 交通","memo":"9天狗山索道線"},{"n":"JR札幌站","map":"JR札幌站","link":"","time":"20:00","day":"4","trans":"🚆 JR/火車","p":"800","t":"f","cate":"🚗 交通","memo":"小樽-札幌"},{"n":"滑雪","map":"札幌 JR 車站 北口路線巴士 3 號乘車處","link":"https://japanskis.com/zh-TW/product/BTY381","time":"08:45","day":"5","trans":"🚌 巴士/接駁","p":"4500","t":"t","cate":"🎟️ 門票","memo":"日本滑雪專賣店（待訂）"},{"n":"KKday 一日行程","map":"〒060-0807 北海道札幌市北区北７条西３丁目","link":"https://www.kkday.com/zh-tw/product/162520?cid=4904&ud1=detail-share&ud2=app-ios","time":"08:00","day":"6","trans":"","p":"1809","t":"t","cate":"🎟️ 門票","memo":"旭山動物園+ken&mary之樹+白鬍瀑布+白金青池+森林精靈露台(待訂）"},{"n":"美唄站","map":"美唄站","link":"","time":"09:00","day":"7","trans":"🚆 JR/火車","p":"3360","t":"f","cate":"🚗 交通","memo":"特級列車(提前預訂指定席)+接駁車300"},{"n":"美唄雪上樂園","map":"美唄雪上樂園","time":"09:30","day":"7","trans":"🚌 巴士/接駁","p":"2000","t":"f","cate":"🎟️ 門票","memo":"營業時間：9:00～16:15"},{"n":"札幌車站","map":"札幌車站","link":"","time":"16:30","day":"7","trans":"🚆 JR/火車","p":"3360","t":"f","cate":"🚗 交通","memo":"接駁車+特急"},{"n":"纜車入口","map":"纜車入口","link":"","time":"18:30","day":"7","trans":"🚆 JR/火車","p":"360","t":"f","cate":"🚗 交通","memo":"札幌-大通-纜車入口"},{"n":"藻岩山纜車","map":"藻岩山纜車","link":"https://www.kkday.com/zh-tw/product/145835-mt-moiwa-ropeway-mini-cable-car-round-trip-ticket-package-japan?cid=11798&pkg_oid=463421","time":"18:40","day":"7","trans":"🚌 巴士/接駁","p":"380","t":"t","cate":"🎟️ 門票","memo":"KKday購買，末班纜車21:30"},{"n":"札幌車站","map":"札幌車站","link":"","time":"20:30","day":"7","trans":"🚆 JR/火車","p":"360","t":"f","cate":"🚗 交通","memo":"纜車入口-札幌車站"},{"n":"Check out","map":"","link":"","time":"10:00","day":"8","trans":"","p":"","t":"f","cate":"","memo":"回程"},{"n":"新千歲機場","map":"新千歲機場","link":"","time":"12:10","day":"8","trans":"🚆 JR/火車","p":"1230","t":"f","cate":"🚗 交通","memo":"1、2、3、5、6節車廂自由座"}],"packing":[{"c":"證件財物","t":"護照/身分證/VJW QR","d":false},{"c":"證件財物","t":"日幣現金/信用卡/Suica","d":false},{"c":"穿搭裝備","t":"極地發熱衣物/防風外套","d":false},{"c":"穿搭裝備","t":"防滑雪靴/冰爪/厚襪子","d":false},{"c":"電器產品","t":"行動電源/充電線/多孔頭","d":false},{"c":"藥品護理","t":"保濕乳液/護唇膏/常備藥","d":false}]};
+
+    // 切換主頁面 (行程/行李)
+    function switchMainPage(page, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(page + '-page').classList.add('active');
+        el.classList.add('active');
+    }
+
+    // 切換天數 (分頁邏輯)
+    function switchDay(day, el) {
+        document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        renderDay(day);
+    }
+
+    // 渲染特定天數的行程
+    function renderDay(day) {
+        const content = document.getElementById('itContent');
+        content.innerHTML = '';
+        const items = data.itinerary.filter(i => i.day == day);
+        
+        if (items.length === 0) {
+            content.innerHTML = '<p style="text-align:center; color:var(--gray);">本日尚無行程</p>';
+            return;
+        }
+
+        items.forEach(it => {
+            content.innerHTML += `
+                <div class="it-card">
+                    <div class="it-time">${it.time || '--:--'}</div>
+                    <div class="it-info">
+                        <div class="it-name">${it.n}</div>
+                        ${it.p ? `<div class="it-tag">${it.cate || '支出'}：${it.p}${it.t === 'f' ? '円' : '元'}</div>` : ''}
+                        ${it.memo ? `<div class="it-memo">${it.memo}</div>` : ''}
+                    </div>
+                    ${it.map ? `<a class="map-icon" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.map)}" target="_blank">📍</a>` : ''}
+                </div>
+            `;
+        });
+    }
+
+    // 渲染行李清單
+    function renderPacking() {
+        const content = document.getElementById('packContent');
+        let lastCate = '';
+        data.packing.forEach(p => {
+            if (p.c !== lastCate) {
+                content.innerHTML += `<div class="pack-cate">${p.c}</div>`;
+                lastCate = p.c;
+            }
+            content.innerHTML += `
+                <div class="pack-item">
+                    <input type="checkbox">
+                    <span>${p.t}</span>
+                </div>
+            `;
+        });
+    }
+
+    // 初始化
+    window.onload = () => {
+        renderDay(1); // 預設顯示第一天
+        renderPacking();
+    };
+</script>
+
+</body>
+</html>
